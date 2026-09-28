@@ -36,8 +36,8 @@ aside{width:250px;flex:0 0 250px;border-right:1px solid var(--line);padding:20px
 .store{margin-top:auto;font-size:12.5px;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:99px;margin-right:6px;vertical-align:middle}
 .dot.ok{background:var(--green)}.dot.err{background:var(--red)}.dot.off{background:var(--muted)}
-.linkbtn{color:var(--acc);text-decoration:underline;font-size:12.5px}
-main{flex:1;padding:28px 34px;max-width:1100px;overflow-y:auto}
+.linkbtn{color:var(--acc);text-decoration:underline;font-size:12.5px;text-align:left}
+main{flex:1;padding:28px 34px;max-width:1100px}
 .viewhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px;flex-wrap:wrap}
 .viewhead h2{font-size:32px}
 .eyebrow{color:var(--acc);font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600}
@@ -52,13 +52,13 @@ main{flex:1;padding:28px 34px;max-width:1100px;overflow-y:auto}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:20px}
 .panel h3{font-size:17px;margin-bottom:12px}
 .searchbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.searchbar input[type=text],input[type=number],select,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink);font:inherit}
+input[type=text],input[type=number],select,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink);font:inherit}
 .searchbar input[type=text]{flex:1;min-width:200px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .chip{border:1px solid var(--line);border-radius:99px;padding:5px 13px;font-size:12.5px;background:var(--card)}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);cursor:pointer;position:relative}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);cursor:pointer}
 .card:hover{border-color:var(--acc)}
 .card .eyebrow{margin-bottom:4px}
 .card h4{font-family:Fraunces,serif;font-size:16.5px;margin-bottom:2px}
@@ -72,13 +72,12 @@ form .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px
 form .full{grid-column:1/-1}
 label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
 input,select,textarea{width:100%}
-.formfoot{display:flex;gap:10px;margin-top:18px}
+.formfoot{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 .banner{background:var(--bg);border:1px solid var(--gold);border-radius:12px;padding:11px 14px;font-size:13px;margin-bottom:16px}
 .alert-item{display:flex;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
 .alert-item:last-child{border:none}
 .sev{font-size:11px;border-radius:99px;padding:2px 9px;white-space:nowrap}
 .sev.warn{background:#f3e3c8;color:#8a6414}.sev.crit{background:#f0d3cc;color:var(--red)}
-.sev.ok{background:#d9e7d9;color:var(--green)}
 #drawer{position:fixed;top:0;right:-440px;width:min(420px,100vw);height:100vh;background:var(--card);border-left:1px solid var(--line);transition:right .25s;z-index:50;overflow-y:auto;padding:26px;box-shadow:var(--shadow)}
 #drawer.open{right:0}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.25s;z-index:40}
@@ -96,14 +95,10 @@ input,select,textarea{width:100%}
 .msg.bot b{font-family:Fraunces,serif}
 .chatin{display:flex;gap:8px;margin-top:10px;max-width:720px}
 .chatin input{flex:1}
-.empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px}
-.hint{font-size:12.5px;color:var(--muted)}
-.micro{font-size:17px}
-.micro.rec{background:var(--red);color:#fff;border-radius:99px;width:38px;height:38px;flex:0 0 38px}
+.empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px;grid-column:1/-1}
+.hint{color:var(--muted);font-size:12.5px}
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 18px;font-size:13.5px;opacity:0;transition:.3s;z-index:99;pointer-events:none;max-width:90vw}
 #toast.show{opacity:1}
-details.cfg summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--acc);margin-bottom:8px}
-details.cfg input{margin:4px 0 8px}
 @media(max-width:820px){
 body{flex-direction:column}
 aside{width:100%;flex:none;height:auto;position:static;border-right:none;border-bottom:1px solid var(--line);padding:14px}
@@ -137,28 +132,30 @@ form .row{grid-template-columns:1fr}
 <input type="file" id="fileinput" accept=".json,application/json" hidden>
 </div>
 <script>
-var S = { refs: [], view: 'dash', search: '', filter: 'Tous', drawer: null, editId: null, mode: null, chat: [], lots: null };
+var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], listening: false };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
-var CAPS = { 'pessac-léognan':'Pessac-Léognan','sancerre':'Sancerre','chablis':'Chablis','châteauneuf-du-pape':'Châteauneuf-du-Pape','saint-joseph':'Saint-Joseph','cornas':'Cornas','condrieu':'Condrieu','côte-rôtie':'Côte-Rôtie','hermitage':'Hermitage','crozes-hermitage':'Crozes-Hermitage','chinon':'Chinon','vouvray':'Vouvray','morgon':'Morgon','fleurie':'Fleurie','juliénas':'Juliénas','saint-amour':'Saint-Amour','chénas':'Chénas','moulin-à-vent':'Moulin-à-Vent','pouilly-fuissé':'Pouilly-Fuissé','pouilly-fumé':'Pouilly-Fumé','meursault':'Meursault','pommard':'Pommard','gevrey-chambertin':'Gevrey-Chambertin','morey-saint-denis':'Morey-Saint-Denis','chambolle-musigny':'Chambolle-Musigny','vosne-romanée':'Vosne-Romanée','nuits-saint-georges':'Nuits-Saint-Georges','saint-émilion':'Saint-Émilion','pomerol':'Pomerol','margaux':'Margaux','pauillac':'Pauillac','saint-julien':'Saint-Julien','listrac-médoc':'Listrac-Médoc','moulis':'Moulis','fitou':'Fitou','minervois':'Minervois','corbières':'Corbières','pic-saint-loup':'Pic Saint-Loup','vacqueyras':'Vacqueyras','gigondas':'Gigondas','rasteau':'Rasteau','cairanne':'Cairanne','bandol':'Bandol','cassis':'Cassis','bellet':'Bellet','arbois':'Arbois','château-chalon':'Château-Chalon','savennières':'Savennières','anjou':'Anjou','saumur':'Saumur','montlouis':'Montlouis','menetou-salon':'Menetou-Salon','reedu-quincy':'Reuilly','quincy':'Quincy','sancerre':'Sancerre' };
-var CEPAGES = ['gamay','pinot noir','chardonnay','syrah','grenache','mourvèdre','cinsault','carignan','cabernet sauvignon','cabernet franc','merlot','malbec','petit verdot','sauvignon blanc','chenin','riesling','gewurztraminer','muscat','viognier','roussanne','marsanne','grolleau','pineau d\'aunis','melon de bourgogne','aligote','ugni blanc','terret','nielluccio','sciaccarellu','vermentino','grenache blanc','clarette','arbois','poulsard','trousseau','savagnin'];
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function id(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2600); }
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('show'); },2800); }
+function val(fid){ return document.getElementById(fid).value.trim(); }
+function set$(fid,v){ var el=document.getElementById(fid); if(!el||v===null||v===undefined||v==='') return;
+  if(el.tagName==='SELECT'){ for(var i=0;i<el.options.length;i++){ if(el.options[i].text.toLowerCase().indexOf(String(v).toLowerCase())>=0){ el.selectedIndex=i; break; } } }
+  else el.value=v; }
 
-/* ---------- apogée ---------- */
+/* ---------- apogee ---------- */
 function apYears(r){
-  var m = /(d{4})s*(?:[–\-—]|a|à|jusqu\'au|jusqu\'à|jusqu'a|to)?s*(d{4})?/.exec(String(r.apogee||''));
+  var m = /(\d{4})\s*(?:[–\-—]|a|à|jusqu\u2019au|jusqu'a|to)?\s*(\d{4})?/.exec(String(r.apogee||''));
   if(!m) return null;
   var d = parseInt(m[1],10), f = m[2] ? parseInt(m[2],10) : d;
   if(f < d) f = d; return { d:d, f:f };
 }
 function inWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return y>=a.d && y<=a.f; }
-function soonWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return a.d>0 && a.d-y<=2 && y<=a.f; }
+function soonWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return a.d>y && a.d-y<=2; }
 function isLongGarde(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return (a.f-a.d>8) || (a.f-y>5); }
 
-/* ---------- règles métier ---------- */
+/* ---------- regles metier ---------- */
 function seuilBas(qi){ qi=qi||0; if(qi<=2) return 0; if(qi<=5) return 1; return 2; }
 function alertsFor(r){
   var out=[];
@@ -171,8 +168,10 @@ function alertsFor(r){
 }
 function allAlerts(){ var out=[]; S.refs.forEach(function(r){ alertsFor(r).forEach(function(a){ if(a.sev!=='ok') out.push({ref:r,a:a}); }); }); return out; }
 function alertCount(){ return allAlerts().length; }
+function current(){ return S.refs.filter(function(r){ return r.qte>0; }); }
+function qsum(l){ return l.reduce(function(a,r){ return a+Math.max(0,r.qte); },0); }
 
-/* ---------- persistance ---------- */
+/* ---------- persistance locale ---------- */
 var LSKEY='cave-nicolas-v2';
 function localSave(){ localStorage.setItem(LSKEY, JSON.stringify(S.refs)); }
 function localLoad(){ try{ S.refs = JSON.parse(localStorage.getItem(LSKEY)||'[]'); }catch(e){ S.refs=[]; } }
@@ -184,12 +183,12 @@ function toCSV(){
   var lines=[head.join(';')];
   S.refs.forEach(function(r){
     var lots=(r.lots||[]).map(function(l){ return l.qte+'@'+l.date; }).join(',');
-    lines.push([r.domaine,r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee,r.prix||'',r.note||'',r.dateEntree||'',lots].map(csvCell).join(';'));
+    lines.push([r.domaine,r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.note||'',r.dateEntree||'',lots].map(csvCell).join(';'));
   });
   return lines.join('\n');
 }
 function parseCSV(text){
-  var rows=[]; var row=[]; var cell=''; var q=false;
+  var rows=[], row=[], cell='', q=false;
   for(var i=0;i<text.length;i++){ var c=text[i];
     if(q){ if(c==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else q=false; } else cell+=c; }
     else if(c==='"') q=true;
@@ -198,142 +197,146 @@ function parseCSV(text){
     else cell+=c;
   }
   row.push(cell); if(row.some(function(x){return x!=='';})) rows.push(row);
-  if(!rows.length) return [];
-  var head=rows[0].map(function(h){return h.trim().toLowerCase();});
-  function get(r,name){ var i=head.indexOf(name); return i>=0?(r[i]||'').trim():''; }
-  var map={};
+  if(rows.length<2) return [];
+  var head=rows[0].map(function(h){ return h.trim().toLowerCase(); });
+  function get(rw,n){ var i2=head.indexOf(n); return i2>=0?(rw[i2]||'').trim():''; }
+  var map={}, order=[];
   rows.slice(1).forEach(function(rw){
     var dom=get(rw,'domaine'); if(!dom) return;
-    var mil=get(rw,'millesime');
-    var key=dom.toLowerCase()+'|'+get(rw,'appellation').toLowerCase()+'|'+mil;
-    var lotsRaw=get(rw,'lots'); var lots=[];
+    var key=dom.toLowerCase()+'|'+get(rw,'appellation').toLowerCase()+'|'+get(rw,'millesime');
+    var lotsRaw=get(rw,'lots'), lots=[];
     if(lotsRaw){ lotsRaw.split(',').forEach(function(p){ var t=p.split('@'); if(t[0]) lots.push({qte:parseInt(t[0],10)||0,date:t[1]||''}); }); }
     var o=map[key];
-    if(!o){ o={ id:id(), domaine:dom, region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:mil||'', cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:(get(rw,'zone')==='garage'?'garage':'frigo'), etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?parseFloat(get(rw,'prix').replace(',','.'))||null:null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots }; map[key]=o; }
-    else{ o.qte += parseInt(get(rw,'qte'),10)||0; o.qteInit += parseInt(get(rw,'qteInit'),10)||0; if(lots.length) o.lots=(o.lots||[]).concat(lots); }
+    if(!o){ o={ id:id(), domaine:dom, region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:(get(rw,'zone')==='garage'?'garage':'frigo'), etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots }; map[key]=o; order.push(key); }
+    else { o.qte+=parseInt(get(rw,'qte'),10)||0; o.qteInit+=parseInt(get(rw,'qteInit'),10)||0; if(lots.length) o.lots=o.lots.concat(lots); }
   });
-  return Object.keys(map).map(function(k){ return map[k]; });
+  return order.map(function(k){ return map[k]; });
 }
 
-/* ---------- OneDrive (Microsoft Graph) ---------- */
-var OD = { token: sessionStorage.getItem('od_token')||'', lastSnap: localStorage.getItem('od_snap')||'', clientId: localStorage.getItem('od_client')||'' };
+/* ---------- OneDrive (Microsoft Graph) — comptes organisation (M365) ---------- */
+var OD = { token: sessionStorage.getItem('od_token')||'', lastSnap: localStorage.getItem('od_snap')||'', clientId: localStorage.getItem('od_client')||'', tenant: localStorage.getItem('od_tenant')||'organizations' };
 var FILE_PATH='/Cave/cave-data.csv';
 var GRAPH='https://graph.microsoft.com/v1.0';
+var TENANT=OD.tenant||'organizations';
 function graph(method,path,body,mime){
-  return fetch(GRAPH+path,{ method:method, headers:Object.assign({'Authorization':'Bearer '+OD.token}, body?{'Content-Type':mime||'text/plain'}:{}), body:body||undefined });
+  return fetch(GRAPH+path,{ method:method, headers:Object.assign({'Authorization':'Bearer '+OD.token}, body?{'Content-Type':(mime||'text/plain')}:{}), body:body||undefined });
 }
-function odStatus(kind,label){ var el=document.getElementById('syncstatus'); el.innerHTML='<span class="dot '+kind+'"></span>'+esc(label); }
-function odEnsureFolder(){ return graph('POST','/me/drive/root/children', JSON.stringify({name:'Cave',folder:{}, '@microsoft.graph.conflictBehavior':'fail'}), 'application/json').then(function(){},function(){}); }
+function odStatus(kind,label){ document.getElementById('syncstatus').innerHTML='<span class="dot '+kind+'"></span>'+esc(label); }
+function odEnsureFolder(){ return graph('POST','/me/drive/root/children', JSON.stringify({name:'Cave',folder:{}}), 'application/json').then(function(){},function(){}); }
 function odPull(){
   if(!OD.token) return Promise.resolve(false);
   odStatus('off','Synchronisation OneDrive…');
   return graph('GET','/me/drive/root:'+FILE_PATH+':/content').then(function(r){
-    if(!r.ok) throw new Error('fichier absent');
+    if(!r.ok) throw new Error('absent');
     return r.text();
   }).then(function(csv){
     var norm=csv.replace(/\r/g,'');
-    if(norm!==OD.lastSnap){ var refs=parseCSV(norm); if(refs.length||S.refs.length===0){ S.refs=refs; localSave(); } OD.lastSnap=norm; }
-    odStatus('ok','OneDrive synchronisé');
+    if(norm!==OD.lastSnap){ var refs=parseCSV(norm); if(refs.length||S.refs.length===0){ S.refs=refs; localSave(); } OD.lastSnap=norm; localStorage.setItem('od_snap',norm); }
+    odStatus('ok','OneDrive synchronisé · cave-data.csv');
     return true;
-  }).catch(function(e){ odStatus('err','OneDrive indisponible'); return false; });
+  }).catch(function(){ odStatus('err','OneDrive indisponible'); return false; });
 }
 function odPush(){
   if(!OD.token) return;
   var csv=toCSV().replace(/\n/g,'\r\n');
-  odEnsureFolder().then(function(){
-    return graph('PUT','/me/drive/root:'+FILE_PATH+':/content', csv, 'text/csv');
-  }).then(function(r){ if(!r.ok) throw new Error('upload'); return r.json(); }).then(function(){ OD.lastSnap=csv.replace(/\r\n/g,'\n'); localStorage.setItem('od_snap',OD.lastSnap); odStatus('ok','OneDrive synchronisé'); }).catch(function(){ odStatus('err','Échec de mise à jour OneDrive'); });
+  odStatus('off','Mise à jour OneDrive…');
+  odEnsureFolder().then(function(){ return graph('PUT','/me/drive/root:'+FILE_PATH+':/content', csv, 'text/csv'); })
+  .then(function(r){ if(!r.ok) throw new Error('upload'); OD.lastSnap=csv.replace(/\r\n/g,'\n'); localStorage.setItem('od_snap',OD.lastSnap); odStatus('ok','OneDrive synchronisé · cave-data.csv'); })
+  .catch(function(){ odStatus('err','Échec de mise à jour OneDrive'); });
 }
 function save(push){ localSave(); if(push!==false && OD.token) odPush(); render(); }
 
-/* ---------- OAuth ---------- */
-function odConnect(){
-  if(!OD.clientId){ toast('Renseignez d\'abord votre Client ID (Réglages OneDrive)'); openCfg(); return; }
-  localStorage.setItem('od_client',OD.clientId);
-  var verifier=b64url(randArr(32)); var challenge=b64url(sha256verifier(verifier));
-  sessionStorage.setItem('pkce',verifier);
-  var redir=location.origin+location.pathname;
-  var url='https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?response_type=code&client_id='+encodeURIComponent(OD.clientId)+'&redirect_uri='+encodeURIComponent(redir)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read offline_access')+'&code_challenge='+challenge+'&code_challenge_method=S256';
-  location.href=url;
-}
+/* ---------- OAuth (PKCE) ---------- */
 function b64url(a){ return btoa(String.fromCharCode.apply(null,a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-function randArr(n){ var a=new Uint8Array(n); crypto.getRandomValues(a); return a; }
-function sha256verifier(v){ // SHA-256 via subtle
-  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)).then(function(h){ return b64url(new Uint8Array(h)); });
+function odConnect(){
+  if(!OD.clientId){ toast('Renseignez votre Client ID (Réglages OneDrive)'); openCfg(); return; }
+  localStorage.setItem('od_client',OD.clientId); localStorage.setItem('od_tenant',TENANT);
+  var v=b64url(crypto.getRandomValues(new Uint8Array(32)));
+  sessionStorage.setItem('pkce',v);
+  crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)).then(function(h){
+    var ch=b64url(new Uint8Array(h));
+    var redir=location.origin+location.pathname;
+    location.href='https://login.microsoftonline.com/'+TENANT+'/oauth2/v2.0/authorize?response_type=code&client_id='+encodeURIComponent(OD.clientId)+'&redirect_uri='+encodeURIComponent(redir)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read offline_access')+'&code_challenge='+ch+'&code_challenge_method=S256';
+  });
+}
+function odToken(body){
+  return fetch('https://login.microsoftonline.com/'+TENANT+'/oauth2/v2.0/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body})
+    .then(function(r){ return r.json(); });
 }
 function odHandleCode(){
   var p=new URLSearchParams(location.search);
   var code=p.get('code'); if(!code) return false;
   var v=sessionStorage.getItem('pkce'); history.replaceState(null,'',location.pathname);
   var redir=location.origin+location.pathname;
-  fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'client_id='+encodeURIComponent(OD.clientId)+'&grant_type=authorization_code&code='+encodeURIComponent(code)+'&redirect_uri='+encodeURIComponent(redir)+'&code_verifier='+encodeURIComponent(v) })
-    .then(function(r){ return r.json(); }).then(function(t){
-      if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token); odPull().then(render); }
-      else toast('Connexion OneDrive refusée');
-    });
+  odToken('client_id='+encodeURIComponent(OD.clientId)+'&grant_type=authorization_code&code='+encodeURIComponent(code)+'&redirect_uri='+encodeURIComponent(redir)+'&code_verifier='+encodeURIComponent(v))
+  .then(function(t){
+    if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token); odPull().then(render); }
+    else toast('Connexion OneDrive refusée — vérifiez le Client ID et le type de compte');
+  });
   return true;
 }
-function odRestore(){ // refresh token flow
+function odRestore(){
   var rt=localStorage.getItem('od_refresh');
   if(!OD.token && rt && OD.clientId){
-    var redir=location.origin+location.pathname;
-    fetch('https://login.microsoftonline.com/consumers/oauth2/v2.0/token',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'client_id='+encodeURIComponent(OD.clientId)+'&grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read') })
-      .then(function(r){ return r.json(); }).then(function(t){ if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); odPull().then(render); } });
+    odToken('client_id='+encodeURIComponent(OD.clientId)+'&grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read'))
+    .then(function(t){ if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token); odPull().then(render); } });
   }
 }
 function openCfg(){
   drawerOpen('\
     <span class="eyebrow">Stockage</span>\
     <h3 style="margin:4px 0 14px">Réglages OneDrive</h3>\
-    <label>Client ID de l\'application Microsoft</label>\
-    <input type="text" id="cfg-client" value="'+esc(OD.clientId)+'" placeholder="00000000-0000-0000-0000-000000000000">\
-    <p class="hint" style="margin:8px 0 12px">Suivez le guide « GUIDE_ONEDRIVE.md » pour créer cette inscription (10 min, une seule fois). Le fichier passerelle est <b>Cave/cave-data.csv</b> à la racine de votre OneDrive.</p>\
+    <label>Client ID de l\u2019application Microsoft</label>\
+    <input type="text" id="cfg-client" value="'+esc(OD.clientId)+'" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">\
+    <label style="margin-top:10px">Type de compte</label>\
+    <select id="cfg-tenant"><option value="organizations"'+(TENANT==='organizations'?' selected':'')+'>Compte Microsoft 365 / organisation (travail)</option><option value="consumers"'+(TENANT==='consumers'?' selected':'')+'>Compte Microsoft personnel</option></select>\
+    <p class="hint" style="margin:8px 0 12px">Choisissez « organisation » si votre inscription Azure est dans un client M365, « personnel » pour un compte @outlook/@hotmail. Le fichier passerelle est <b>Cave/cave-data.csv</b> à la racine de votre OneDrive.</p>\
     <div class="formfoot">\
       <button class="btn sm" id="cfg-save">Enregistrer</button>\
       <button class="btn sm sec" id="cfg-connect">'+(OD.token?'Reconnecter':'Connecter OneDrive')+'</button>\
       <button class="btn sm sec" id="cfg-push">Envoyer vers OneDrive</button>\
+      <button class="btn sm sec" id="cfg-pull">Relire depuis OneDrive</button>\
     </div>\
-    <p class="hint" style="margin-top:12px">Synchronisation : toute modification est envoyée vers OneDrive à chaud ; au chargement de l\'appli, le fichier OneDrive est relu et ses modifications manuelles (Excel, etc.) sont intégrées.</p>');
-  document.getElementById('cfg-save').onclick=function(){ OD.clientId=document.getElementById('cfg-client').value.trim(); localStorage.setItem('od_client',OD.clientId); toast('Client ID enregistré'); };
-  document.getElementById('cfg-connect').onclick=function(){ OD.clientId=document.getElementById('cfg-client').value.trim(); localStorage.setItem('od_client',OD.clientId); odConnect(); };
+    <p class="hint" style="margin-top:12px">Chaque modification est envoyée vers OneDrive à chaud. Au chargement, le fichier OneDrive est relu : vos modifications manuelles (Excel…) sont intégrées.</p>');
+  document.getElementById('cfg-save').onclick=function(){ OD.clientId=val('cfg-client'); localStorage.setItem('od_client',OD.clientId); TENANT=document.getElementById('cfg-tenant').value; localStorage.setItem('od_tenant',TENANT); toast('Réglages enregistrés'); };
+  document.getElementById('cfg-connect').onclick=function(){ OD.clientId=val('cfg-client'); localStorage.setItem('od_client',OD.clientId); TENANT=document.getElementById('cfg-tenant').value; localStorage.setItem('od_tenant',TENANT); odConnect(); };
   document.getElementById('cfg-push').onclick=function(){ odPush(); toast('Envoi vers OneDrive…'); };
+  document.getElementById('cfg-pull').onclick=function(){ odPull().then(function(){ render(); toast('Fichier OneDrive relu'); }); };
 }
 
 /* ---------- rendu ---------- */
 function render(){
-  document.getElementById('nav').innerHTML='';
+  var nav=document.getElementById('nav'); nav.innerHTML='';
   var views=[['dash','◆ Tableau de bord'],['cave','▤ Ma cave'],['add','＋ Ajouter'],['soir','↗ Que boire ce soir ?'],['alertes','! Alertes']];
   views.forEach(function(v){
     var b=document.createElement('button'); b.textContent=v[1]; if(S.view===v[0]) b.className='on';
     if(v[0]==='alertes'&&alertCount()) b.innerHTML=esc(v[1])+' <span class="badge">'+alertCount()+'</span>';
-    b.onclick=function(){ S.view=v[0]; S.editId=null; S.mode=null; closeDrawer(); render(); }; document.getElementById('nav').appendChild(b);
+    b.onclick=function(){ S.view=v[0]; S.editId=null; closeDrawer(); render(); }; nav.appendChild(b);
   });
   var frigo=0, gar=0;
-  S.refs.forEach(function(r){ if(r.qte<=0) return; if(r.zone==='garage') gar+=r.qte; else frigo+=r.qte; });
+  current().forEach(function(r){ if(r.zone==='garage') gar+=r.qte; else frigo+=r.qte; });
   document.getElementById('gauges').innerHTML='\
     <div class="gauge"><div>Cave frigo · 15 °C · <span class="mono">'+frigo+'/75</span></div><div class="gbar"><div class="gfill" style="width:'+Math.min(100,frigo/75*100)+'%"></div></div></div>\
     <div class="gauge garage"><div>Garage · <span class="mono">'+gar+'/150</span></div><div class="gbar"><div class="gfill" style="width:'+Math.min(100,gar/150*100)+'%"></div></div></div>';
   document.getElementById('btn-cfg').onclick=openCfg;
-  ({dash:vDash,cave:vCave,add:vAdd,soir:vSoir,alertes:vAlertes})[S.view]();
+  var fn={dash:vDash,cave:vCave,add:vAdd,soir:vSoir,alertes:vAlertes}[S.view]; fn();
 }
-function qsum(list){ return list.reduce(function(a,r){ return a+Math.max(0,r.qte); },0); }
-function current(){ return S.refs.filter(function(r){ return r.qte>0; }); }
 function refCard(r){
-  var al=alertsFor(r).filter(function(a){return a.sev!=='ok';});
+  var al=alertsFor(r).filter(function(a){ return a.sev!=='ok'; });
   return '<div class="card" data-ref="'+r.id+'"><div class="eyebrow">'+esc(r.region)+' · '+esc(r.millesime)+'</div><h4>'+esc(r.domaine)+'</h4><div class="meta">'+esc(r.appellation)+' · '+esc(r.couleur)+'</div><div class="tagrow"><span class="tag q mono">× '+r.qte+'</span><span class="tag">'+esc(r.zone==='garage'?'Garage':'Frigo · étag. '+r.etagere)+'</span>'+(r.apogee?'<span class="tag">'+esc(r.apogee)+'</span>':'')+(al.length?'<span class="tag alert">'+al.length+' alerte'+(al.length>1?'s':'')+'</span>':'')+(r.qte<=0?'<span class="tag dead">Épuisée</span>':'')+'</div></div>';
 }
 function bindCards(){ document.querySelectorAll('[data-ref]').forEach(function(c){ c.onclick=function(){ openRef(c.getAttribute('data-ref')); }; }); }
 
 /* ---------- tableau de bord ---------- */
 function vDash(){
-  var cur=current(); var refs=cur.length;
+  var cur=current(), refs=cur.length;
   var bientot=cur.filter(function(r){ return inWindow(r)||soonWindow(r); }).length;
   var bas=cur.filter(function(r){ return r.qte<=seuilBas(r.qteInit); }).length;
   var mal=cur.filter(function(r){ return r.zone==='garage'&&isLongGarde(r); }).length;
   var als=allAlerts().slice(0,4);
   var recent=S.refs.filter(function(r){ return r.qte>0; }).sort(function(a,b){ return (b.dateEntree||'').localeCompare(a.dateEntree||''); }).slice(0,4);
   document.getElementById('main').innerHTML='\
-   <div class="viewhead"><div><span class="eyebrow">Vue d\'ensemble</span><h2>Bonjour Nicolas</h2><p class="hint">'+(als.length? 'Quelques points demandent votre attention.' : 'Votre cave est en ordre. Bonne dégustation !')+'</p></div><button class="btn" id="d-add">＋ Ajouter une bouteille</button></div>\
+   <div class="viewhead"><div><span class="eyebrow">Vue d\u2019ensemble</span><h2>Bonjour Nicolas</h2><p class="hint">'+(allAlerts().length? 'Quelques points demandent votre attention.' : 'Votre cave est en ordre. Bonne dégustation !')+'</p></div><button class="btn" id="d-add">＋ Ajouter une bouteille</button></div>\
    <div class="tiles">\
      <div class="tile"><b class="mono">'+qsum(cur)+'</b><span>bouteilles en cave · '+refs+' réf.</span></div>\
      <div class="tile"><b class="mono">'+bientot+'</b><span>à boire bientôt</span></div>\
@@ -341,7 +344,7 @@ function vDash(){
      <div class="tile"><b class="mono">'+mal+'</b><span>mal placées</span></div>\
    </div>\
    <div class="panel"><h3>Alertes récentes</h3>'+(als.length? als.map(function(x){ return '<div class="alert-item"><span><b>'+esc(x.ref.domaine)+'</b> '+esc(x.ref.millesime)+' — '+esc(x.a.txt)+'</span><span class="sev '+x.a.sev+'">'+(x.a.sev==='crit'?'Critique':'À surveiller')+'</span></div>'; }).join('') : '<p class="hint">Aucune alerte active. 🍷</p>')+'<button class="linkbtn" id="d-alerts">Tout voir →</button></div>\
-   <div class="panel"><h3>Ajoutées récemment</h3><div class="grid">'+(recent.length? recent.map(refCard).join(''):'<p class="hint">Aucune bouteille pour l\'instant.</p>')+'</div><button class="linkbtn" id="d-cave">Voir la cave →</button></div>';
+   <div class="panel"><h3>Ajoutées récemment</h3><div class="grid">'+(recent.length? recent.map(refCard).join(''):'<p class="hint">Aucune bouteille pour l\u2019instant.</p>')+'</div><button class="linkbtn" id="d-cave">Voir la cave →</button></div>';
   document.getElementById('d-add').onclick=function(){ S.view='add'; render(); };
   document.getElementById('d-alerts').onclick=function(){ S.view='alertes'; render(); };
   document.getElementById('d-cave').onclick=function(){ S.view='cave'; render(); };
@@ -362,28 +365,27 @@ function vCave(){
   list.sort(function(a,b){ return (a.domaine||'').localeCompare(b.domaine||''); });
   document.getElementById('main').innerHTML='\
    <div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><button class="btn" id="c-add">＋ Ajouter</button></div>\
-   <div class="searchbar"><input type="text" id="c-search" placeholder="Rechercher un domaine, une région, une appellation, un millésime…"><button class="btn sec" id="c-micro">🎤</button></div>\
+   <div class="searchbar"><input type="text" id="c-search" placeholder="Rechercher un domaine, une région, une appellation, un millésime…"><button class="btn sec" id="c-micro" title="Recherche vocale">🎤</button></div>\
    <div class="chips">'+chips.map(function(c){ return '<button class="chip'+(S.filter===c?' on':'')+'" data-chip="'+c+'">'+c+'</button>'; }).join('')+'</div>\
    <div class="grid" id="c-grid"></div>';
   var se=document.getElementById('c-search'); se.value=S.search;
-  se.oninput=function(){ S.search=se.value; vCave(); var s2=document.getElementById('c-search'); s2.focus(); s2.setSelectionRange(s2.value.length,s2.value.length); };
+  se.addEventListener('input',function(){ S.search=se.value; var pos=se.selectionStart; vCave(); var s2=document.getElementById('c-search'); s2.focus(); s2.setSelectionRange(pos,pos); });
   document.querySelectorAll('[data-chip]').forEach(function(b){ b.onclick=function(){ S.filter=b.getAttribute('data-chip'); vCave(); }; });
   document.getElementById('c-add').onclick=function(){ S.view='add'; render(); };
-  document.getElementById('c-micro').onclick=function(){ voiceQuery(function(txt){ S.search=txt; vCave(); }); };
-  var g=document.getElementById('c-grid');
-  g.innerHTML=list.length? list.map(refCard).join('') : '<p class="empty">Aucune bouteille ne correspond.</p>';
+  document.getElementById('c-micro').onclick=function(){ voiceQuery(function(t){ S.search=t; vCave(); }); };
+  document.getElementById('c-grid').innerHTML=list.length? list.map(refCard).join('') : '<p class="empty">Aucune bouteille ne correspond.</p>';
   bindCards();
 }
 
-/* ---------- ajout / édition ---------- */
+/* ---------- ajout / edition ---------- */
 function vAdd(){
-  var r=null;
-  if(S.editId){ r=S.refs.find(function(x){ return x.id===S.editId; }); }
-  var opts=function(arr,sel){ return arr.map(function(o){ return '<option'+(o===sel?' selected':'')+'>'+o+'</option>'; }).join(''); };
-  var etages=function(sel){ return '<option value=""'+(!sel?' selected':'')+'>—</option>'+[1,2,3,4,5].map(function(n){ return '<option'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join(''); };
+  var r=S.editId? S.refs.find(function(x){ return x.id===S.editId; }) : null;
+  function opts(arr,sel){ return arr.map(function(o){ return '<option'+(o===sel?' selected':'')+'>'+o+'</option>'; }).join(''); }
+  function etages(sel){ return '<option value=""'+(!sel?' selected':'')+'>—</option>'+[1,2,3,4,5].map(function(n){ return '<option'+(n===sel?' selected':'')+'>'+n+'</option>'; }).join(''); }
+  var nowM=(new Date().getMonth()+1)+'/'+new Date().getFullYear();
   document.getElementById('main').innerHTML='\
    <div class="viewhead"><div><span class="eyebrow">'+(r?'Modifier la fiche':'Entrée en cave')+'</span><h2>'+(r?'Modifier':'Ajouter')+'</h2></div>\
-   <div><button class="btn sec" id="a-restock">Réassort d\'une référence connue</button> <button class="btn sec" id="a-micro">🎤 Dicter</button></div></div>\
+   <div><button class="btn sec" id="a-restock">Réassort d\u2019une référence connue</button> <button class="btn sec" id="a-micro">🎤 Dicter</button></div></div>\
    <div id="a-transcript" class="banner" style="display:none"></div>\
    <form id="a-form" class="panel">\
      <div class="row"><div><label>Domaine / producteur *</label><input type="text" id="f-domaine" required value="'+esc(r?r.domaine:'')+'"></div>\
@@ -395,55 +397,51 @@ function vAdd(){
      <div class="row"><div><label>Quantité *</label><input type="number" id="f-qte" min="1" required value="'+(r?r.qte:1)+'"></div>\
      <div><label>Emplacement *</label><select id="f-zone"><option value="frigo"'+(!r||r.zone==='frigo'?' selected':'')+'>Cave frigo</option><option value="garage"'+(r&&r.zone==='garage'?' selected':'')+'>Garage</option></select></div></div>\
      <div class="row"><div><label>Étagère frigo (si cave frigo)</label><select id="f-etagere">'+etages(r?r.etagere:null)+'</select></div>\
-     <div><label>Date d\'entrée (MM/AAAA)</label><input type="text" id="f-date" placeholder="'+new Date().getMonth()+1 + '/' + new Date().getFullYear()+'" value="'+esc(r?r.dateEntree:'')+'"></div></div>\
-     <div class="row"><div><label>Fenêtre d\'apogée (ex. 2026 – 2032)</label><input type="text" id="f-apogee" value="'+esc(r?r.apogee:'')+'"></div>\
-     <div><label>Prix d\'achat (optionnel)</label><input type="text" id="f-prix" inputmode="decimal" value="'+esc(r&&r.prix!=null?r.prix:'')+'"></div></div>\
+     <div><label>Date d\u2019entrée (MM/AAAA)</label><input type="text" id="f-date" placeholder="'+nowM+'" value="'+esc(r?r.dateEntree:'')+'"></div></div>\
+     <div class="row"><div><label>Fenêtre d\u2019apogée (ex. 2026 – 2032)</label><input type="text" id="f-apogee" value="'+esc(r?r.apogee:'')+'"></div>\
+     <div><label>Prix d\u2019achat (optionnel)</label><input type="text" id="f-prix" inputmode="decimal" value="'+esc(r&&r.prix!=null?r.prix:'')+'"></div></div>\
      <div class="row"><div class="full"><label>Note personnelle (optionnelle)</label><textarea id="f-note" rows="2">'+esc(r?r.note:'')+'</textarea></div></div>\
      <p class="hint" id="f-warn" style="color:var(--red)"></p>\
-     <div class="formfoot"><button type="submit" class="btn">'+(r?'Enregistrer les modifications':'Enregistrer en cave')+'</button><button type="reset" class="btn sec" id="a-reset">Réinitialiser</button></div>\
+     <div class="formfoot"><button type="submit" class="btn">'+(r?'Enregistrer les modifications':'Enregistrer en cave')+'</button><button type="button" class="btn sec" id="a-reset">Réinitialiser</button></div>\
    </form>';
-  document.getElementById('a-restock').onclick=function(){ restockPanel(); };
+  document.getElementById('a-restock').onclick=restockPanel;
   document.getElementById('a-micro').onclick=voiceAdd;
   document.getElementById('a-reset').onclick=function(){ S.editId=null; vAdd(); };
-  var form=document.getElementById('a-form');
-  var zoneWarn=function(){
-    var z=document.getElementById('f-zone').value, ap=document.getElementById('f-apogee').value;
-    var fake={apogee:ap};
-    document.getElementById('f-warn').textContent = (z==='garage'&&isLongGarde(fake)) ? 'Attention : vin de garde placé au garage (zone inadaptée). Confirmez votre choix.' : '';
-  };
+  function zoneWarn(){
+    var z=val('f-zone'), ap=val('f-apogee');
+    document.getElementById('f-warn').textContent=(z==='garage'&&isLongGarde({apogee:ap}))? 'Attention : vin de garde placé au garage (zone inadaptée). Confirmez votre choix.' : '';
+  }
   ['f-zone','f-apogee'].forEach(function(fid){ document.getElementById(fid).addEventListener('change',zoneWarn); });
-  form.onsubmit=function(e){
+  document.getElementById('a-form').onsubmit=function(e){
     e.preventDefault();
-    var zone=document.getElementById('f-zone').value;
-    var ap=document.getElementById('f-apogee').value;
+    var zone=val('f-zone'), ap=val('f-apogee');
     if(zone==='garage'&&isLongGarde({apogee:ap})){ if(!confirm('Ce vin semble destiné à une garde longue et serait placé au garage (zone inadaptée). Confirmer ?')) return; }
-    var o={ domaine:val('f-domaine'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zone==='frigo'?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||((new Date().getMonth()+1)+'/'+new Date().getFullYear()) };
+    var o={ domaine:val('f-domaine'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zone==='frigo'?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
     if(r){ if((r.lots||[]).length<=1) r.lots=[{qte:o.qte,date:o.dateEntree}];
-      Object.assign(r,o);
-      if(o.qte>r.qteInit) r.qteInit=o.qte;
-      toast('Fiche modifiée');
+      if(o.qte>(r.qteInit||0)) o.qteInit=o.qte; else o.qteInit=r.qteInit;
+      Object.assign(r,o); toast('Fiche modifiée');
     } else {
       o.qteInit=o.qte; o.id=id(); o.lots=[{qte:o.qte,date:o.dateEntree}];
       S.refs.push(o); toast('Bouteille ajoutée en cave');
     }
     S.editId=null; save(); S.view='cave'; render();
   };
-  function val(fid){ return document.getElementById(fid).value.trim(); }
 }
 function restockPanel(){
   drawerOpen('\
    <span class="eyebrow">Entrée en cave</span><h3 style="margin:4px 0 12px">Retrouver une référence connue</h3>\
-   <div class="searchbar" style="margin-bottom:10px"><input type="text" id="rs-q" placeholder="Rechercher (domaine, appellation, millésime)…"><button class="btn sec" id="rs-mic">🎤</button></div>\
+   <p class="hint" style="margin-bottom:10px">Y compris les références épuisées.</p>\
+   <div class="searchbar" style="margin-bottom:10px"><input type="text" id="rs-q" placeholder="Domaine, appellation, millésime…"><button class="btn sec" id="rs-mic" title="Recherche vocale">🎤</button></div>\
    <div id="rs-list"></div>');
-  var draw=function(){
+  function draw(){
     var q=(document.getElementById('rs-q').value||'').toLowerCase();
     var list=S.refs.filter(function(r){ return [r.domaine,r.appellation,r.millesime,r.region].join(' ').toLowerCase().indexOf(q)>=0; });
     document.getElementById('rs-list').innerHTML=list.length? list.map(function(r){
       return '<div class="alert-item"><span><b>'+esc(r.domaine)+'</b> '+esc(r.millesime)+'<br><span class="hint">'+esc(r.appellation)+' · '+esc(r.couleur)+' · <span class="mono">×'+r.qte+'</span></span></span><button class="btn sm" data-rs="'+r.id+'">'+(r.qte<=0?'Remettre en stock':'Ajouter au stock')+'</button></div>';
     }).join('') : '<p class="hint">Aucune référence.</p>';
     document.querySelectorAll('[data-rs]').forEach(function(b){ b.onclick=function(){ restock(b.getAttribute('data-rs')); }; });
-  };
-  document.getElementById('rs-q').oninput=draw;
+  }
+  document.getElementById('rs-q').addEventListener('input',draw);
   document.getElementById('rs-mic').onclick=function(){ voiceQuery(function(t){ document.getElementById('rs-q').value=t; draw(); }); };
   draw();
 }
@@ -451,52 +449,52 @@ function restock(refId){
   var r=S.refs.find(function(x){ return x.id===refId; }); if(!r) return;
   var n=parseInt(prompt('Combien de bouteilles de « '+r.domaine+' '+r.millesime+' » entrez en cave ?', '1'),10);
   if(!n||n<1) return;
-  r.qte+=n; r.qteInit+=n; (r.lots=r.lots||[]).push({qte:n,date:(new Date().getMonth()+1)+'/'+new Date().getFullYear()});
+  r.qte+=n; r.qteInit+=n; r.lots=r.lots||[]; r.lots.push({qte:n,date:(new Date().getMonth()+1)+'/'+new Date().getFullYear()});
   toast('Réassort enregistré (+'+n+')'); save(); closeDrawer();
 }
 
 /* ---------- que boire ce soir ---------- */
 function vSoir(){
-  if(!S.chat.length) S.chat=[{me:false,txt:'Bonsoir Nicolas ! Décrivez-moi l\'occasion, un plat ou une envie — je vous suggère des bouteilles disponibles en cave. 🍷'}];
+  if(!S.chat.length) S.chat=[{me:false,txt:'Bonsoir Nicolas ! Décrivez-moi l\u2019occasion, un plat ou une envie — je vous suggère des bouteilles disponibles en cave. 🍷'}];
   document.getElementById('main').innerHTML='\
    <div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div></div>\
    <div class="chatbox" id="chat"></div>\
-   <div class="chatin"><input type="text" id="chat-in" placeholder="Ex. rôti de veau, apéro léger, un rouge de garde…"><button class="btn sec" id="chat-mic">🎤</button><button class="btn" id="chat-send">Envoyer</button></div>\
+   <div class="chatin"><input type="text" id="chat-in" placeholder="Ex. rôti de veau, apéro léger, un rouge de garde…"><button class="btn sec" id="chat-mic" title="Dicter">🎤</button><button class="btn" id="chat-send">Envoyer</button></div>\
    <div class="chips" style="margin-top:12px">'+['Rôti de veau','Apéro léger','À boire maintenant'].map(function(c){ return '<button class="chip" data-sug="'+c+'">'+c+'</button>'; }).join('')+'</div>';
   var box=document.getElementById('chat');
   box.innerHTML=S.chat.map(function(m){ return '<div class="msg '+(m.me?'me':'bot')+'">'+m.txt+'</div>'; }).join('');
   box.scrollTop=box.scrollHeight;
-  var send=function(){
+  function send(){
     var i=document.getElementById('chat-in'); var t=i.value.trim(); if(!t) return;
     i.value=''; S.chat.push({me:true,txt:esc(t)}); S.chat.push({me:false,txt:recoSoir(t)}); vSoir();
-  };
+  }
   document.getElementById('chat-send').onclick=send;
   document.getElementById('chat-in').addEventListener('keydown',function(e){ if(e.key==='Enter') send(); });
   document.getElementById('chat-mic').onclick=function(){ voiceQuery(function(t){ document.getElementById('chat-in').value=t; }); };
-  document.querySelectorAll('[data-sug]').forEach(function(b){ b.onclick=function(){ S.chat.push({me:true,txt:esc(b.getAttribute('data-sug'))}); S.chat.push({me:false,txt:recoSoir(b.getAttribute('data-sug'))}); vSoir(); }; });
+  document.querySelectorAll('[data-sug]').forEach(function(b){ b.onclick=function(){ var c=b.getAttribute('data-sug'); S.chat.push({me:true,txt:esc(c)}); S.chat.push({me:false,txt:recoSoir(c)}); vSoir(); }; });
 }
 function recoSoir(t){
   var pool=current(); if(!pool.length) return 'Votre cave est vide — commencez par ajouter quelques bouteilles !';
-  var s=t.toLowerCase(); var wanted=[]; var notes=[];
-  if(/apéro|apero|léger|leger|rafraîch|frais|franche/.test(s)) wanted=wanted.concat(['Blanc','Rosé','Effervescent']);
+  var s=t.toLowerCase(); var wanted=[], notes=[];
+  if(/ap(é|e)ro|l(é|e)ger|rafra(î|i)ch|frais/.test(s)) wanted=wanted.concat(['Blanc','Rosé','Effervescent']);
   if(/rouge/.test(s)) wanted.push('Rouge');
   if(/blanc/.test(s)) wanted.push('Blanc');
-  if(/ros/.test(s)) wanted.push('Rosé');
-  if(/champagne|bulles|effervescent|mousseux|fête|fete/.test(s)) wanted.push('Effervescent');
-  if(/viande|boeuf|bœuf|agneau|gibier|rôti|roti|veau|civet|sauce/.test(s)){ wanted.push('Rouge'); notes.push('un rouge structuré tannique accompagnera bien'); }
-  if(/poisson|fruits de mer|fruit de mer|huître|huitre|sushi|crustacé/.test(s)) wanted.push('Blanc');
+  if(/ros(é|e)/.test(s)) wanted.push('Rosé');
+  if(/champagne|bulles|effervescent|mousseux|cr(é|e)mant|f(ê|e)te/.test(s)) wanted.push('Effervescent');
+  if(/viande|b(œ|oe)uf|agneau|gibier|r(ô|o)ti|veau|civet|sauce/.test(s)){ wanted.push('Rouge'); notes.push('un rouge structuré tannique accompagnera bien'); }
+  if(/poisson|fruits? de mer|h u(î|i)tre|sushi|crustac(é|e)/.test(s)) wanted.push('Blanc');
   if(/fromage/.test(s)) notes.push('avec du fromage, privilégiez un rouge souple ou un blanc évolué');
-  if(/dessert|sucré|sucre|chocolat/.test(s)) wanted.push('Effervescent');
-  REGIONS.forEach(function(rg){ if(s.indexOf(rg.toLowerCase().replace('ô','o'))>=0||s.indexOf(rg.toLowerCase())>=0) notes.push('côté '+rg); });
+  if(/dessert|sucr(é|e)|chocolat/.test(s)) wanted.push('Effervescent');
+  REGIONS.forEach(function(rg){ var rl=rg.toLowerCase(); if(s.indexOf(rl)>=0||s.indexOf(rl.replace('ô','o'))>=0) notes.push('côté '+rg); });
   var picks=pool;
   if(wanted.length) picks=picks.filter(function(r){ return wanted.indexOf(r.couleur)>=0; });
-  if(/maintenant|ce soir|prêt|pret|apogée|apogee/.test(s)) picks=picks.filter(function(r){ return inWindow(r)||!apYears(r); });
-  var ready=picks.filter(inWindow), rest=picks.filter(function(r){ return !inWindow(r); });
-  picks=ready.concat(rest).slice(0,3);
-  if(!picks.length) return 'Je n\'ai rien trouvé de tel en stock. Essayez autre chose — ou consultez l\'écran Ma cave !';
-  var intro = notes.length? 'Très bien. Pour cette occasion, '+notes.join(', ')+' — voici mes suggestions :' : 'Voici ce que je vous propose ce soir :';
+  if(/maintenant|ce soir|pr(ê|e)t|apog(é|e)e|bu/.test(s)) picks=picks.filter(function(r){ return inWindow(r)||!apYears(r); });
+  var ready=picks.filter(inWindow);
+  picks=ready.concat(picks.filter(function(r){ return !inWindow(r); })).slice(0,3);
+  if(!picks.length) return 'Je n\u2019ai rien trouvé de tel en stock. Essayez autre chose — ou consultez l\u2019écran Ma cave !';
+  var intro=notes.length? 'Très bien. Pour cette occasion, '+notes.join(', ')+' — voici mes suggestions :' : 'Voici ce que je vous propose ce soir :';
   return intro+'\n\n'+picks.map(function(r,i){
-    return '<b>'+(i+1)+'. '+esc(r.domaine)+' '+esc(r.millesime)+'</b> — '+esc(r.appellation)+' ('+esc(r.region)+', '+esc(r.couleur)+')\n'+(inWindow(r)? '✔ À son apogée ('+esc(r.apogee)+')' : 'Apogée : '+esc(r.apogee||'n.c.'))+' · <span class="mono">×'+r.qte+'</span> en stock · '+(r.zone==='garage'?'Garage':'Frigo, étagère '+r.etagere);
+    return '<b>'+(i+1)+'. '+esc(r.domaine)+' '+esc(r.millesime)+'</b> — '+esc(r.appellation)+' ('+esc(r.region)+', '+esc(r.couleur)+')\n'+(inWindow(r)? '✔ À son apogée ('+esc(r.apogee)+')' : 'Apogée : '+esc(r.apogee||'n.c.'))+' · ×'+r.qte+' en stock · '+(r.zone==='garage'?'Garage':'Frigo, étagère '+r.etagere);
   }).join('\n\n')+'\n\nBonne dégustation ! 🥂';
 }
 
@@ -509,14 +507,13 @@ function vAlertes(){
   bindCards();
 }
 
-/* ---------- tiroir de détail ---------- */
+/* ---------- tiroir de detail ---------- */
 function openRef(rid){
   var r=S.refs.find(function(x){ return x.id===rid; }); if(!r) return;
-  var a=apYears(r); var y=new Date().getFullYear();
-  var apbar='';
-  if(a&&a.f>a.d){ var tot=a.f-a.d+1; var pos=Math.max(0,Math.min(100,(y-a.d)/tot*100));
-    apbar='<label style="margin-top:16px">Fenêtre d\'apogée · '+esc(r.apogee)+'</label><div class="apobar"><div class="range" style="left:0;width:100%"></div><div class="now" style="left:'+pos+'%"></div></div><div class="hint">Le curseur indique où nous en sommes ('+y+').</div>';
-  } else if(a){ apbar='<p class="hint" style="margin-top:14px">Apogée : '+esc(r.apogee)+'</p>'; }
+  var a=apYears(r), y=new Date().getFullYear(), apbar='';
+  if(a&&a.f>a.d){ var tot=a.f-a.d+1, pos=Math.max(0,Math.min(100,(y-a.d)/tot*100));
+    apbar='<label style="margin-top:16px">Fenêtre d\u2019apogée · '+esc(r.apogee)+'</label><div class="apobar"><div class="range" style="left:0;width:100%"></div><div class="now" style="left:'+pos+'%"></div></div><div class="hint">Le curseur indique où nous en sommes ('+y+').</div>';
+  } else if(r.apogee){ apbar='<p class="hint" style="margin-top:14px">Apogée : '+esc(r.apogee)+'</p>'; }
   var lots=(r.lots||[]).length>1? '<label style="margin-top:18px">Historique des entrées</label>'+(r.lots||[]).map(function(l){ return '<div class="alert-item"><span class="hint">Lot</span><span><span class="mono">'+l.qte+' b.</span> entrées le '+esc(l.date)+'</span></div>'; }).join('') : '';
   drawerOpen('\
    <span class="eyebrow">'+esc(r.region)+'</span>\
@@ -528,7 +525,7 @@ function openRef(rid){
      <div class="fact"><span>Emplacement</span><b>'+(r.zone==='garage'?'Garage':'Frigo · étagère '+r.etagere)+'</b></div>\
      <div class="fact"><span>Entrée en cave</span><b class="mono">'+esc(r.dateEntree||'—')+'</b></div>\
      <div class="fact"><span>Cépages</span><b>'+esc(r.cepages||'—')+'</b></div>\
-     <div class="fact"><span>Prix d\'achat</span><b class="mono">'+(r.prix? r.prix+' €':'—')+'</b></div>\
+     <div class="fact"><span>Prix d\u2019achat</span><b class="mono">'+(r.prix? r.prix+' €':'—')+'</b></div>\
    </div>'+apbar+lots+\
    (r.note?'<p class="hint" style="margin-top:14px">📝 '+esc(r.note)+'</p>':'')+\
    (r.qte<=0?'<p class="hint" style="color:var(--red);margin-top:12px">Référence épuisée — réactivable au réassort.</p>':'')+\
@@ -539,7 +536,7 @@ function openRef(rid){
    </div>');
   document.getElementById('d-out').onclick=function(){
     if(r.qte<=0){ toast('Référence déjà épuisée'); return; }
-    r.qte--; if(r.qte===0) toast('Dernière bouteille ! La fiche est conservée (épuisée) — réactivable au réassort.'); else toast('Une bouteille sortie · reste '+r.qte);
+    r.qte--; toast(r.qte===0? 'Dernière bouteille ! La fiche est conservée (épuisée) — réactivable au réassort.' : 'Une bouteille sortie · reste '+r.qte);
     save(); openRef(rid);
   };
   document.getElementById('d-edit').onclick=function(){ S.editId=rid; S.view='add'; closeDrawer(); render(); };
@@ -549,73 +546,74 @@ function drawerOpen(html){ document.getElementById('drawer').innerHTML=html; doc
 function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
 
 /* ---------- saisie vocale ---------- */
-function recStart(cb, onEnd){
+var REC=null;
+function voiceQuery(cb){
+  if(S.listening){ S.listening=false; try{REC.stop();}catch(e){} REC=null; toast('Micro arrêté'); return; }
+  S.listening=true; toast('Parlez… recliquez pour arrêter');
+  var done=false;
+  REC=recStart(function(t){ if(done) return; done=true; S.listening=false; var rec=REC; REC=null; try{rec.stop();}catch(e){} cb(t.trim()); toast('Reçu : « '+t.trim()+' »'); });
+}
+function voiceAdd(){
+  if(S.listening){ S.listening=false; try{REC.stop();}catch(e){} REC=null; return; }
+  S.listening=true;
+  var tr=document.getElementById('a-transcript'); tr.style.display='block';
+  tr.textContent='🎤 Dictez la fiche en annonçant chaque champ : domaine, appellation, région, couleur, millésime, cépage, quantité, emplacement, apogée, prix, note…';
+  REC=recStart(function(t){
+    tr.innerHTML='Transcription : « '+esc(t)+' »<br><span class="hint">Vérifiez avant d\u2019enregistrer — l\u2019extraction peut se tromper sur les noms rares.</span>';
+    extractVoice(t);
+  });
+}
+function recStart(cb){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ toast('Reconnaissance vocale non supportée par ce navigateur'); return null; }
+  if(!SR){ S.listening=false; toast('Reconnaissance vocale non supportée par ce navigateur'); return null; }
   var rec=new SR(); rec.lang='fr-FR'; rec.continuous=true; rec.interimResults=true;
   rec.onresult=function(e){ var t=''; for(var i=0;i<e.results.length;i++) t+=e.results[i][0].transcript; cb(t); };
-  rec.onerror=function(){};
-  rec.onend=function(){ if(S.listening){ try{ rec.start(); }catch(e){} } else if(onEnd) onEnd(); };
+  rec.onend=function(){ if(S.listening){ try{ rec.start(); }catch(e){} } else { S.listening=false; } };
   try{ rec.start(); }catch(e){}
   return rec;
 }
-var REC=null;
-function voiceQuery(cb){
-  if(REC&&S.listening){ S.listening=false; REC.stop(); REC=null; toast('Micro arrêté'); return; }
-  S.listening=true; toast('Parlez… (recliquez pour arrêter)');
-  REC=recStart(function(t){ cb(t.trim()); S.listening=false; try{REC.stop();}catch(e){} REC=null; toast('Reçu : « '+t.trim()+' »'); });
-}
-function voiceAdd(){
-  if(REC&&S.listening){ S.listening=false; REC.stop(); REC=null; return; }
-  S.listening=true;
-  var tr=document.getElementById('a-transcript'); tr.style.display='block'; tr.textContent='🎤 Dictez la fiche en annonçant chaque champ : domaine, appellation, région, couleur, millésime, cépage, quantité, emplacement, apogée, prix, note…';
-  REC=recStart(function(t){
-    tr.innerHTML='Transcription : « '+esc(t)+' »<br><span class="hint">Vérifiez avant d\'enregistrer — l\'extraction peut se tromper sur les noms rares.</span>';
-    extractVoice(t);
-  }, function(){});
-}
 function extractVoice(t){
   var s=' '+t.toLowerCase()+' ';
-  function grab(re){ var m=re.exec(s); return m? m[1].trim():null; }
-  var dom=grab(/domaine\s+(?:de\s+|du\s+|des\s+|d['\u2019]?)([^,;.]+)/)||grab(/ch(?:â|a)teau\s+([^,;.]+)/)||grab(/clos\s+([^,;.]+)/);
+  function grab(re){ var m=re.exec(s); return m? m[1].trim() : null; }
+  var dom=grab(/domaine\s+(?:de\s+|du\s+|des\s+|d\u2019|d')?([^,;.]+)/)||grab(/ch(?:â|a)teau\s+([^,;.]+)/)||grab(/clos\s+([^,;.]+)/);
   var app=grab(/appellation\s+([^,;.]+)/);
-  var reg=null; REGIONS.forEach(function(rg){ if(s.indexOf(rg.toLowerCase())>=0) reg=rg; });
-  if(/beaujolais/.test(s)&&/villages?/.test(s)) reg='Beaujolais';
-  var col=null; if(/rouge/.test(s)) col='Rouge'; else if(/blanc/.test(s)) col='Blanc'; else if(/ros(é|e)/.test(s)) col='Rosé'; else if(/effervescent|champagne|mousseux|crémant/.test(s)) col='Effervescent';
-  var mil=grab(/mill(?:é|e)sime\s+(\d{4})/)||grab(/mill(?:é|e)sime\s+([^,;.]+)/)||grab(/(\d{4})/);
-  var cep=grab(/c(?:é|e)page[s]?\s+([^,;.]+)/);
-  var qte=grab(/quantit(?:é|e)\s+(\d+)/)||grab(/(\d+)\s+bouteilles?/);
-  var et=null,zone='frigo';
+  var reg=null; REGIONS.forEach(function(rg){ if(s.indexOf(rg.toLowerCase())>=0||s.indexOf(rg.toLowerCase().replace('ô','o'))>=0) reg=rg; });
+  var col=null; if(/rouge/.test(s)) col='Rouge'; else if(/blanc/.test(s)) col='Blanc'; else if(/ros(é|e)/.test(s)) col='Rosé'; else if(/effervescent|champagne|mousseux|cr(é|e)mant/.test(s)) col='Effervescent';
+  var mil=grab(/mill(é|e)sime\s+(\d{4})/)||grab(/(\d{4})/);
+  var cep=grab(/c(é|e)pages?\s+([^,;.]+)/);
+  var qte=grab(/quantit(é|e)\s+(\d+)/)||grab(/(\d+)\s+bouteilles?/);
+  var zone='frigo', et=null;
   if(/garage/.test(s)) zone='garage';
-  var em=grab(/(?:é|e)tag(?:è|e)re\s+(\d)/); if(em) et=parseInt(em[1]||em,10); if(et){ zone='frigo'; }
-  var ap=grab(/apog(?:é|e)e\s+([^,;.]+)/);
+  var em=grab(/(?:é|e)tag(?:è|e)re\s+(\d)/); if(em){ et=parseInt(em,10); zone='frigo'; }
+  var ap=grab(/apog(é|e)e\s+([^,;.]+)/);
   var prix=grab(/prix\s+([^,;.]+)/);
   var note=grab(/note\s+([^,;.]+)/);
-  // normalisations
-  if(dom){ dom=dom.replace(/\s+(millésime|cépage|quantité|appellation|région|couleur|emplacement|apogée|prix|note).*$/,''); }
-  if(cep){ var found=[]; CEPAGES.forEach(function(c){ if(cep.indexOf(c)>=0) found.push(c); }); var corr={ 'pinot noir':'Pinot noir','chardonnay':'Chardonnay','gamay':'Gamay','syrah':'Syrah','grenache':'Grenache','merlot':'Merlot','cabernet sauvignon':'Cabernet sauvignon','cabernet franc':'Cabernet franc','sauvignon blanc':'Sauvignon blanc','chenin':'Chenin','riesling':'Riesling','gewurztraminer':'Gewurztraminer','muscat':'Muscat','viognier':'Viognier','mourvèdre':'Mourvèdre','cinsault':'Cinsault','malbec':'Malbec','grolleau':'Grolleau','melon de bourgogne':'Melon de Bourgogne','pinot meunier':'Pinot meunier' };
-    cep=found.length? found.map(function(c){ return corr[c]||c.charAt(0).toUpperCase()+c.slice(1); }).join(', ') : cep;
+  if(dom) dom=dom.replace(/\s+(millésime|cépage|quantité|appellation|région|couleur|emplacement|apogée|prix|note).*$/,'');
+  if(cep){ var corr={ 'pinot noir':'Pinot noir','chardonnay':'Chardonnay','gamay':'Gamay','syrah':'Syrah','grenache':'Grenache','merlot':'Merlot','cabernet sauvignon':'Cabernet sauvignon','cabernet franc':'Cabernet franc','sauvignon':'Sauvignon','chenin':'Chenin','riesling':'Riesling','gewurztraminer':'Gewurztraminer','muscat':'Muscat','viognier':'Viognier','mourvèdre':'Mourvèdre','cinsault':'Cinsault','malbec':'Malbec','grolleau':'Grolleau','melon':'Melon','aligoté':'Aligoté','carignan':'Carignan','petit verdot':'Petit verdot','vermentino':'Vermentino','marsanne':'Marsanne','roussanne':'Roussanne','ugni blanc':'Ugni blanc','savagnin':'Savagnin','poulsard':'Poulsard','trousseau':'Trousseau','pineau':'Pineau d\u2019Aunis','arbois':'Arbois' };
+    var found=Object.keys(corr).filter(function(c){ return cep.indexOf(c)>=0; });
+    cep=found.length? found.map(function(c){ return corr[c]; }).join(', ') : cep;
   }
-  if(app){ var k=app.toLowerCase(); if(CAPS[k]) app=CAPS[k]; }
-  var set=function(fid,v){ if(v!==null&&v!==undefined&&v!==''){ var el=document.getElementById(fid); if(el){ if(el.tagName==='SELECT'){ for(var i=0;i<el.options.length;i++){ if(el.options[i].text.toLowerCase().indexOf(String(v).toLowerCase())>=0){ el.selectedIndex=i; break; } } } else el.value=el.tagName==='SELECT'?el.value:v; } } };
-  set('f-domaine',dom?dom.replace(/\b\w/g,function(c){return c.toUpperCase();}):null);
-  set('f-appellation',app);
-  set('f-region',reg);
-  set('f-couleur',col);
-  set('f-millesime',mil);
-  set('f-cepages',cep);
-  set('f-qte',qte);
-  set('f-apogee',ap);
-  if(zone==='garage'){ document.getElementById('f-zone').value='garage'; } else { document.getElementById('f-zone').value='frigo'; if(et) document.getElementById('f-etagere').value=String(et); }
-  set('f-prix',prix?prix.replace(/[^0-9,.]/g,''):null);
-  set('f-note',note);
+  function cap(x){ return x? x.replace(/\b\w/g,function(c){ return c.toUpperCase(); }) : x; }
+  set$('f-domaine',dom?cap(dom):null);
+  set$('f-appellation',app?cap(app):null);
+  set$('f-region',reg);
+  set$('f-couleur',col);
+  set$('f-millesime',mil);
+  set$('f-cepages',cep?cap(cep):null);
+  set$('f-qte',qte);
+  set$('f-apogee',ap);
+  set$('f-prix',prix? prix.replace(/[^0-9,.]/g,'') : null);
+  set$('f-note',note);
+  if(zone==='garage') document.getElementById('f-zone').value='garage';
+  else { document.getElementById('f-zone').value='frigo'; if(et) document.getElementById('f-etagere').value=String(et); }
   toast('Champs extraits — vérifiez la transcription puis enregistrez');
 }
 
 /* ---------- export / import ---------- */
 function doExport(){
   var blob=new Blob([JSON.stringify(S.refs,null,1)],{type:'application/json'});
-  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='cave-export-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); toast('Copie exportée');
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='cave-export-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  toast('Copie exportée');
 }
 function doImport(input){
   var f=input.files[0]; if(!f) return;
