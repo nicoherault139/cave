@@ -197,7 +197,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>Nicolas · v2.4.2</small></div>
+ <div class="brand"><h1>Cave</h1><small>Nicolas · v2.4.3</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-voice" class="micbtn" aria-label="Parler à la cave">🎤</button><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
  <button class="btn hide-m" id="btn-voice-d">🎤 Parler à la cave</button>
  <nav class="nav" id="nav"></nav>
@@ -218,6 +218,7 @@ html.standalone .brand small{display:none}
 <div id="toast"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
+var APPV='v2.4.3';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '' };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -451,7 +452,7 @@ function gaugesHTML(){
   return g;
 }
 function openMenu(){
-  var h='<span class="eyebrow">Cave</span><h3 style="margin:4px 0 14px">Occupation et stockage</h3>';
+  var h='<span class="eyebrow">Cave · '+APPV+'</span><h3 style="margin:4px 0 14px">Occupation et stockage</h3>';
   h+='<div class="gauges" style="margin-bottom:18px">'+gaugesHTML()+'</div>';
   h+='<div id="m-sync" style="font-size:14px;margin-bottom:14px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
   h+='<label style="margin-top:4px">Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
@@ -1061,11 +1062,21 @@ function aiError(p,status,body){
   if(status===503||status===500) return 'Service '+(p==='gemini'?'Gemini':'Mistral')+' saturé pour le moment (erreur '+status+', côté serveur) — réessayez dans quelques minutes';
   return 'Erreur '+(p==='gemini'?'Gemini':'Mistral')+' ('+status+')';
 }
+function apiDetail(body){ try{ var j=JSON.parse(body); var m=(j.error&&(j.error.message||j.error.status))||j.message||''; return String(m).slice(0,160); }catch(e){ return String(body||'').slice(0,120); } }
+// fetch avec délai maximum : évite de rester bloqué sur « Test en cours »
+function fetchT(url,opts,ms){
+  if(!window.AbortController) return fetch(url,opts);
+  var ctl=new AbortController(), t=setTimeout(function(){ ctl.abort(); }, ms||25000);
+  opts=Object.assign({},opts,{signal:ctl.signal});
+  return fetch(url,opts).then(function(r){ clearTimeout(t); return r; },function(e){ clearTimeout(t); if(e&&e.name==='AbortError'){ var x=new Error('Pas de réponse au bout de '+Math.round((ms||25000)/1000)+' s'); x.status='timeout'; throw x; } throw e; });
+}
+var AI_PROGRESS=null;
 // Liste des modèles Gemini Flash utilisables avec la clé, du plus adapté au moins adapté (stables d'abord)
 function geminiModels(key){
   var cached=lsGet('ai_models_gemini',''); if(cached){ try{ var l=JSON.parse(cached); if(l.length) return Promise.resolve(l); }catch(e){} }
-  return fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{ headers:{'x-goog-api-key':key} })
-  .then(function(r){ if(!r.ok) return r.text().then(function(b){ throw new Error(aiError('gemini',r.status,b)); }); return r.json(); })
+  AI_PROGRESS && AI_PROGRESS('Lecture de la liste des modèles…');
+  return fetchT('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{ headers:{'x-goog-api-key':key} },15000)
+  .then(function(r){ if(!r.ok) return r.text().then(function(b){ throw new Error(aiError('gemini',r.status,b)+' — '+apiDetail(b)); }); return r.json(); })
   .then(function(d){
     var ms=(d.models||[]).filter(function(m){ return (m.supportedGenerationMethods||[]).indexOf('generateContent')>=0 && /flash/.test(m.name) && !/(image|tts|audio|live|embedding|thinking|robotics|computer)/.test(m.name); });
     function ver(n){ var m=/gemini-(\d+(?:\.\d+)?)/.exec(n); return m? parseFloat(m[1]) : 0; }
@@ -1077,12 +1088,13 @@ function geminiModels(key){
   });
 }
 function geminiTry(key,model,sys,usr){
-  return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
+  AI_PROGRESS && AI_PROGRESS('Essai du modèle '+model+'…');
+  return fetchT('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
     method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':key},
     body:JSON.stringify({ systemInstruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:usr}]}], generationConfig:{ temperature:0.1, responseMimeType:'application/json' } })
   }).then(function(r){
     if(r.ok) return r.json();
-    return r.text().then(function(b){ var e=new Error(aiError('gemini',r.status,b)); e.status=r.status; throw e; });
+    return r.text().then(function(b){ var e=new Error(aiError('gemini',r.status,b)); e.status=r.status; e.detail=apiDetail(b); throw e; });
   });
 }
 function wait(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
@@ -1091,21 +1103,22 @@ function aiCall(text,screen){
   if(p==='gemini'){
     // Modèle saturé (503), quota du modèle atteint (429) ou modèle retiré (404) → nouvel essai, puis modèle suivant
     return geminiModels(key).then(function(list){
-      var pref=lsGet('ai_model_gemini',''); if(pref && list.indexOf(pref)>0){ list=[pref].concat(list.filter(function(x){ return x!==pref; })); }
-      list=list.slice(0,5);
-      var i=0, retried=false, lastErr=null;
+      var forced=lsGet('ai_model_forced','');
+      var pref=forced||lsGet('ai_model_gemini',''); if(pref && list.indexOf(pref)>0){ list=[pref].concat(list.filter(function(x){ return x!==pref; })); }
+      list=forced? [forced] : list.slice(0,4);
+      var i=0, retried=false, lastErr=null, log=[];
       function attempt(){
-        if(i>=list.length) throw lastErr||new Error('Aucun modèle Gemini disponible');
+        if(i>=list.length){ var e=lastErr||new Error('Aucun modèle Gemini disponible'); e.log=log; throw e; }
         var m=list[i];
         return geminiTry(key,m,sys,usr).then(function(d){
           lsSet('ai_model_gemini',m);
           var parts=(((d.candidates||[])[0]||{}).content||{}).parts||[];
           return aiParse(parts.map(function(x){ return x.text||''; }).join(''));
         }).catch(function(e){
-          lastErr=e;
-          if(e.status===503||e.status===500){ if(!retried){ retried=true; return wait(1200).then(attempt); } }
-          if(e.status===503||e.status===500||e.status===429||e.status===404){ i++; retried=false; if(e.status===404) lsSet('ai_models_gemini',''); return attempt(); }
-          throw e;
+          lastErr=e; log.push(m+' → '+(e.status||'réseau')+(e.detail?' ('+e.detail+')':''));
+          if((e.status===503||e.status===500) && !retried && i===0){ retried=true; return wait(1500).then(attempt); }
+          if(e.status===503||e.status===500||e.status===429||e.status===404||e.status==='timeout'){ i++; if(e.status===404) lsSet('ai_models_gemini',''); return attempt(); }
+          e.log=log; throw e;
         });
       }
       return attempt();
@@ -1228,8 +1241,18 @@ function aiSettingsHTML(){
   h+='<select id="ai-prov"><option value="none"'+(p==='none'?' selected':'')+'>Désactivé (analyse simple)</option><option value="gemini"'+(p==='gemini'?' selected':'')+'>Google Gemini — gratuit</option><option value="mistral"'+(p==='mistral'?' selected':'')+'>Mistral — gratuit</option></select>';
   h+='<div id="ai-keybox" style="margin-top:8px'+(p==='none'?';display:none':'')+'"><input type="password" id="ai-key" autocomplete="off" placeholder="Clé API" value="'+esc(aiKey(p==='none'?'gemini':p))+'">';
   h+='<p class="hint" id="ai-help" style="margin:6px 0 8px"></p>';
+  h+='<div id="ai-modelbox" style="display:none;margin-bottom:8px"><label>Modèle Gemini</label><select id="ai-model"></select></div>';
   h+='<div class="formfoot" style="margin-top:0"><button class="btn sm" id="ai-save">Enregistrer</button><button class="btn sm sec" id="ai-test">Tester</button></div><p class="hint" id="ai-res" style="margin-top:8px"></p></div>';
   return h;
+}
+function fillModelSelect(){
+  var box=document.getElementById('ai-modelbox'), sel=document.getElementById('ai-model'); if(!box||!sel) return;
+  var list=[]; try{ list=JSON.parse(lsGet('ai_models_gemini','[]')); }catch(e){}
+  if(aiProvider()!=='gemini' || !list.length){ box.style.display='none'; return; }
+  var f=lsGet('ai_model_forced','');
+  sel.innerHTML='<option value="">Automatique (bascule si saturé)</option>'+list.map(function(m){ return '<option'+(m===f?' selected':'')+'>'+esc(m)+'</option>'; }).join('');
+  box.style.display='block';
+  sel.onchange=function(){ lsSet('ai_model_forced',sel.value); toast(sel.value? 'Modèle fixé : '+sel.value : 'Choix automatique du modèle'); };
 }
 function aiSettingsBind(){
   var sel=document.getElementById('ai-prov'); if(!sel) return;
@@ -1242,16 +1265,18 @@ function aiSettingsBind(){
       ? 'Clé gratuite sur <b>aistudio.google.com</b> (menu « Get API key »). La clé reste sur cet appareil. Votre inventaire et la phrase dictée sont envoyés à Google pour l’analyse.'
       : 'Clé gratuite sur <b>console.mistral.ai</b> (offre « Experiment », vérification par SMS). La clé reste sur cet appareil. Votre inventaire et la phrase dictée sont envoyés à Mistral pour l’analyse.';
   }
-  sel.onchange=function(){ lsSet('ai_provider',sel.value); help(); if(sel.value==='none') toast('Assistant IA désactivé'); };
-  help();
+  sel.onchange=function(){ lsSet('ai_provider',sel.value); help(); fillModelSelect(); if(sel.value==='none') toast('Assistant IA désactivé'); };
+  help(); fillModelSelect();
   document.getElementById('ai-save').onclick=function(){ lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini'){ lsSet('ai_model_gemini',''); lsSet('ai_models_gemini',''); } toast('Assistant IA enregistré'); };
   document.getElementById('ai-test').onclick=function(){
     lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini'){ lsSet('ai_model_gemini',''); lsSet('ai_models_gemini',''); }
     var out=document.getElementById('ai-res'); out.textContent='Test en cours…';
+    AI_PROGRESS=function(m){ out.textContent='Test en cours — '+m; };
     aiCall('domaine leflaive pull ligny montrachet deux mille dix-neuf trois bouteilles étagère deux','ajout').then(function(r){
       var f=r.fiche||{};
       out.innerHTML='✔ Fonctionne'+(sel.value==='gemini'?' ('+esc(lsGet('ai_model_gemini',''))+')':'')+' — compris : '+esc([f.domaine,f.appellation,f.millesime,(f.qte?'×'+f.qte:''),(f.etagere?'étagère '+f.etagere:'')].filter(Boolean).join(' · '));
-    }).catch(function(e){ out.textContent='✖ '+aiNetMsg(e); });
+      AI_PROGRESS=null; fillModelSelect();
+    }).catch(function(e){ AI_PROGRESS=null; out.innerHTML='✖ '+esc(aiNetMsg(e))+(e.log&&e.log.length? '<br><span style="font-size:12px">Détail : '+e.log.map(esc).join('<br>')+'</span>' : ''); fillModelSelect(); });
   };
 }
 
@@ -1284,7 +1309,12 @@ odHandleCode();
 odRestore();
 if(OD.token && !location.search) odPull().then(render);
 render();
-if('serviceWorker' in navigator && location.protocol==='https:'){ navigator.serviceWorker.register('./sw.js').catch(function(){}); }
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(function(reg){ try{ reg.update(); }catch(e){} }).catch(function(){});
+  // une nouvelle version vient d'être installée → rechargement automatique une seule fois
+  var swReloaded=false, hadCtl=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){ if(swReloaded||!hadCtl||location.search) return; swReloaded=true; location.reload(); });
+}
 </script>
 </body>
 </html>
