@@ -197,7 +197,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>Nicolas · v2.4</small></div>
+ <div class="brand"><h1>Cave</h1><small>Nicolas · v2.4.2</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-voice" class="micbtn" aria-label="Parler à la cave">🎤</button><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
  <button class="btn hide-m" id="btn-voice-d">🎤 Parler à la cave</button>
  <nav class="nav" id="nav"></nav>
@@ -206,6 +206,7 @@ html.standalone .brand small{display:none}
   <div id="syncstatus"></div>
   <button class="linkbtn" id="btn-export">Exporter une copie (.json)</button>
   <button class="linkbtn" id="btn-import">Importer un fichier .json</button>
+  <button class="btn sm" id="btn-settings-d" style="justify-content:center">⚙︎ Réglages (assistant IA, dictée)</button>
   <button class="linkbtn" id="btn-cfg">Réglages OneDrive…</button>
  </div>
 </aside>
@@ -437,6 +438,7 @@ function render(){
   document.getElementById('btn-menu').onclick=openMenu;
   document.getElementById('btn-voice').onclick=voiceAssistant;
   document.getElementById('btn-voice-d').onclick=voiceAssistant;
+  document.getElementById('btn-settings-d').onclick=openMenu;
   var fn={dash:vDash,cave:vCave,add:vAdd,soir:vSoir,alertes:vAlertes}[S.view]; fn();
 }
 function go(v){ if(VOICE) VOICE.stop(); S.view=v; S.editId=null; if(v!=='add') S.dict=''; closeDrawer(); render(); window.scrollTo(0,0); }
@@ -1056,35 +1058,57 @@ function aiError(p,status,body){
   if(status===401||status===403) return 'Clé API refusée ou non autorisée — vérifiez-la dans ⚙︎';
   if(status===429) return 'Quota gratuit atteint pour le moment — réessayez dans une minute';
   if(status===404) return 'Modèle introuvable — utilisez « Tester » dans ⚙︎ pour en choisir un';
+  if(status===503||status===500) return 'Service '+(p==='gemini'?'Gemini':'Mistral')+' saturé pour le moment (erreur '+status+', côté serveur) — réessayez dans quelques minutes';
   return 'Erreur '+(p==='gemini'?'Gemini':'Mistral')+' ('+status+')';
 }
-function geminiPickModel(key){
+// Liste des modèles Gemini Flash utilisables avec la clé, du plus adapté au moins adapté (stables d'abord)
+function geminiModels(key){
+  var cached=lsGet('ai_models_gemini',''); if(cached){ try{ var l=JSON.parse(cached); if(l.length) return Promise.resolve(l); }catch(e){} }
   return fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{ headers:{'x-goog-api-key':key} })
   .then(function(r){ if(!r.ok) return r.text().then(function(b){ throw new Error(aiError('gemini',r.status,b)); }); return r.json(); })
   .then(function(d){
     var ms=(d.models||[]).filter(function(m){ return (m.supportedGenerationMethods||[]).indexOf('generateContent')>=0 && /flash/.test(m.name) && !/(image|tts|audio|live|embedding|thinking|robotics|computer)/.test(m.name); });
     function ver(n){ var m=/gemini-(\d+(?:\.\d+)?)/.exec(n); return m? parseFloat(m[1]) : 0; }
-    function score(m){ var n=m.name; return ver(n)*10 - (/lite/.test(n)?3:0) - (/(preview|exp)/.test(n)?5:0) - (/latest/.test(n)?1:0); }
+    function score(m){ var n=m.name; return ver(n)*10 - (/lite/.test(n)?3:0) - (/(preview|exp)/.test(n)?25:0) - (/latest/.test(n)?1:0); }
     ms.sort(function(a,b){ return score(b)-score(a); });
-    if(!ms.length) throw new Error('Aucun modèle Gemini Flash disponible pour cette clé');
-    var name=ms[0].name.replace(/^models\//,''); lsSet('ai_model_gemini',name); return name;
+    var names=ms.map(function(m){ return m.name.replace(/^models\//,''); });
+    if(!names.length) throw new Error('Aucun modèle Gemini Flash disponible pour cette clé');
+    lsSet('ai_models_gemini',JSON.stringify(names)); return names;
   });
 }
+function geminiTry(key,model,sys,usr){
+  return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
+    method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':key},
+    body:JSON.stringify({ systemInstruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:usr}]}], generationConfig:{ temperature:0.1, responseMimeType:'application/json' } })
+  }).then(function(r){
+    if(r.ok) return r.json();
+    return r.text().then(function(b){ var e=new Error(aiError('gemini',r.status,b)); e.status=r.status; throw e; });
+  });
+}
+function wait(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
 function aiCall(text,screen){
   var p=aiProvider(), key=aiKey(p), sys=aiSystem(), usr=aiUser(text,screen);
   if(p==='gemini'){
-    var model=lsGet('ai_model_gemini','');
-    return (model? Promise.resolve(model) : geminiPickModel(key)).then(function(m){
-      return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent',{
-        method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':key},
-        body:JSON.stringify({ systemInstruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:usr}]}], generationConfig:{ temperature:0.1, responseMimeType:'application/json' } })
-      });
-    }).then(function(r){
-      if(!r.ok) return r.text().then(function(b){ if(r.status===404) lsSet('ai_model_gemini',''); throw new Error(aiError('gemini',r.status,b)); });
-      return r.json();
-    }).then(function(d){
-      var parts=(((d.candidates||[])[0]||{}).content||{}).parts||[];
-      return aiParse(parts.map(function(x){ return x.text||''; }).join(''));
+    // Modèle saturé (503), quota du modèle atteint (429) ou modèle retiré (404) → nouvel essai, puis modèle suivant
+    return geminiModels(key).then(function(list){
+      var pref=lsGet('ai_model_gemini',''); if(pref && list.indexOf(pref)>0){ list=[pref].concat(list.filter(function(x){ return x!==pref; })); }
+      list=list.slice(0,5);
+      var i=0, retried=false, lastErr=null;
+      function attempt(){
+        if(i>=list.length) throw lastErr||new Error('Aucun modèle Gemini disponible');
+        var m=list[i];
+        return geminiTry(key,m,sys,usr).then(function(d){
+          lsSet('ai_model_gemini',m);
+          var parts=(((d.candidates||[])[0]||{}).content||{}).parts||[];
+          return aiParse(parts.map(function(x){ return x.text||''; }).join(''));
+        }).catch(function(e){
+          lastErr=e;
+          if(e.status===503||e.status===500){ if(!retried){ retried=true; return wait(1200).then(attempt); } }
+          if(e.status===503||e.status===500||e.status===429||e.status===404){ i++; retried=false; if(e.status===404) lsSet('ai_models_gemini',''); return attempt(); }
+          throw e;
+        });
+      }
+      return attempt();
     });
   }
   if(p==='mistral'){
@@ -1220,9 +1244,9 @@ function aiSettingsBind(){
   }
   sel.onchange=function(){ lsSet('ai_provider',sel.value); help(); if(sel.value==='none') toast('Assistant IA désactivé'); };
   help();
-  document.getElementById('ai-save').onclick=function(){ lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini') lsSet('ai_model_gemini',''); toast('Assistant IA enregistré'); };
+  document.getElementById('ai-save').onclick=function(){ lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini'){ lsSet('ai_model_gemini',''); lsSet('ai_models_gemini',''); } toast('Assistant IA enregistré'); };
   document.getElementById('ai-test').onclick=function(){
-    lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini') lsSet('ai_model_gemini','');
+    lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini'){ lsSet('ai_model_gemini',''); lsSet('ai_models_gemini',''); }
     var out=document.getElementById('ai-res'); out.textContent='Test en cours…';
     aiCall('domaine leflaive pull ligny montrachet deux mille dix-neuf trois bouteilles étagère deux','ajout').then(function(r){
       var f=r.fiche||{};
