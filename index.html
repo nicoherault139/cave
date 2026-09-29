@@ -6,9 +6,16 @@
 <title>Cave — Nicolas</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
-<meta name="theme-color" content="#b3542f">
+<meta name="theme-color" content="#faf8f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1916" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cave">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
 <link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Archivo:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -16,6 +23,10 @@
 @media(prefers-color-scheme:dark){:root{--bg:#1c1916;--card:#26221d;--ink:#efe9dd;--muted:#a09786;--line:#3a342c;--shadow:0 10px 30px rgba(0,0,0,.35)}}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+button,.chip,.card,#tabbar,.nav{-webkit-user-select:none;user-select:none;touch-action:manipulation}
+input,textarea,select{touch-action:manipulation}
 body{font-family:Archivo,system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex}
 h1,h2,h3,.serif{font-family:Fraunces,Georgia,serif}
 .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
@@ -52,7 +63,7 @@ main{flex:1;padding:28px 34px;max-width:1100px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:20px}
 .panel h3{font-size:17px;margin-bottom:12px}
 .searchbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-input[type=text],input[type=search],input[type=number],select,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink);font:inherit}
+input[type=text],input[type=search],input[type=password],input[type=number],select,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink);font:inherit}
 .searchbar input[type=text],.searchbar input[type=search]{flex:1;min-width:200px;-webkit-appearance:none;appearance:none}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .chip{border:1px solid var(--line);border-radius:99px;padding:5px 13px;font-size:12.5px;background:var(--card)}
@@ -110,6 +121,12 @@ input,select,textarea{width:100%}
 .vstop{font-weight:600;font-size:13px;border:1px solid currentColor;border-radius:99px;padding:4px 10px;flex:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 #tabbar,.mhead,.only-m{display:none}
+.ai-guess{border-color:var(--gold)!important;background:rgba(154,125,44,.09)!important}
+.guess{color:var(--gold);font-weight:600;font-size:11.5px}
+.spin{width:16px;height:16px;border-radius:99px;border:2px solid currentColor;border-right-color:transparent;flex:none;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+#voicebar.busy{cursor:default}
+.mhead .micbtn{background:var(--acc);color:#fff;font-size:18px}
 .stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:18px 0}
 .stepper button{width:52px;height:52px;border-radius:99px;border:1px solid var(--line);font-size:24px;background:var(--bg)}
 .stepper b{font-size:34px;min-width:60px;text-align:center}
@@ -132,7 +149,7 @@ main{padding:16px 16px calc(90px + env(safe-area-inset-bottom));max-width:none}
 #tabbar button.on{color:var(--acc);font-weight:600}
 #tabbar .tb-add .ic{background:var(--acc);color:#fff;border-radius:12px;width:44px;height:30px;justify-content:center;font-size:20px}
 #tabbar .badge{position:absolute;top:4px;left:calc(50% + 6px);margin:0}
-input[type=text],input[type=search],input[type=number],select,textarea{font-size:16px;padding:11px 12px}
+input[type=text],input[type=search],input[type=password],input[type=number],select,textarea{font-size:16px;padding:11px 12px}
 .viewhead{margin-bottom:14px;align-items:center}
 .viewhead h2{font-size:26px}
 .vh-actions{display:flex;gap:8px;width:100%}
@@ -169,14 +186,20 @@ form .row{grid-template-columns:1fr;gap:12px;margin-bottom:12px}
 #d-out{flex-basis:100%}
 #drawer .btn.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
 body.noscroll{overflow:hidden}
+#drawer{bottom:var(--kb,0px);max-height:calc(88dvh - var(--kb,0px))}
+html.kbopen #tabbar{display:none}
+html.kbopen main{padding-bottom:24px}
+html.standalone aside{padding-top:calc(12px + env(safe-area-inset-top))}
+html.standalone .brand small{display:none}
 }
 @media(min-width:821px){ .card .qbig{display:none} }
 </style>
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>Nicolas · v2.2</small></div>
- <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
+ <div class="brand"><h1>Cave</h1><small>Nicolas · v2.4</small></div>
+ <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-voice" class="micbtn" aria-label="Parler à la cave">🎤</button><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
+ <button class="btn hide-m" id="btn-voice-d">🎤 Parler à la cave</button>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
  <div class="store" id="store">
@@ -275,8 +298,22 @@ var OD = { token: sessionStorage.getItem('od_token')||'', lastSnap: localStorage
 var FILE_PATH='/Cave/cave-data.csv';
 var GRAPH='https://graph.microsoft.com/v1.0';
 var TENANT=OD.tenant||'organizations';
-function graph(method,path,body,mime){
+function graphRaw(method,path,body,mime){
   return fetch(GRAPH+path,{ method:method, headers:Object.assign({'Authorization':'Bearer '+OD.token}, body?{'Content-Type':(mime||'text/plain')}:{}), body:body||undefined });
+}
+// Jeton expiré (appli restée ouverte plus d'une heure) → renouvellement silencieux puis nouvel essai
+function graph(method,path,body,mime){
+  return graphRaw(method,path,body,mime).then(function(r){
+    if(r.status!==401) return r;
+    return odRefresh().then(function(ok){ return ok? graphRaw(method,path,body,mime) : r; });
+  });
+}
+function odRefresh(){
+  var rt=localStorage.getItem('od_refresh');
+  if(!rt || !OD.clientId) return Promise.resolve(false);
+  return odToken('client_id='+encodeURIComponent(OD.clientId)+'&grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read offline_access'))
+    .then(function(t){ if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token); return true; } return false; })
+    .catch(function(){ return false; });
 }
 var ODST={kind:'off',label:'OneDrive non connecté'};
 function odStatus(kind,label){ ODST={kind:kind,label:label}; document.getElementById('syncstatus').innerHTML='<span class="dot '+kind+'"></span>'+esc(label); var m=document.getElementById('msync'); if(m){ m.className='dot '+kind; m.title=label; } var ms=document.getElementById('m-sync'); if(ms) ms.innerHTML='<span class="dot '+kind+'"></span>'+esc(label); }
@@ -309,11 +346,16 @@ function odConnect(){
   if(!OD.clientId){ toast('Renseignez votre Client ID (Réglages OneDrive)'); openCfg(); return; }
   localStorage.setItem('od_client',OD.clientId); localStorage.setItem('od_tenant',TENANT);
   var v=b64url(crypto.getRandomValues(new Uint8Array(32)));
-  sessionStorage.setItem('pkce',v);
+  sessionStorage.setItem('pkce',v); localStorage.setItem('od_pkce',v);
+  // Appli écran d'accueil : la connexion se fait dans une fenêtre ouverte par l'appli, pour que le jeton revienne bien dans l'appli (et pas dans Safari)
+  var pop=null;
+  if(isStandalone()){ try{ pop=window.open('about:blank','odlogin'); }catch(e){ pop=null; } }
   crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)).then(function(h){
     var ch=b64url(new Uint8Array(h));
     var redir=location.origin+location.pathname;
-    location.href='https://login.microsoftonline.com/'+TENANT+'/oauth2/v2.0/authorize?response_type=code&client_id='+encodeURIComponent(OD.clientId)+'&redirect_uri='+encodeURIComponent(redir)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read offline_access')+'&code_challenge='+ch+'&code_challenge_method=S256';
+    var url='https://login.microsoftonline.com/'+TENANT+'/oauth2/v2.0/authorize?response_type=code&client_id='+encodeURIComponent(OD.clientId)+'&redirect_uri='+encodeURIComponent(redir)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read offline_access')+'&code_challenge='+ch+'&code_challenge_method=S256&state='+(pop?'popup':'page');
+    if(pop){ pop.location.href=url; toast('Connectez-vous dans la fenêtre Microsoft, elle se fermera ensuite'); }
+    else location.href=url;
   });
 }
 function odToken(body){
@@ -323,22 +365,35 @@ function odToken(body){
 function odHandleCode(){
   var p=new URLSearchParams(location.search);
   var code=p.get('code'); if(!code) return false;
-  var v=sessionStorage.getItem('pkce'); history.replaceState(null,'',location.pathname);
+  var v=sessionStorage.getItem('pkce')||localStorage.getItem('od_pkce'); var st=p.get('state');
+  history.replaceState(null,'',location.pathname);
   var redir=location.origin+location.pathname;
   odToken('client_id='+encodeURIComponent(OD.clientId)+'&grant_type=authorization_code&code='+encodeURIComponent(code)+'&redirect_uri='+encodeURIComponent(redir)+'&code_verifier='+encodeURIComponent(v))
   .then(function(t){
-    if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token); odPull().then(render); }
+    localStorage.removeItem('od_pkce');
+    if(t.access_token){
+      OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token);
+      if(st==='popup' && window.opener){ try{ window.opener.postMessage({cave:'od-ok'}, location.origin); }catch(e){} setTimeout(function(){ window.close(); },300); }
+      odPull().then(render);
+    }
     else toast('Connexion OneDrive refusée — vérifiez le Client ID et le type de compte');
   });
   return true;
 }
-function odRestore(){
-  var rt=localStorage.getItem('od_refresh');
-  if(!OD.token && rt && OD.clientId){
-    odToken('client_id='+encodeURIComponent(OD.clientId)+'&grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)+'&scope='+encodeURIComponent('Files.ReadWrite User.Read'))
-    .then(function(t){ if(t.access_token){ OD.token=t.access_token; sessionStorage.setItem('od_token',OD.token); if(t.refresh_token) localStorage.setItem('od_refresh',t.refresh_token); odPull().then(render); } });
-  }
+function odRestore(force){
+  if(OD.token && !force) return;
+  odRefresh().then(function(ok){ if(ok) odPull().then(render); });
 }
+// Retour de la fenêtre de connexion (appli écran d'accueil)
+window.addEventListener('message',function(e){ if(e.origin===location.origin && e.data && e.data.cave==='od-ok'){ OD.clientId=localStorage.getItem('od_client')||OD.clientId; odRestore(true); toast('OneDrive connecté'); closeDrawer(); } });
+window.addEventListener('storage',function(e){ if(e.key==='od_refresh' && e.newValue && !OD.token) odRestore(true); });
+// Quand on revient dans l'appli (téléphone déverrouillé, retour depuis une autre appli), on relit OneDrive
+var lastPull=0;
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState!=='visible' || Date.now()-lastPull<20000) return;
+  lastPull=Date.now();
+  if(OD.token) odPull().then(render); else if(localStorage.getItem('od_refresh')) odRestore(true);
+});
 function openCfg(){
   var h='';
   h+='<span class="eyebrow">Stockage</span>';
@@ -354,6 +409,7 @@ function openCfg(){
   h+='<button class="btn sm sec" id="cfg-push">Envoyer vers OneDrive</button>';
   h+='<button class="btn sm sec" id="cfg-pull">Relire depuis OneDrive</button>';
   h+='</div>';
+  if(isStandalone()) h+='<p class="banner" style="margin-top:12px">Appli écran d’accueil : l’iPhone lui donne une mémoire séparée de Safari/Chrome. Saisissez le Client ID et connectez OneDrive <b>ici, dans l’appli</b>, une première fois.</p>';
   h+='<p class="hint" style="margin-top:12px">Chaque modification est envoyée vers OneDrive à chaud. Au chargement, le fichier OneDrive est relu : vos modifications manuelles (Excel…) sont intégrées.</p>';
   drawerOpen(h);
   document.getElementById('cfg-save').onclick=function(){ OD.clientId=val('cfg-client'); localStorage.setItem('od_client',OD.clientId); TENANT=document.getElementById('cfg-tenant').value; localStorage.setItem('od_tenant',TENANT); toast('Réglages enregistrés'); };
@@ -379,6 +435,8 @@ function render(){
   document.getElementById('gauges').innerHTML=gaugesHTML();
   document.getElementById('btn-cfg').onclick=openCfg;
   document.getElementById('btn-menu').onclick=openMenu;
+  document.getElementById('btn-voice').onclick=voiceAssistant;
+  document.getElementById('btn-voice-d').onclick=voiceAssistant;
   var fn={dash:vDash,cave:vCave,add:vAdd,soir:vSoir,alertes:vAlertes}[S.view]; fn();
 }
 function go(v){ if(VOICE) VOICE.stop(); S.view=v; S.editId=null; if(v!=='add') S.dict=''; closeDrawer(); render(); window.scrollTo(0,0); }
@@ -394,7 +452,10 @@ function openMenu(){
   var h='<span class="eyebrow">Cave</span><h3 style="margin:4px 0 14px">Occupation et stockage</h3>';
   h+='<div class="gauges" style="margin-bottom:18px">'+gaugesHTML()+'</div>';
   h+='<div id="m-sync" style="font-size:14px;margin-bottom:14px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
-  h+='<div class="formfoot" style="flex-direction:column">';
+  h+='<label style="margin-top:4px">Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
+  h+='<p class="hint" style="margin:6px 0 16px">Reconnaissance intégrée : '+(hasSR()?'disponible dans ce navigateur':'non disponible ici (dictée par le clavier)')+(isStandalone()?' · appli écran d’accueil':'')+'</p>';
+  h+=aiSettingsHTML();
+  h+='<div class="formfoot" style="flex-direction:column;margin-top:22px">';
   h+='<button class="btn sec" id="m-cfg">Réglages OneDrive…</button>';
   h+='<button class="btn sec" id="m-pull">Relire depuis OneDrive</button>';
   h+='<button class="btn sec" id="m-exp">Exporter une copie (.json)</button>';
@@ -402,6 +463,8 @@ function openMenu(){
   h+='</div>';
   drawerOpen(h);
   document.getElementById('m-cfg').onclick=openCfg;
+  aiSettingsBind();
+  document.getElementById('m-voice').onchange=function(){ try{ localStorage.setItem('cave-voice',this.value); }catch(e){} toast('Mode de dictée enregistré'); };
   document.getElementById('m-pull').onclick=function(){ odPull().then(function(ok){ render(); toast(ok?'Fichier OneDrive relu':'OneDrive non connecté ou indisponible'); }); };
   document.getElementById('m-exp').onclick=doExport;
   document.getElementById('m-imp').onclick=function(){ document.getElementById('fileinput').click(); };
@@ -462,7 +525,11 @@ function vCave(){
     document.querySelectorAll('[data-chip]').forEach(function(x){ x.classList.toggle('on', x===b); });
     caveGrid(); }; });
   document.getElementById('c-add').onclick=function(){ go('add'); };
-  document.getElementById('c-micro').onclick=function(){ voiceQuery(function(t){ S.search=t; se.value=t; caveGrid(); }); };
+  function plainSearch(t){ S.search=t; se.value=t; caveGrid(); }
+  document.getElementById('c-micro').onclick=function(){
+    if(aiOn()) listen({ title:'Rechercher', ok:'Rechercher', silence:2500, done:function(t){ aiHandle(t,'cave',plainSearch); } });
+    else voiceQuery(plainSearch);
+  };
   caveGrid();
 }
 // Recherche tolérante : chaque mot significatif doit apparaître (sans accents, ordre libre) ; « domaine », « de », « la »… sont ignorés
@@ -559,11 +626,12 @@ function restockPanel(){
   document.getElementById('rs-mic').onclick=function(){ voiceQuery(function(t){ document.getElementById('rs-q').value=t; draw(); }); };
   draw();
 }
-function restock(refId){
+function restock(refId,n0,msg){
   var r=S.refs.find(function(x){ return x.id===refId; }); if(!r) return;
-  var n=1;
+  var n=n0||1;
   var h='<span class="eyebrow">Réassort</span><h3 style="margin:4px 0 2px">'+esc(r.domaine)+' '+esc(r.millesime)+'</h3><p class="hint">'+esc(r.appellation)+' · en stock : ×'+r.qte+'</p>';
-  h+='<div class="stepper"><button type="button" id="st-m">−</button><b class="mono" id="st-n">1</b><button type="button" id="st-p">+</button></div>';
+  if(msg) h+='<p class="hint" style="margin-top:6px">'+esc(msg)+'</p>';
+  h+='<div class="stepper"><button type="button" id="st-m">−</button><b class="mono" id="st-n">'+n+'</b><button type="button" id="st-p">+</button></div>';
   h+='<div class="formfoot"><button class="btn" id="st-ok">Entrer en cave</button><button class="btn sec" id="st-back">Retour</button></div>';
   drawerOpen(h);
   function upd(){ document.getElementById('st-n').textContent=n; }
@@ -695,12 +763,15 @@ function joinResults(results){
 }
 function voiceSession(opts){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ toast('Reconnaissance vocale non supportée par ce navigateur'); return null; }
+  if(!SR){ opts.onFail && opts.onFail('absent'); return null; }
   var ss={ committed:opts.prefix||'', current:'', active:true, done:false, rec:null, timer:null, restarts:0, heard:false };
   function full(){ return (ss.committed+' '+ss.current).replace(/\s+/g,' ').trim(); }
   function finish(){
     if(ss.done) return; ss.done=true; ss.active=false; clearTimeout(ss.timer);
-    VOICE=null; voiceBar(false); opts.onDone && opts.onDone(full(), ss.heard);
+    VOICE=null; voiceBar(false);
+    // Micro de l'appli indisponible (refusé, non pris en charge…) et rien entendu → dictée par le clavier
+    if(ss.failed && !ss.heard && opts.onFail){ opts.onFail(ss.failed); return; }
+    opts.onDone && opts.onDone(full(), ss.heard);
   }
   function arm(ms){ clearTimeout(ss.timer); if(ms) ss.timer=setTimeout(function(){ ss.stop(); }, ms); }
   function startRec(){
@@ -711,8 +782,8 @@ function voiceSession(opts){
       arm(opts.silenceMs);
     };
     rec.onerror=function(e){
-      if(e.error==='not-allowed'||e.error==='service-not-allowed'){ ss.active=false; toast('Micro refusé — autorisez le micro et la dictée pour Safari dans les Réglages de l’iPhone'); }
-      else if(e.error!=='no-speech' && e.error!=='aborted'){ ss.active=false; toast('Micro interrompu ('+e.error+')'); }
+      if(e.error==='no-speech' || e.error==='aborted') return;
+      ss.active=false; ss.failed=e.error;
     };
     rec.onend=function(){
       ss.committed=full(); ss.current='';
@@ -726,14 +797,38 @@ function voiceSession(opts){
     try{ ss.rec.stop(); }catch(e){ finish(); return; }
     setTimeout(finish,1500); // filet de sécurité si le navigateur ne renvoie pas « onend »
   };
-  try{ startRec(); }catch(err){ toast('Impossible de démarrer le micro'); return null; }
+  try{ startRec(); }catch(err){ opts.onFail && opts.onFail('start'); return null; }
   voiceBar(true,opts.prefix||'');
   arm(opts.firstMs||8000); // rien entendu au bout de 8 s → arrêt
   return ss;
 }
+/* Mode de dictée : « auto » = micro de l'appli si le navigateur le permet, sinon clavier ; « clavier » = toujours le micro du clavier iPhone */
+function voiceMode(){ try{ return localStorage.getItem('cave-voice')||'auto'; }catch(e){ return 'auto'; } }
+function hasSR(){ return !!(window.SpeechRecognition||window.webkitSpeechRecognition); }
+function useKeyboard(){ return voiceMode()==='clavier' || !hasSR(); }
+function keyDictate(opts){
+  var h='<span class="eyebrow">Dictée</span><h3 style="margin:4px 0 6px">'+esc(opts.title)+'</h3>';
+  h+='<p class="hint" style="margin-bottom:10px">Touchez le <b>micro 🎙 du clavier</b> de l’iPhone (en bas à droite) et parlez.'+(opts.help? ' '+opts.help : '')+'</p>';
+  h+='<textarea id="kd-text" rows="'+(opts.rows||3)+'" autocapitalize="sentences" autocorrect="off" spellcheck="false">'+esc(opts.prefix||'')+'</textarea>';
+  if(opts.reason) h+='<p class="hint" style="margin-top:8px">'+esc(opts.reason)+'</p>';
+  h+='<div class="formfoot"><button class="btn" id="kd-ok">'+esc(opts.ok||'Valider')+'</button><button class="btn sec" id="kd-cancel">Annuler</button></div>';
+  drawerOpen(h);
+  var ta=document.getElementById('kd-text');
+  try{ ta.focus(); var n=ta.value.length; ta.setSelectionRange(n,n); }catch(e){}
+  if(opts.live) ta.addEventListener('input',function(){ opts.live(ta.value); });
+  document.getElementById('kd-cancel').onclick=closeDrawer;
+  document.getElementById('kd-ok').onclick=function(){ var t=ta.value.replace(/\s+/g,' ').trim(); closeDrawer(); opts.onDone(t); };
+}
+function failMsg(r){
+  return r==='absent'? 'Ce navigateur ne propose pas la reconnaissance vocale intégrée : on passe par la dictée du clavier.'
+       : (r==='not-allowed'||r==='service-not-allowed')? 'Le micro de l’appli est refusé ou indisponible ici : on passe par la dictée du clavier.'
+       : 'Le micro de l’appli n’a pas fonctionné ('+r+') : on passe par la dictée du clavier.';
+}
 function voiceQuery(cb){
   if(VOICE){ VOICE.stop(); return; }
-  VOICE=voiceSession({ silenceMs:2200, onDone:function(t,heard){
+  function kb(reason){ keyDictate({ title:'Rechercher', ok:'Rechercher', reason:reason, onDone:function(t){ if(t) cb(t); } }); }
+  if(useKeyboard()){ kb(voiceMode()==='clavier'? '' : failMsg('absent')); return; }
+  VOICE=voiceSession({ silenceMs:2200, onFail:function(r){ kb(failMsg(r)); }, onDone:function(t,heard){
     if(t){ cb(t); toast('Reçu : « '+t+' »'); } else if(!heard) toast('Rien entendu');
   }});
 }
@@ -741,11 +836,14 @@ function voiceAdd(){
   if(VOICE){ VOICE.stop(); return; }
   var tr=document.getElementById('a-transcript'); tr.style.display='block';
   var prev=S.dict||'';
-  if(!prev) tr.innerHTML='🎤 Annoncez chaque champ par son nom : <b>domaine</b> …, <b>appellation</b> …, <b>région</b> …, <b>couleur</b> …, <b>millésime</b> …, <b>cépage</b> …, <b>quantité</b> …, <b>étagère</b> … ou <b>garage</b>, <b>apogée</b> … à …, <b>prix</b> …, et la <b>note</b> en dernier.';
-  VOICE=voiceSession({ prefix:prev, silenceMs:5000, firstMs:10000,
-    onText:function(t){ S.dict=t; showDict(); extractVoice(t); },
-    onDone:function(t){ S.dict=t; showDict(); if(t){ extractVoice(t); toast('Champs remplis — vérifiez puis enregistrez'); } }
-  });
+  if(!prev) tr.innerHTML= aiOn()
+    ? '🎤 Parlez librement, dans l’ordre que vous voulez : domaine, appellation, millésime, nombre de bouteilles, où vous les rangez, prix, apogée, une remarque… L’assistant IA remplit la fiche.'
+    : '🎤 Annoncez chaque champ par son nom : <b>domaine</b> …, <b>appellation</b> …, <b>millésime</b> …, <b>quantité</b> …, <b>étagère</b> … ou <b>garage</b>, <b>fenêtre d’apogée</b> … à …, <b>date d’entrée</b> …, <b>prix d’achat</b> …, et la <b>note personnelle</b> en dernier.';
+  function rules(t){ S.dict=t; showDict(); extractVoice(t); toast('Champs remplis — vérifiez puis enregistrez'); }
+  listen({ title:'Dicter la fiche', ok:'Remplir la fiche', rows:6, prefix:prev, silence:aiOn()?3500:5000,
+    help: aiOn()? 'Parlez librement : l’assistant IA remettra chaque information à sa place.' : 'Annoncez chaque champ par son nom et la note en dernier.',
+    live:function(t){ S.dict=t; showDict(); if(!aiOn()) extractVoice(t); },
+    done:function(t){ S.dict=t; showDict(); if(aiOn()) aiHandle(t,'ajout',rules); else rules(t); } });
 }
 function showDict(){
   var tr=document.getElementById('a-transcript'); if(!tr) return;
@@ -804,20 +902,23 @@ var VKEYS=[
   ['couleur','couleur'],
   ['millesime','millésime|millesime'],
   ['cepages','cépages?|cepages?'],
-  ['qte','quantité|quantite'],
+  ['qte','nombre de bouteilles|quantité|quantite|nombre'],
   ['emplacement','emplacement'],
   ['etagere','étagère|etagere'],
-  ['apogee','apogée|apogee'],
-  ['prix','prix'],
-  ['note','note|commentaire']
+  ['apogee','fenêtre d[’\']apogée|fenetre d[’\']apogee|fenêtre de garde|apogée|apogee|apogé|à boire entre|a boire entre|à boire à partir de'],
+  ['date','date d[’\']entrée|date d[’\']entree|date d[’\']achat|date|entrée en cave|entré en cave|acheté en|achetée en|achetées en|achetés en'],
+  ['prix','prix d[’\']achat|prix|payé|payée'],
+  ['note','note personnelle|note perso|note|commentaire|remarque']
 ];
 function segmentVoice(t){
   var low=t.toLowerCase(), hits=[];
   VKEYS.forEach(function(k){
-    var re=new RegExp('(^|[\\s,;.:!?])('+k[1]+')(?=$|[\\s,;.:!?])','g'), m;
+    var re=new RegExp('(^|[\\s,;.:!?’\'])('+k[1]+')(?=$|[\\s,;.:!?])','g'), m;
     while((m=re.exec(low))){ hits.push({key:k[0], start:m.index+m[1].length, end:m.index+m[0].length}); }
   });
-  hits.sort(function(a,b){ return a.start-b.start; });
+  // tri, puis on écarte les mots-clés inclus dans un mot-clé plus long (« apogée » dans « fenêtre d'apogée »)
+  hits.sort(function(a,b){ return a.start-b.start || (b.end-b.start)-(a.end-a.start); });
+  hits=hits.filter(function(h,i){ for(var j=0;j<i;j++){ if(h.start<hits[j].end && h.start>=hits[j].start) return false; } return true; });
   var seg={};
   var noteAt=-1;
   hits.forEach(function(h,i){
@@ -827,8 +928,21 @@ function segmentVoice(t){
     seg[h.key]={ val:t.slice(h.end,next).replace(/^[\s,;.:!?]+|[\s,;.:!?]+$/g,''), start:h.start, end:next };
     if(h.key==='note') noteAt=h.start;
   });
-  if(seg.note){ seg.note.val=t.slice(seg.note.start).replace(/^(note|commentaire)[\s,;.:!?]*/i,'').replace(/[\s,;.!?]+$/,''); }
+  if(seg.note){ seg.note.val=t.slice(seg.note.start).replace(/^(note personnelle|note perso|note|commentaire|remarque)[\s,;.:!?]*/i,'').replace(/[\s,;.!?]+$/,''); }
   return seg;
+}
+var MOIS={'janvier':1,'janv':1,'fevrier':2,'fevr':2,'fev':2,'mars':3,'avril':4,'avr':4,'mai':5,'juin':6,'juillet':7,'juil':7,'aout':8,'septembre':9,'sept':9,'octobre':10,'oct':10,'novembre':11,'nov':11,'decembre':12,'dec':12};
+function parseMonthYear(s){
+  if(!s) return null; var x=noAcc(frWordsToDigits(s));
+  var now=new Date();
+  if(/aujourd|ce mois|maintenant/.test(x)) return (now.getMonth()+1)+'/'+now.getFullYear();
+  var m=/(\d{1,2})\s*[\/.-]\s*(\d{4})/.exec(x); if(m) return parseInt(m[1],10)+'/'+m[2];
+  var y=/(19\d{2}|20\d{2})/.exec(x);
+  var mo=null; Object.keys(MOIS).forEach(function(k){ if(mo===null && new RegExp('\\b'+k+'\\b').test(x)) mo=MOIS[k]; });
+  if(mo && y) return mo+'/'+y[1];
+  if(mo) return mo+'/'+now.getFullYear();
+  if(y) return null;
+  return null;
 }
 function extractVoice(t){
   var seg=segmentVoice(t), low=t.toLowerCase();
@@ -847,7 +961,10 @@ function extractVoice(t){
   if(domFb) blank(domFb.start,domFb.end);
   if(seg.note) neutral=neutral.slice(0,seg.note.start);
   // Une couleur dite juste après l'appellation (« … villages rouge ») va dans Couleur, pas dans l'appellation
-  var app=sv('appellation').replace(/\s+(rouges?|blancs?|ros[ée]s?)$/i,'');
+  // Domaine et appellation s'arrêtent aussi au premier élément reconnaissable non annoncé (année, couleur, « 6 bouteilles », garage…)
+  function cutTail(v){ var m=/\s(?:19\d{2}|20\d{2}|\d+\s+bouteilles?|rouges?|blancs?|ros[ée]s?|effervescent|garage|frigo|en cave)\b/i.exec(' '+v); return (m? (' '+v).slice(0,m.index) : ' '+v).trim(); }
+  if(dom) dom=cutTail(dom);
+  var app=cutTail(sv('appellation'));
   // Région
   var reg=null, rsrc=noAcc(sv('region')||neutral);
   REGIONS.forEach(function(rg){ if(!reg && rsrc.indexOf(noAcc(rg))>=0) reg=rg; });
@@ -856,7 +973,7 @@ function extractVoice(t){
   if(/\brouges?\b/.test(csrc)) col='Rouge'; else if(/\bblancs?\b/.test(csrc)) col='Blanc'; else if(/\brose\b/.test(csrc)) col='Rosé'; else if(/effervescent|champagne|mousseux|cremant|bulles/.test(csrc)) col='Effervescent';
   // Millésime : champ dédié, sinon première année hors apogée/prix/note
   var mil=years(sv('millesime'))[0]||null;
-  if(!mil){ var tmp=low; ['apogee','prix','note'].forEach(function(k){ if(seg[k]) tmp=tmp.slice(0,seg[k].start)+' '.repeat(seg[k].end-seg[k].start)+tmp.slice(seg[k].end); }); if(seg.note) tmp=tmp.slice(0,seg.note.start); mil=years(tmp)[0]||null; }
+  if(!mil){ var tmp=low; ['apogee','prix','note','date'].forEach(function(k){ if(seg[k]) tmp=tmp.slice(0,seg[k].start)+' '.repeat(seg[k].end-seg[k].start)+tmp.slice(seg[k].end); }); if(seg.note) tmp=tmp.slice(0,seg.note.start); mil=years(tmp)[0]||null; }
   // Cépages (correction des noms connus)
   var cep=sv('cepages');
   if(cep){ var corr={ 'pinot noir':'Pinot noir','chardonnay':'Chardonnay','gamay':'Gamay','syrah':'Syrah','grenache':'Grenache','merlot':'Merlot','cabernet sauvignon':'Cabernet sauvignon','cabernet franc':'Cabernet franc','sauvignon':'Sauvignon','chenin':'Chenin','riesling':'Riesling','gewurztraminer':'Gewurztraminer','muscat':'Muscat','viognier':'Viognier','mourvèdre':'Mourvèdre','cinsault':'Cinsault','malbec':'Malbec','grolleau':'Grolleau','melon':'Melon','aligoté':'Aligoté','carignan':'Carignan','petit verdot':'Petit verdot','vermentino':'Vermentino','marsanne':'Marsanne','roussanne':'Roussanne','ugni blanc':'Ugni blanc','savagnin':'Savagnin','poulsard':'Poulsard','trousseau':'Trousseau','pineau':'Pineau d’Aunis' };
@@ -880,6 +997,7 @@ function extractVoice(t){
   var prix=null, ps=frWordsToDigits(sv('prix'));
   var pm=/(\d+)(?:\s*(?:[,.]|euros?|€)\s*(\d{1,2}))?/.exec(ps); if(pm) prix=pm[1]+(pm[2]? ','+pm[2] : '');
   var note=sv('note');
+  var dEnt=parseMonthYear(sv('date'));
 
   set$('f-domaine',dom?capFr(dom):null);
   set$('f-appellation',app?capFr(app):null);
@@ -891,8 +1009,226 @@ function extractVoice(t){
   set$('f-apogee',ap);
   set$('f-prix',prix);
   set$('f-note',note? note.charAt(0).toUpperCase()+note.slice(1) : null);
+  set$('f-date',dEnt);
   if(zone==='garage'){ document.getElementById('f-zone').value='garage'; document.getElementById('f-etagere').value=''; }
   else if(zone==='frigo'){ document.getElementById('f-zone').value='frigo'; if(et) document.getElementById('f-etagere').value=String(et); }
+}
+
+/* ===== Assistant IA (v2.4) : la dictée est interprétée par un modèle gratuit (Google Gemini ou Mistral) ===== */
+function lsGet(k,d){ try{ var v=localStorage.getItem(k); return v==null? d : v; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function aiProvider(){ return lsGet('ai_provider','none'); }
+function aiKey(p){ return lsGet('ai_key_'+(p||aiProvider()),''); }
+function aiOn(){ var p=aiProvider(); return p!=='none' && !!aiKey(p); }
+
+function aiSystem(){
+  return [
+  'Tu es l’assistant de la cave à vin de Nicolas. Tu reçois une phrase dictée (transcription automatique : fautes possibles, ponctuation absente, ordre libre) et l’inventaire actuel.',
+  'Tu réponds UNIQUEMENT par un objet JSON, sans texte autour, au format :',
+  '{"intention":"ajout|reassort|sortie|recherche|inconnu","fiche":{"domaine":null,"appellation":null,"region":null,"couleur":null,"millesime":null,"cepages":null,"qte":null,"zone":null,"etagere":null,"apogee":null,"prix":null,"dateEntree":null,"note":null},"deduits":[],"refId":null,"candidats":[],"qte":null,"resultats":[],"message":""}',
+  'Intentions :',
+  '- ajout : une nouvelle référence entre en cave (achat, cadeau reçu…).',
+  '- reassort : on ajoute des bouteilles à une référence DÉJÀ dans l’inventaire (même domaine, appellation et millésime, y compris épuisée q=0). Mets son id dans refId et le nombre dans qte.',
+  '- sortie : bouteille(s) bue(s), ouverte(s), offerte(s), sortie(s). refId = la référence de l’inventaire la plus probable, qte = nombre (1 par défaut). Si plusieurs références sont également possibles : refId null, leurs ids dans candidats, et une question courte dans message.',
+  '- recherche : une question ou une recherche sur la cave. resultats = ids des références qui répondent (q>0 sauf si les épuisées sont demandées), les plus pertinentes d’abord ; message = réponse courte en français.',
+  '- inconnu : rien de tout ça ; message = ce que tu n’as pas compris.',
+  'Règles pour la fiche :',
+  '- N’invente JAMAIS domaine, appellation, millésime, cépages, quantité, prix, emplacement ou note : remplis-les seulement s’ils sont dits, sinon null.',
+  '- Corrige l’orthographe des noms de domaines, appellations et cépages mal transcrits (ex. « pull ligny montrachet » → « Puligny-Montrachet », « chat nœuf du pape » → « Châteauneuf-du-Pape »). Le domaine s’écrit sans le mot « Domaine » ; garde « Château » ou « Clos » s’ils font partie du nom.',
+  '- Déductions autorisées quand l’information n’est pas dite, à lister dans deduits : "region" (d’après l’appellation), "couleur" (d’après l’appellation si elle est sans ambiguïté), "dateEntree" (mois courant pour un ajout), "apogee" (estimation raisonnable selon appellation, couleur et millésime). Aucune autre déduction.',
+  '- region ∈ '+JSON.stringify(REGIONS)+' ; couleur ∈ '+JSON.stringify(COULEURS)+' ; zone ∈ ["frigo","garage"] (« cave », « frigo », « cave frigo » → frigo) ; etagere = entier 1 à 5 ou null (frigo seulement) ; apogee = "AAAA – AAAA" ; dateEntree = "M/AAAA" ; prix = nombre en euros ; qte et millesime en chiffres ; note = remarque personnelle dite, telle quelle.',
+  '- Les nombres peuvent être dits en lettres (« six bouteilles », « deux mille dix-neuf », « vingt-cinq euros »).',
+  'L’écran actuel est indiqué : sur « ajout », privilégie ajout ou reassort ; sur « cave », privilégie recherche ; sinon déduis l’intention de la phrase.'
+  ].join('\n');
+}
+function aiUser(text,screen){
+  var inv=S.refs.map(function(r){ return { id:r.id, d:r.domaine, a:r.appellation, m:r.millesime, c:r.couleur, r:r.region, q:r.qte, z:(r.zone==='garage'?'garage':'frigo'+(r.etagere?' ét.'+r.etagere:'')), ap:r.apogee||'' }; });
+  var now=new Date();
+  return 'Date du jour : '+(now.getMonth()+1)+'/'+now.getFullYear()+'\nÉcran : '+screen+'\nInventaire : '+JSON.stringify(inv)+'\nDictée : « '+text+' »';
+}
+function aiParse(txt){
+  var t=String(txt||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  var a=t.indexOf('{'), b=t.lastIndexOf('}'); if(a>=0&&b>a) t=t.slice(a,b+1);
+  return JSON.parse(t);
+}
+function aiError(p,status,body){
+  if(status===400 && /API key|API_KEY/i.test(body)) return 'Clé API refusée — vérifiez-la dans ⚙︎';
+  if(status===401||status===403) return 'Clé API refusée ou non autorisée — vérifiez-la dans ⚙︎';
+  if(status===429) return 'Quota gratuit atteint pour le moment — réessayez dans une minute';
+  if(status===404) return 'Modèle introuvable — utilisez « Tester » dans ⚙︎ pour en choisir un';
+  return 'Erreur '+(p==='gemini'?'Gemini':'Mistral')+' ('+status+')';
+}
+function geminiPickModel(key){
+  return fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{ headers:{'x-goog-api-key':key} })
+  .then(function(r){ if(!r.ok) return r.text().then(function(b){ throw new Error(aiError('gemini',r.status,b)); }); return r.json(); })
+  .then(function(d){
+    var ms=(d.models||[]).filter(function(m){ return (m.supportedGenerationMethods||[]).indexOf('generateContent')>=0 && /flash/.test(m.name) && !/(image|tts|audio|live|embedding|thinking|robotics|computer)/.test(m.name); });
+    function ver(n){ var m=/gemini-(\d+(?:\.\d+)?)/.exec(n); return m? parseFloat(m[1]) : 0; }
+    function score(m){ var n=m.name; return ver(n)*10 - (/lite/.test(n)?3:0) - (/(preview|exp)/.test(n)?5:0) - (/latest/.test(n)?1:0); }
+    ms.sort(function(a,b){ return score(b)-score(a); });
+    if(!ms.length) throw new Error('Aucun modèle Gemini Flash disponible pour cette clé');
+    var name=ms[0].name.replace(/^models\//,''); lsSet('ai_model_gemini',name); return name;
+  });
+}
+function aiCall(text,screen){
+  var p=aiProvider(), key=aiKey(p), sys=aiSystem(), usr=aiUser(text,screen);
+  if(p==='gemini'){
+    var model=lsGet('ai_model_gemini','');
+    return (model? Promise.resolve(model) : geminiPickModel(key)).then(function(m){
+      return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent',{
+        method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':key},
+        body:JSON.stringify({ systemInstruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:usr}]}], generationConfig:{ temperature:0.1, responseMimeType:'application/json' } })
+      });
+    }).then(function(r){
+      if(!r.ok) return r.text().then(function(b){ if(r.status===404) lsSet('ai_model_gemini',''); throw new Error(aiError('gemini',r.status,b)); });
+      return r.json();
+    }).then(function(d){
+      var parts=(((d.candidates||[])[0]||{}).content||{}).parts||[];
+      return aiParse(parts.map(function(x){ return x.text||''; }).join(''));
+    });
+  }
+  if(p==='mistral'){
+    return fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({ model:lsGet('ai_model_mistral','mistral-small-latest'), temperature:0.1, response_format:{type:'json_object'}, messages:[{role:'system',content:sys},{role:'user',content:usr}] })
+    }).then(function(r){
+      if(!r.ok) return r.text().then(function(b){ throw new Error(aiError('mistral',r.status,b)); });
+      return r.json();
+    }).then(function(d){ return aiParse(((d.choices||[])[0]||{}).message.content); });
+  }
+  return Promise.reject(new Error('Assistant IA non configuré'));
+}
+function aiNetMsg(e){ return (e && e.name==='TypeError')? 'Connexion à l’IA impossible (réseau, ou service qui refuse les appels depuis une page web)' : (e&&e.message)||'Erreur IA'; }
+
+function busy(on,txt){
+  var vb=document.getElementById('voicebar');
+  if(!on){ vb.classList.remove('show','busy'); return; }
+  vb.innerHTML='<span class="spin"></span><span class="vtxt">'+esc(txt)+'</span>';
+  vb.classList.add('show','busy');
+}
+function aiHandle(text,screen,fallback){
+  busy(true,'Analyse : « '+text+' »');
+  aiCall(text,screen).then(function(r){
+    busy(false);
+    var it=(r&&r.intention)||'inconnu';
+    if(it==='ajout') return aiAjout(r,text);
+    if(it==='reassort'){ var rr=refById(r.refId); if(rr){ restock(rr.id, Math.max(1,parseInt(r.qte,10)||1), r.message); return; } return aiAjout(r,text); }
+    if(it==='sortie') return aiSortie(r);
+    if(it==='recherche') return aiResults(r, text);
+    toast(r.message||'Je n’ai pas compris — reformulez');
+  }).catch(function(e){
+    busy(false);
+    if(fallback) fallback(text);
+    toast(aiNetMsg(e)+(fallback?' · analyse simple utilisée à la place':''));
+  });
+}
+function refById(id){ return id? S.refs.find(function(x){ return x.id===id; }) : null; }
+var FMAP={ domaine:'f-domaine', appellation:'f-appellation', region:'f-region', couleur:'f-couleur', millesime:'f-millesime', cepages:'f-cepages', qte:'f-qte', apogee:'f-apogee', prix:'f-prix', dateEntree:'f-date', note:'f-note', zone:'f-zone', etagere:'f-etagere' };
+function aiAjout(r,text){
+  if(S.view!=='add' || S.editId){ S.view='add'; S.editId=null; render(); window.scrollTo(0,0); }
+  S.dict=text; showDict();
+  var f=r.fiche||{}, ded=(r.deduits||[]);
+  document.querySelectorAll('.guess').forEach(function(g){ g.remove(); });
+  document.querySelectorAll('.ai-guess').forEach(function(g){ g.classList.remove('ai-guess'); });
+  Object.keys(FMAP).forEach(function(k){
+    var v=f[k]; if(v===null||v===undefined||v==='') return;
+    var el=document.getElementById(FMAP[k]); if(!el) return;
+    if(k==='zone'){ el.value=(String(v).toLowerCase()==='garage')?'garage':'frigo'; if(el.value==='garage') document.getElementById('f-etagere').value=''; return; }
+    if(k==='etagere'){ var n=parseInt(v,10); if(n>=1&&n<=5) el.value=String(n); return; }
+    if(k==='region'||k==='couleur'){ var list=k==='region'?REGIONS:COULEURS; var hit=list.find(function(x){ return noAcc(x)===noAcc(v); }); if(hit) el.value=hit; else return; }
+    else if(k==='prix'){ el.value=String(v).replace('.',','); }
+    else el.value=String(v);
+    if(ded.indexOf(k)>=0){
+      el.classList.add('ai-guess');
+      var lab=el.previousElementSibling; if(lab && lab.tagName==='LABEL'){ var sp=document.createElement('span'); sp.className='guess'; sp.textContent=(k==='apogee'?' · estimation IA':' · déduit'); lab.appendChild(sp); }
+      el.addEventListener('input',function once(){ el.classList.remove('ai-guess'); var g=el.previousElementSibling&&el.previousElementSibling.querySelector('.guess'); if(g) g.remove(); el.removeEventListener('input',once); });
+    }
+  });
+  var zw=document.getElementById('f-zone'); if(zw) zw.dispatchEvent(new Event('change'));
+  toast(r.message || 'Fiche remplie — vérifiez puis enregistrez');
+}
+function aiSortie(r){
+  var ref=refById(r.refId), n=Math.max(1,parseInt(r.qte,10)||1);
+  if(!ref){
+    var c=(r.candidats||[]).map(refById).filter(Boolean);
+    if(!c.length){ toast(r.message||'Je n’ai pas trouvé cette bouteille dans la cave'); return; }
+    var h='<span class="eyebrow">Sortie</span><h3 style="margin:4px 0 6px">Quelle bouteille ?</h3><p class="hint" style="margin-bottom:10px">'+esc(r.message||'Plusieurs références correspondent.')+'</p>';
+    c.forEach(function(x){ h+='<div class="alert-item"><span><b>'+esc(x.domaine)+'</b> '+esc(x.millesime)+'<br><span class="hint">'+esc(x.appellation)+' · ×'+x.qte+'</span></span><button class="btn sm" data-pick="'+x.id+'">Choisir</button></div>'; });
+    drawerOpen(h);
+    document.querySelectorAll('[data-pick]').forEach(function(b){ b.onclick=function(){ confirmOut(refById(b.getAttribute('data-pick')), n); }; });
+    return;
+  }
+  confirmOut(ref,n,r.message);
+}
+function confirmOut(ref,n,msg){
+  if(!ref) return; n=Math.max(1,Math.min(n,ref.qte||1));
+  var h='<span class="eyebrow">Sortie</span><h3 style="margin:4px 0 2px">'+esc(ref.domaine)+' '+esc(ref.millesime)+'</h3><p class="hint">'+esc(ref.appellation)+' · '+(ref.zone==='garage'?'Garage':'Frigo, étagère '+ref.etagere)+' · en stock : ×'+ref.qte+'</p>';
+  if(msg) h+='<p class="hint" style="margin-top:6px">'+esc(msg)+'</p>';
+  if(ref.qte<=0){ h+='<p class="hint" style="color:var(--red);margin-top:12px">Cette référence est déjà épuisée.</p>'; drawerOpen(h); return; }
+  h+='<div class="stepper"><button type="button" id="so-m">−</button><b class="mono" id="so-n">'+n+'</b><button type="button" id="so-p">+</button></div>';
+  h+='<div class="formfoot"><button class="btn" id="so-ok">Sortir</button><button class="btn sec" id="so-no">Annuler</button></div>';
+  drawerOpen(h);
+  function upd(){ document.getElementById('so-n').textContent=n; }
+  document.getElementById('so-m').onclick=function(){ if(n>1){ n--; upd(); } };
+  document.getElementById('so-p').onclick=function(){ if(n<ref.qte){ n++; upd(); } };
+  document.getElementById('so-no').onclick=closeDrawer;
+  document.getElementById('so-ok').onclick=function(){ ref.qte=Math.max(0,ref.qte-n); closeDrawer(); toast(ref.qte===0? 'Dernière bouteille sortie — fiche conservée (épuisée)' : n+' bouteille'+(n>1?'s':'')+' sortie'+(n>1?'s':'')+' · reste '+ref.qte); save(); };
+}
+function aiResults(r,text){
+  var list=(r.resultats||[]).map(refById).filter(Boolean);
+  var h='<span class="eyebrow">Recherche</span><h3 style="margin:4px 0 6px">« '+esc(text)+' »</h3>';
+  if(r.message) h+='<p style="margin-bottom:12px;font-size:14.5px">'+esc(r.message)+'</p>';
+  h+=list.length? '<div class="grid">'+list.map(refCard).join('')+'</div>' : '<p class="hint">Aucune bouteille ne correspond.</p>';
+  drawerOpen(h); bindCards();
+}
+
+/* Écoute générique : micro de l'appli ou dictée du clavier, puis texte final */
+function listen(o){
+  if(VOICE){ VOICE.stop(); return; }
+  function kb(reason){ keyDictate({ title:o.title, ok:o.ok||'Valider', rows:o.rows||4, prefix:o.prefix, reason:reason, help:o.help, onDone:function(t){ if(t) o.done(t); } }); }
+  if(useKeyboard()){ kb(voiceMode()==='clavier'? '' : failMsg('absent')); return; }
+  VOICE=voiceSession({ prefix:o.prefix, silenceMs:o.silence||3000, firstMs:10000, onFail:function(r){ kb(failMsg(r)); }, onText:o.live,
+    onDone:function(t,heard){ if(t) o.done(t); else if(!heard) toast('Rien entendu'); } });
+}
+function voiceAssistant(){
+  listen({ title:'Parler à la cave', ok:'Envoyer', silence:3000, rows:4,
+    help:'Ex. « J’ai acheté six Leflaive Puligny 2019 à 65 euros, frigo étagère 2 », « J’ai ouvert une Huet 2020 », « Qu’est-ce que j’ai comme blanc à boire cette année ? »',
+    done:function(t){
+      if(!aiOn()){ toast('Activez l’assistant IA dans ⚙︎ pour cette commande'); openMenu(); return; }
+      aiHandle(t, S.view==='add'?'ajout':(S.view==='cave'?'cave':'général'));
+    } });
+}
+function aiSettingsHTML(){
+  var p=aiProvider();
+  var h='<label style="margin-top:4px">Assistant IA (interprétation de la dictée)</label>';
+  h+='<select id="ai-prov"><option value="none"'+(p==='none'?' selected':'')+'>Désactivé (analyse simple)</option><option value="gemini"'+(p==='gemini'?' selected':'')+'>Google Gemini — gratuit</option><option value="mistral"'+(p==='mistral'?' selected':'')+'>Mistral — gratuit</option></select>';
+  h+='<div id="ai-keybox" style="margin-top:8px'+(p==='none'?';display:none':'')+'"><input type="password" id="ai-key" autocomplete="off" placeholder="Clé API" value="'+esc(aiKey(p==='none'?'gemini':p))+'">';
+  h+='<p class="hint" id="ai-help" style="margin:6px 0 8px"></p>';
+  h+='<div class="formfoot" style="margin-top:0"><button class="btn sm" id="ai-save">Enregistrer</button><button class="btn sm sec" id="ai-test">Tester</button></div><p class="hint" id="ai-res" style="margin-top:8px"></p></div>';
+  return h;
+}
+function aiSettingsBind(){
+  var sel=document.getElementById('ai-prov'); if(!sel) return;
+  function help(){
+    var v=sel.value;
+    document.getElementById('ai-keybox').style.display=v==='none'?'none':'block';
+    if(v==='none') return;
+    document.getElementById('ai-key').value=aiKey(v);
+    document.getElementById('ai-help').innerHTML= v==='gemini'
+      ? 'Clé gratuite sur <b>aistudio.google.com</b> (menu « Get API key »). La clé reste sur cet appareil. Votre inventaire et la phrase dictée sont envoyés à Google pour l’analyse.'
+      : 'Clé gratuite sur <b>console.mistral.ai</b> (offre « Experiment », vérification par SMS). La clé reste sur cet appareil. Votre inventaire et la phrase dictée sont envoyés à Mistral pour l’analyse.';
+  }
+  sel.onchange=function(){ lsSet('ai_provider',sel.value); help(); if(sel.value==='none') toast('Assistant IA désactivé'); };
+  help();
+  document.getElementById('ai-save').onclick=function(){ lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini') lsSet('ai_model_gemini',''); toast('Assistant IA enregistré'); };
+  document.getElementById('ai-test').onclick=function(){
+    lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini') lsSet('ai_model_gemini','');
+    var out=document.getElementById('ai-res'); out.textContent='Test en cours…';
+    aiCall('domaine leflaive pull ligny montrachet deux mille dix-neuf trois bouteilles étagère deux','ajout').then(function(r){
+      var f=r.fiche||{};
+      out.innerHTML='✔ Fonctionne'+(sel.value==='gemini'?' ('+esc(lsGet('ai_model_gemini',''))+')':'')+' — compris : '+esc([f.domaine,f.appellation,f.millesime,(f.qte?'×'+f.qte:''),(f.etagere?'étagère '+f.etagere:'')].filter(Boolean).join(' · '));
+    }).catch(function(e){ out.textContent='✖ '+aiNetMsg(e); });
+  };
 }
 
 function doExport(){
@@ -905,6 +1241,14 @@ function doImport(input){
   f.text().then(function(t){ var d=JSON.parse(t); if(Array.isArray(d)){ S.refs=d; save(); toast('Import réussi · '+d.length+' références'); } }).catch(function(){ toast('Fichier invalide'); });
 }
 
+function isStandalone(){ return window.navigator.standalone===true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); }
+if(isStandalone()) document.documentElement.classList.add('standalone');
+// Clavier iPhone : on remonte le panneau du bas au-dessus du clavier et on masque la barre d'onglets
+if(window.visualViewport){
+  var kbSync=function(){ var vv=window.visualViewport; var off=Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty('--kb', off+'px'); document.documentElement.classList.toggle('kbopen', off>80); };
+  visualViewport.addEventListener('resize',kbSync); visualViewport.addEventListener('scroll',kbSync);
+}
 localLoad();
 document.getElementById('overlay').onclick=closeDrawer;
 document.getElementById('voicebar').onclick=function(){ if(VOICE) VOICE.stop(); };
