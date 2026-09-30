@@ -6,8 +6,8 @@
 <title>Cave — Nicolas</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
-<meta name="theme-color" content="#faf8f3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1c1916" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f1f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#150e0f" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,19 +17,19 @@
 <link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Archivo:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#faf8f3;--card:#fffdf8;--ink:#2b2620;--muted:#8a8073;--line:#e8e2d5;--acc:#b3542f;--gold:#9a7d2c;--green:#4c7a4c;--red:#a8402e;--shadow:0 10px 30px rgba(60,45,30,.08)}
-@media(prefers-color-scheme:dark){:root{--bg:#1c1916;--card:#26221d;--ink:#efe9dd;--muted:#a09786;--line:#3a342c;--shadow:0 10px 30px rgba(0,0,0,.35)}}
+:root{--bg:#f2f1f4;--card:#ffffff;--card2:#f7f6f8;--ink:#1d1719;--muted:#776e72;--line:#e2dfe4;--acc:#7b1e35;--on-acc:#ffffff;--gold:#8a6618;--green:#2e7548;--red:#c2410c;--alert-bg:#fbe9df;--ok-bg:#e3f1e8;--early:#46607f;--early-bg:#e6ecf4;--past:#8c8387;--past-bg:#efedef;--w-rouge:#7d1428;--w-blanc:#e3cf7d;--w-rose:#e89aa6;--w-eff:#eadba0;--shadow:0 1px 3px rgba(40,20,25,.07);--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;--serif:"Fraunces",Georgia,serif}
+@media(prefers-color-scheme:dark){:root{--bg:#150e0f;--card:#211617;--card2:#2a1c1d;--ink:#f2e9dc;--muted:#a7968c;--line:#3a2729;--acc:#d47a8c;--on-acc:#1a1011;--gold:#d8b265;--green:#79c795;--red:#ff8052;--alert-bg:#3d1f16;--ok-bg:#1b2e22;--early:#9db2cf;--early-bg:#1f2633;--past:#8f8178;--past-bg:#2a2222;--w-rouge:#b0243f;--w-blanc:#e6d488;--w-rose:#eaa0ab;--w-eff:#efe2a8;--shadow:0 1px 3px rgba(0,0,0,.4)}}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
 button,.chip,.card,#tabbar,.nav{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 input,textarea,select{touch-action:manipulation}
-body{font-family:Archivo,system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex}
-h1,h2,h3,.serif{font-family:Fraunces,Georgia,serif}
-.mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+body{font-family:var(--sys);background:var(--bg);color:var(--ink);display:flex}
+h1,h2,h3,.serif{font-family:var(--serif);font-weight:600}
+.mono{font-variant-numeric:tabular-nums}
 button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 #app{display:flex;width:100%;min-height:100vh}
 aside{width:250px;flex:0 0 250px;border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;overflow-y:auto}
@@ -38,7 +38,7 @@ aside{width:250px;flex:0 0 250px;border-right:1px solid var(--line);padding:20px
 .nav{display:flex;flex-direction:column;gap:4px}
 .nav button{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;text-align:left;font-size:14.5px;color:var(--ink)}
 .nav button:hover{background:var(--card)}
-.nav button.on{background:var(--acc);color:#fff}
+.nav button.on{background:var(--acc);color:var(--on-acc)}
 .badge{margin-left:auto;background:var(--red);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px}
 .gauges{display:flex;flex-direction:column;gap:10px;font-size:12.5px}
 .gbar{height:7px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:4px}
@@ -52,13 +52,13 @@ main{flex:1;padding:28px 34px;max-width:1100px}
 .viewhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px;flex-wrap:wrap}
 .viewhead h2{font-size:32px}
 .eyebrow{color:var(--acc);font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600}
-.btn{background:var(--acc);color:#fff;border-radius:12px;padding:11px 18px;font-weight:600;font-size:14.5px;display:inline-flex;align-items:center;gap:8px}
+.btn{background:var(--acc);color:var(--on-acc);border-radius:12px;padding:11px 18px;font-weight:600;font-size:14.5px;display:inline-flex;align-items:center;gap:8px}
 .btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
 .btn.danger{background:var(--red)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-.tile b{font-size:26px;display:block;font-family:"IBM Plex Mono",monospace}
+.tile b{font-size:26px;display:block;font-family:inherit}
 .tile span{color:var(--muted);font-size:12.5px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:20px}
 .panel h3{font-size:17px;margin-bottom:12px}
@@ -72,11 +72,11 @@ input[type=text],input[type=search],input[type=password],input[type=number],sele
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);cursor:pointer}
 .card:hover{border-color:var(--acc)}
 .card .eyebrow{margin-bottom:4px}
-.card h4{font-family:Fraunces,serif;font-size:16.5px;margin-bottom:2px}
+.card h4{font-family:var(--serif);font-size:16.5px;margin-bottom:2px}
 .card .meta{color:var(--muted);font-size:12.5px;margin-bottom:10px}
 .tagrow{display:flex;gap:6px;flex-wrap:wrap}
 .tag{font-size:11px;border-radius:99px;padding:2px 9px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
-.tag.q{background:var(--acc);color:#fff;border-color:var(--acc)}
+.tag.q{background:var(--acc);color:var(--on-acc);border-color:var(--acc)}
 .tag.dead{background:var(--muted);color:#fff;border-color:var(--muted)}
 .tag.alert{background:var(--red);color:#fff;border-color:var(--red)}
 form .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
@@ -88,7 +88,7 @@ input,select,textarea{width:100%}
 .alert-item{display:flex;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
 .alert-item:last-child{border:none}
 .sev{font-size:11px;border-radius:99px;padding:2px 9px;white-space:nowrap}
-.sev.warn{background:#f3e3c8;color:#8a6414}.sev.crit{background:#f0d3cc;color:var(--red)}
+.sev.warn{background:var(--alert-bg);color:var(--red)}.sev.crit{background:var(--red);color:#fff}
 #drawer{position:fixed;top:0;right:-440px;width:min(420px,100vw);height:100vh;background:var(--card);border-left:1px solid var(--line);transition:right .25s;z-index:50;overflow-y:auto;padding:26px;box-shadow:var(--shadow)}
 #drawer.open{right:0}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.25s;z-index:40}
@@ -101,9 +101,9 @@ input,select,textarea{width:100%}
 .apobar .now{position:absolute;top:-4px;width:4px;height:18px;background:var(--acc);border-radius:2px}
 .chatbox{display:flex;flex-direction:column;gap:12px;max-width:720px}
 .msg{padding:11px 15px;border-radius:14px;font-size:14.5px;max-width:85%;white-space:pre-wrap}
-.msg.me{background:var(--acc);color:#fff;align-self:flex-end}
+.msg.me{background:var(--acc);color:var(--on-acc);align-self:flex-end}
 .msg.bot{background:var(--card);border:1px solid var(--line);align-self:flex-start}
-.msg.bot b{font-family:Fraunces,serif}
+.msg.bot b{font-family:var(--serif)}
 .chatin{display:flex;gap:8px;margin-top:10px;max-width:720px}
 .chatin input{flex:1}
 .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px;grid-column:1/-1}
@@ -145,10 +145,85 @@ input,select,textarea{width:100%}
 .spin{width:16px;height:16px;border-radius:99px;border:2px solid currentColor;border-right-color:transparent;flex:none;animation:rot .8s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
 #voicebar.busy{cursor:default}
-.mhead .micbtn{background:var(--acc);color:#fff;font-size:18px}
+.mhead .micbtn{background:var(--acc);color:var(--on-acc);font-size:18px}
 .stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:18px 0}
 .stepper button{width:52px;height:52px;border-radius:99px;border:1px solid var(--line);font-size:24px;background:var(--bg)}
 .stepper b{font-size:34px;min-width:60px;text-align:center}
+/* ===== v2.11 : refonte (iPhone natif + cave nocturne, accent bordeaux) ===== */
+.ico{width:20px;height:20px;flex:none}
+.pastille{width:13px;height:13px;border-radius:50%;flex:none;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.p-rouge{background:var(--w-rouge)}.p-blanc{background:var(--w-blanc)}.p-rose{background:var(--w-rose)}
+.p-eff{background:radial-gradient(circle at 35% 35%,#fff 0 1.3px,transparent 1.6px),radial-gradient(circle at 65% 62%,#fff 0 1px,transparent 1.3px),var(--w-eff)}
+.group{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:760px}
+.group>*+*{border-top:1px solid var(--line)}
+.group .card{border:none;border-radius:0;box-shadow:none}
+.group .card+.card{border-top:1px solid var(--line)}
+.card{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px 11px 14px;background:var(--card);cursor:pointer}
+.card:hover{border-color:var(--line);background:var(--card2)}
+.card>.pastille{align-self:start;margin-top:5px}
+.cname{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.2}
+.cuv{font-weight:500;color:var(--muted)}
+.csub{font-size:13.5px;margin-top:2px}
+.csub .reg{color:var(--muted)}
+.cmeta{display:flex;gap:6px 8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.loc{font-size:12px;color:var(--muted)}
+.apo{font-size:11.5px;font-weight:600;border-radius:99px;padding:1px 8px;white-space:nowrap}
+.apo-early{color:var(--early);background:var(--early-bg)}.apo-ok{color:var(--green);background:var(--ok-bg)}
+.apo-vite{color:var(--red);background:var(--alert-bg)}.apo-past{color:var(--past);background:var(--past-bg);text-decoration:line-through}
+.apo-warn{color:var(--red);background:var(--alert-bg)}.apo-dead{color:var(--past);background:var(--past-bg)}
+.cqty{display:flex;flex-direction:column;align-items:center;gap:4px}
+.cqty b{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.minus{min-width:46px;height:34px;border-radius:10px;border:1px solid var(--acc);color:var(--acc);font-weight:700;font-size:14px}
+.minus:active{background:var(--acc);color:var(--on-acc)}
+.gtitle{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:20px 4px 7px;display:flex;justify-content:space-between;align-items:baseline;max-width:760px}
+.gtitle.alert{color:var(--red)}
+.gtitle .linkbtn{letter-spacing:0;text-transform:none;text-decoration:none;font-size:13px}
+.lrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 14px;font-size:14px;cursor:pointer;background:var(--card)}
+.lrow .l{display:flex;gap:10px;align-items:center;min-width:0}
+.lrow .l>span:last-child{min-width:0}
+.lrow .t{font-family:var(--serif);font-weight:600;font-size:15.5px}
+.lrow .s{color:var(--muted);font-size:12.5px}
+.lrow .r{color:var(--red);font-weight:600;font-size:13px;white-space:nowrap}
+.lrow .warnic{color:var(--red)}
+.summary{display:flex;gap:6px;flex-wrap:wrap}
+.summary span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.fmap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:760px}
+.ftile{border-radius:8px;padding:5px 3px;text-align:center;background:var(--card2);border:1px solid var(--line);min-height:52px;display:flex;flex-direction:column;justify-content:center;gap:1px}
+.ftile .n{font-size:9.5px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ftile .c{font-size:12px;font-weight:600;display:flex;justify-content:center;gap:5px;font-variant-numeric:tabular-nums}
+.ftile .c i{font-style:normal;display:inline-flex;align-items:center;gap:2px}
+.ftile .c i::before{content:"";width:7px;height:7px;border-radius:50%;display:inline-block}
+.ftile .c i.r::before{background:var(--w-rouge)}.ftile .c i.b::before{background:var(--w-blanc)}
+.ftile.zero{background:transparent;border-style:dashed}
+.ftile.zero .c{color:var(--muted);font-weight:400}
+.maplegend{font-size:12px;color:var(--muted);margin:6px 4px 0;max-width:760px}
+.colrecap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:760px}
+.colrecap>div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px}
+.colrecap>div+div{border-left:1px solid var(--line)}
+.colrecap b{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.colrecap span:last-child{font-size:11.5px;color:var(--muted)}
+.sortseg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:2px;margin-bottom:8px;max-width:420px}
+.sortseg button{flex:1;font-size:13.5px;padding:7px 4px;border-radius:8px}
+.sortseg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.18);font-weight:600}
+.csec{margin-bottom:12px}
+.sec{position:sticky;top:var(--hh,0px);z-index:3;background:var(--bg);padding:9px 4px 6px;font-size:13.5px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);margin-bottom:6px;max-width:760px}
+.sec small{font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+#rail{position:fixed;right:2px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;gap:1px;z-index:20;background:color-mix(in srgb,var(--bg) 80%,transparent);border-radius:10px;padding:3px 0}
+#rail.show{display:flex}
+@media(max-width:820px){body.hasrail main{padding-right:52px}body.hasrail .chips{margin-right:-52px}#rail{max-width:50px}#rail button{font-size:10px;padding:3px 2px}#rail button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+#rail button{color:var(--acc);font-size:10.5px;font-weight:700;padding:3px 4px;line-height:1.1}
+#fab-mic{position:fixed;right:18px;bottom:24px;width:60px;height:60px;border-radius:50%;background:var(--acc);color:var(--on-acc);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(0,0,0,.28);z-index:36}
+#fab-mic svg{width:27px;height:27px}
+.dband{height:6px;border-radius:9px;margin:4px 0 14px}
+.dname{font-size:26px;line-height:1.15;margin:0}
+.dcuv{color:var(--muted);font-family:var(--serif);font-size:17px}
+.linkdel{display:block;margin:24px auto 4px;color:var(--red);font-size:14px}
+#toast.act{pointer-events:auto;display:flex;gap:14px;align-items:center}
+#toast .undo{font-weight:700;text-decoration:underline;color:var(--bg)}
+.setgroup{max-width:560px}
+.setgroup .panel{max-width:560px}
+.nav button .ico{width:18px;height:18px}
+.nav button{gap:10px}
 @media(max-width:820px){
 .fedit{width:40px;height:34px;font-size:16px}
 body{display:block}
@@ -162,12 +237,14 @@ aside .nav,aside .gauges,aside .store{display:none}
 .mhead button{width:42px;height:42px;border-radius:99px;font-size:20px;display:flex;align-items:center;justify-content:center}
 .only-m{display:block}
 .hide-m{display:none!important}
-main{padding:16px 16px calc(90px + env(safe-area-inset-bottom));max-width:none}
+main{padding:16px 16px calc(150px + env(safe-area-inset-bottom));max-width:none}
 #tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--card);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
 #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;color:var(--muted);min-height:54px;position:relative}
-#tabbar .ic{font-size:19px;line-height:1;height:24px;display:flex;align-items:center}
+#tabbar .ic{line-height:1;height:26px;display:flex;align-items:center}
+#tabbar .ic svg{width:24px;height:24px}
 #tabbar button.on{color:var(--acc);font-weight:600}
-#tabbar .tb-add .ic{background:var(--acc);color:#fff;border-radius:12px;width:44px;height:30px;justify-content:center;font-size:20px}
+#tabbar .tb-add .ic{background:var(--acc);color:var(--on-acc);border-radius:12px;width:48px;height:34px;justify-content:center}
+#tabbar .tb-add .ic svg{width:22px;height:22px}
 #tabbar .badge{position:absolute;top:4px;left:calc(50% + 6px);margin:0}
 input[type=text],input[type=search],input[type=password],input[type=number],select,textarea{font-size:16px;padding:11px 12px}
 .viewhead{margin-bottom:14px;align-items:center}
@@ -186,11 +263,6 @@ input[type=text],input[type=search],input[type=password],input[type=number],sele
 .tile b{font-size:22px}
 .panel{padding:14px;border-radius:14px}
 .grid{grid-template-columns:1fr;gap:10px}
-.card{padding:12px 14px;display:grid;grid-template-columns:1fr auto;column-gap:10px}
-.card .eyebrow,.card h4,.card .meta,.card .tagrow{grid-column:1}
-.card .qbig{grid-column:2;grid-row:1/span 4;align-self:center;font-size:22px;color:var(--acc);font-family:"IBM Plex Mono",monospace}
-.card .tag.q{display:none}
-.card .meta{margin-bottom:8px}
 .alert-item{padding:12px 2px}
 form .row{grid-template-columns:1fr;gap:12px;margin-bottom:12px}
 .formfoot .btn{flex:1;justify-content:center}
@@ -207,31 +279,31 @@ form .row{grid-template-columns:1fr;gap:12px;margin-bottom:12px}
 #drawer .btn.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
 body.noscroll{overflow:hidden}
 #drawer{bottom:var(--kb,0px);max-height:calc(88dvh - var(--kb,0px))}
-html.kbopen #tabbar{display:none}
+html.kbopen #tabbar,html.kbopen #fab-mic{display:none}
 html.kbopen main{padding-bottom:24px}
 html.standalone aside{padding-top:calc(12px + env(safe-area-inset-top))}
 html.standalone .brand small{display:none}
+#fab-mic{bottom:calc(76px + env(safe-area-inset-bottom))}
+.cname{font-size:16.5px}
 }
-@media(min-width:821px){ .card .qbig{display:none} }
+
 </style>
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>Nicolas · v2.10</small></div>
- <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-voice" class="micbtn" aria-label="Parler à la cave">🎤</button><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
- <button class="btn hide-m" id="btn-voice-d">🎤 Parler à la cave</button>
+ <div class="brand"><h1>Cave</h1><small>v2.11</small></div>
+ <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span></div>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
  <div class="store" id="store">
   <div id="syncstatus"></div>
-  <button class="linkbtn" id="btn-export">Exporter une copie (.json)</button>
-  <button class="linkbtn" id="btn-import">Importer un fichier .json</button>
-  <button class="btn sm" id="btn-settings-d" style="justify-content:center">⚙︎ Réglages (assistant IA, dictée)</button>
-  <button class="linkbtn" id="btn-cfg">Réglages OneDrive…</button>
+  <button class="btn sec" id="btn-settings-d" style="justify-content:center"></button>
  </div>
 </aside>
 <main id="main"></main>
 <nav id="tabbar"></nav>
+<button id="fab-mic" aria-label="Parler à la cave"></button>
+<div id="rail"></div>
 <div id="voicebar" role="button" aria-label="Arrêter l’écoute"></div>
 <div id="aisug"></div>
 <datalist id="inao-list"></datalist>
@@ -243,15 +315,19 @@ html.standalone .brand small{display:none}
 <div id="toast"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.10';
-var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '' };
+var APPV='v2.11';
+var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
 
 function nomVin(r){ return (r.domaine||'')+(r.cuvee? ' · '+r.cuvee : ''); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function id(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('show'); },2800); }
+function toast(m,undo){ var t=document.getElementById('toast'); t.classList.remove('act');
+  if(undo){ t.innerHTML='<span>'+esc(m)+'</span><button class="undo" type="button">Annuler</button>'; t.classList.add('act');
+    t.querySelector('.undo').onclick=function(){ t.classList.remove('show','act'); clearTimeout(t._h); undo(); }; }
+  else t.textContent=m;
+  t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('show','act'); }, undo?5000:2800); }
 function val(fid){ return document.getElementById(fid).value.trim(); }
 function set$(fid,v){ var el=document.getElementById(fid); if(!el||v===null||v===undefined||v==='') return;
   if(el.tagName==='SELECT'){ for(var i=0;i<el.options.length;i++){ if(el.options[i].text.toLowerCase().indexOf(String(v).toLowerCase())>=0){ el.selectedIndex=i; break; } } }
@@ -265,6 +341,7 @@ function apYears(r){
 }
 function inWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return y>=a.d && y<=a.f; }
 function soonWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return a.d>y && a.d-y<=2; }
+function pastWindow(r){ var a=apYears(r); if(!a) return false; return new Date().getFullYear()>a.f; }
 function isLongGarde(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return (a.f-a.d>8) || (a.f-y>5); }
 
 function seuilBas(qi){ qi=qi||0; if(qi<=2) return 0; if(qi<=5) return 1; return 2; }
@@ -273,6 +350,7 @@ function alertsFor(r){
   if(r.qte<=0) return out;
   if(inWindow(r)) out.push({sev:'ok',txt:'Apogée en cours ('+r.apogee+') — à boire'});
   else if(soonWindow(r)) out.push({sev:'warn',txt:'Apogée proche ('+r.apogee+')'});
+  else if(pastWindow(r)) out.push({sev:'warn',txt:'Apogée passée ('+r.apogee+') — à ouvrir sans tarder'});
   if(r.zone==='garage' && isLongGarde(r)) out.push({sev:'crit',txt:'Vin de garde stocké au garage'});
   if(r.qte<=seuilBas(r.qteInit)) out.push({sev:'warn',txt:'Stock bas ('+r.qte+' restante'+(r.qte>1?'s':'')+')'});
   return out;
@@ -446,27 +524,55 @@ function openCfg(){
   document.getElementById('cfg-pull').onclick=function(){ odPull().then(function(){ render(); toast('Fichier OneDrive relu'); }); };
 }
 
+var ICO={
+ home:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>',
+ cave:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.4" fill="currentColor"/><circle cx="14" cy="12" r="1.4" fill="currentColor"/><circle cx="10" cy="17" r="1.4" fill="currentColor"/></svg>',
+ plus:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+ glass:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l-.6 6a4.4 4.4 0 0 1-8.8 0z"/><path d="M12 13.5V20M8.5 20h7"/></svg>',
+ gear:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3L5.5 5.5"/></svg>',
+ bell:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0" stroke-linecap="round"/></svg>',
+ mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
+ warn:'<svg class="ico warnic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5" stroke-linecap="round"/></svg>',
+ bottle:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M10 2h4v5l2 3v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V10l2-3z"/></svg>',
+ out:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h12M13 7l5 5-5 5"/></svg>',
+ re:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>'
+};
 function render(){
   var nav=document.getElementById('nav'); nav.innerHTML='';
-  var views=[['dash','◆ Tableau de bord'],['cave','▤ Ma cave'],['add','＋ Ajouter'],['soir','↗ Que boire ce soir ?'],['alertes','! Alertes']];
+  var ac=alertCount();
+  var views=[['dash','home','Accueil'],['cave','cave','Ma cave'],['add','bottle','Ajouter'],['soir','glass','Que boire ce soir ?'],['alertes','bell','Alertes']];
   views.forEach(function(v){
-    var b=document.createElement('button'); b.textContent=v[1]; if(S.view===v[0]) b.className='on';
-    if(v[0]==='alertes'&&alertCount()) b.innerHTML=esc(v[1])+' <span class="badge">'+alertCount()+'</span>';
+    var b=document.createElement('button'); if(S.view===v[0]) b.className='on';
+    b.innerHTML=ICO[v[1]]+'<span>'+esc(v[2])+'</span>'+(v[0]==='alertes'&&ac? ' <span class="badge">'+ac+'</span>' : '');
     b.onclick=function(){ go(v[0]); }; nav.appendChild(b);
   });
-  // Barre d'onglets mobile
-  var tabs=[['dash','◆','Accueil'],['cave','▤','Ma cave'],['add','＋','Ajouter'],['soir','↗','Ce soir'],['alertes','!','Alertes']];
+  // Barre d'onglets mobile : Accueil · Ma cave · ＋ (actions) · Ce soir · Réglages
+  var tabs=[['dash','home','Accueil'],['cave','cave','Ma cave'],['plus','plus',''],['soir','glass','Ce soir'],['reglages','gear','Réglages']];
   var tb=document.getElementById('tabbar'), th='';
-  tabs.forEach(function(v){ th+='<button class="'+(v[0]==='add'?'tb-add ':'')+(S.view===v[0]?'on':'')+'" data-tab="'+v[0]+'"><span class="ic">'+v[1]+'</span>'+v[2]+(v[0]==='alertes'&&alertCount()? '<span class="badge">'+alertCount()+'</span>':'')+'</button>'; });
+  tabs.forEach(function(v){
+    if(v[0]==='plus'){ th+='<button class="tb-add" data-tab="plus" aria-label="Ajouter, sortir, réassort"><span class="ic">'+ICO.plus+'</span></button>'; return; }
+    th+='<button class="'+(S.view===v[0]?'on':'')+'" data-tab="'+v[0]+'"><span class="ic">'+ICO[v[1]]+'</span>'+v[2]+(v[0]==='dash'&&ac? '<span class="badge">'+ac+'</span>':'')+'</button>';
+  });
   tb.innerHTML=th;
-  tb.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ go(b.getAttribute('data-tab')); }; });
+  tb.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ var t=b.getAttribute('data-tab'); if(t==='plus') plusMenu(); else go(t); }; });
+  document.getElementById('fab-mic').innerHTML=ICO.mic;
+  var sb=document.getElementById('btn-settings-d'); sb.innerHTML=ICO.gear+' Paramètres'; sb.classList.toggle('on',S.view==='reglages'); sb.onclick=function(){ go('reglages'); };
   document.getElementById('gauges').innerHTML=gaugesHTML();
-  document.getElementById('btn-cfg').onclick=openCfg;
-  document.getElementById('btn-menu').onclick=openMenu;
-  document.getElementById('btn-voice').onclick=voiceAssistant;
-  document.getElementById('btn-voice-d').onclick=voiceAssistant;
-  document.getElementById('btn-settings-d').onclick=openMenu;
-  var fn={dash:vDash,cave:vCave,add:vAdd,soir:vSoir,alertes:vAlertes}[S.view]; fn();
+  document.getElementById('rail').classList.remove('show'); document.body.classList.remove('hasrail');
+  var fn={dash:vDash,cave:vCave,add:vAdd,soir:vSoir,alertes:vAlertes,reglages:vReglages}[S.view]||vDash; fn();
+  setHH();
+}
+function setHH(){ var a=document.querySelector('aside'); var h=(window.innerWidth<=820&&a)? a.offsetHeight : 0; document.documentElement.style.setProperty('--hh',h+'px'); }
+function plusMenu(){
+  var h='<span class="eyebrow">Actions</span><h3 style="margin:4px 0 10px">Que voulez-vous faire ?</h3><div class="group">';
+  h+='<div class="lrow" id="pm-add"><span class="l"><span style="color:var(--acc)">'+ICO.bottle+'</span><span>Ajouter une bouteille</span></span></div>';
+  h+='<div class="lrow" id="pm-out"><span class="l"><span style="color:var(--acc)">'+ICO.out+'</span><span>Sortir une bouteille</span></span></div>';
+  h+='<div class="lrow" id="pm-re"><span class="l"><span style="color:var(--acc)">'+ICO.re+'</span><span>Réassort d’une référence connue</span></span></div>';
+  h+='</div><p class="hint" style="margin-top:10px">La dictée est sur le bouton micro, en bas à droite.</p>';
+  drawerOpen(h);
+  document.getElementById('pm-add').onclick=function(){ go('add'); };
+  document.getElementById('pm-out').onclick=function(){ go('cave'); toast('Touchez « −1 » sur la bouteille, ou cherchez-la'); };
+  document.getElementById('pm-re').onclick=function(){ closeDrawer(); restockPanel(); };
 }
 function go(v){ if(VOICE) VOICE.stop(); S.view=v; S.editId=null; if(v!=='add'){ S.dict=''; resetProv(); } closeDrawer(); render(); window.scrollTo(0,0); }
 function gaugesHTML(){
@@ -477,20 +583,20 @@ function gaugesHTML(){
   g+='<div class="gauge garage"><div>Garage · <span class="mono">'+gar+'/150</span></div><div class="gbar"><div class="gfill" style="width:'+Math.min(100,gar/150*100)+'%"></div></div></div>';
   return g;
 }
-function openMenu(){
-  var h='<span class="eyebrow">Cave · '+APPV+'</span><h3 style="margin:4px 0 14px">Occupation et stockage</h3>';
-  h+='<div class="gauges" style="margin-bottom:18px">'+gaugesHTML()+'</div>';
-  h+='<div id="m-sync" style="font-size:14px;margin-bottom:14px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
-  h+='<label style="margin-top:4px">Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
+function openMenu(){ go('reglages'); }
+function prenom(){ try{ var p=localStorage.getItem('cave-prenom'); return p===null? 'Nicolas' : p; }catch(e){ return 'Nicolas'; } }
+function vReglages(){
+  var h='<div class="viewhead"><div><span class="eyebrow">Cave · '+APPV+'</span><h2>Réglages</h2></div></div><div class="setgroup">';
+  h+='<div class="panel"><h3>Profil</h3><label>Prénom affiché sur l’accueil</label><input type="text" id="m-prenom" autocomplete="off" value="'+esc(prenom())+'"></div>';
+  h+='<div class="panel"><h3>Occupation</h3><div class="gauges">'+gaugesHTML()+'</div></div>';
+  h+='<div class="panel"><h3>Synchronisation</h3><div id="m-sync" style="font-size:14px;margin-bottom:12px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
+  h+='<div class="formfoot" style="flex-direction:column;margin-top:0"><button class="btn sec" id="m-cfg">Réglages OneDrive…</button><button class="btn sec" id="m-pull">Relire depuis OneDrive</button><button class="btn sec" id="m-exp">Exporter une copie (.json)</button><button class="btn sec" id="m-imp">Importer un fichier .json</button></div></div>';
+  h+='<div class="panel"><h3>Dictée et assistant</h3><label>Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
   h+='<p class="hint" style="margin:6px 0 16px">Reconnaissance intégrée : '+(hasSR()?'disponible dans ce navigateur':'non disponible ici (dictée par le clavier)')+(isStandalone()?' · appli écran d’accueil':'')+'</p>';
-  h+=aiSettingsHTML();
-  h+='<div class="formfoot" style="flex-direction:column;margin-top:22px">';
-  h+='<button class="btn sec" id="m-cfg">Réglages OneDrive…</button>';
-  h+='<button class="btn sec" id="m-pull">Relire depuis OneDrive</button>';
-  h+='<button class="btn sec" id="m-exp">Exporter une copie (.json)</button>';
-  h+='<button class="btn sec" id="m-imp">Importer un fichier .json</button>';
-  h+='</div>';
-  drawerOpen(h);
+  h+=aiSettingsHTML()+'</div>';
+  h+='<p class="hint">Thème : suit le réglage clair / sombre de l’appareil.</p></div>';
+  document.getElementById('main').innerHTML=h;
+  var pr=document.getElementById('m-prenom'); pr.onchange=function(){ try{ localStorage.setItem('cave-prenom',pr.value.trim()); }catch(e){} toast('Prénom enregistré'); };
   document.getElementById('m-cfg').onclick=openCfg;
   aiSettingsBind();
   document.getElementById('m-voice').onchange=function(){ try{ localStorage.setItem('cave-voice',this.value); }catch(e){} toast('Mode de dictée enregistré'); };
@@ -498,42 +604,88 @@ function openMenu(){
   document.getElementById('m-exp').onclick=doExport;
   document.getElementById('m-imp').onclick=function(){ document.getElementById('fileinput').click(); };
 }
+var PCLS={'Rouge':'rouge','Blanc':'blanc','Rosé':'rose','Effervescent':'eff'};
+function pastille(r){ return '<span class="pastille p-'+(PCLS[r.couleur]||'blanc')+'" title="'+esc(r.couleur||'')+'"></span>'; }
+var APOL={past:'Apogée passée',vite:'À boire vite',ok:'À boire',early:'Trop tôt',none:'Sans apogée'};
+// « À boire vite » : dans la fenêtre et fin d'apogée cette année ou l'an prochain
+function apoState(r){ var a=apYears(r); if(!a) return 'none'; var y=new Date().getFullYear(); if(y<a.d) return 'early'; if(y>a.f) return 'past'; if(a.f-y<=1) return 'vite'; return 'ok'; }
+function subLine(r){ return (r.appellation? esc(r.appellation) : '<span class="reg">'+esc(r.region||'')+'</span>')+(r.millesime? ' · <span class="mono">'+esc(r.millesime)+'</span>' : ''); }
+function locTxt(r){ return r.zone==='garage'? 'Garage' : 'Frigo · étag. '+(r.etagere||'—'); }
 function refCard(r){
-  var al=alertsFor(r).filter(function(a){ return a.sev!=='ok'; });
-  var h='<div class="card" data-ref="'+r.id+'"><div class="eyebrow">'+esc(r.region)+' · '+esc(r.millesime)+'</div><h4>'+esc(nomVin(r))+'</h4><div class="meta">'+esc(r.appellation)+' · '+esc(r.couleur)+'</div><div class="tagrow"><span class="tag q mono">× '+r.qte+'</span><span class="tag">'+esc(r.zone==='garage'?'Garage':'Frigo · étag. '+r.etagere)+'</span>';
-  if(r.apogee) h+='<span class="tag">'+esc(r.apogee)+'</span>';
-  if(al.length) h+='<span class="tag alert">'+al.length+' alerte'+(al.length>1?'s':'')+'</span>';
-  if(r.qte<=0) h+='<span class="tag dead">Épuisée</span>';
-  h+='</div><div class="qbig">×'+r.qte+'</div></div>';
+  var st=apoState(r), crit=alertsFor(r).some(function(a){ return a.sev==='crit'; });
+  var h='<div class="card" data-ref="'+r.id+'">'+pastille(r);
+  h+='<div><div class="cname">'+esc(r.domaine||'')+(r.cuvee? '<span class="cuv"> · '+esc(r.cuvee)+'</span>' : '')+'</div>';
+  h+='<div class="csub">'+subLine(r)+'</div><div class="cmeta">';
+  if(r.qte<=0) h+='<span class="apo apo-dead">Épuisée</span>';
+  else if(st!=='none') h+='<span class="apo apo-'+st+'">'+APOL[st]+'</span>';
+  if(r.qte>0 && r.qte<=seuilBas(r.qteInit)) h+='<span class="apo apo-warn">Stock bas</span>';
+  if(crit) h+='<span class="apo apo-warn">Garde au garage</span>';
+  h+='<span class="loc">'+esc(locTxt(r))+'</span></div></div>';
+  h+='<div class="cqty"><b>×'+Math.max(0,r.qte)+'</b>'+(r.qte>0? '<button type="button" class="minus" data-minus="'+r.id+'" aria-label="Sortir une bouteille">−1</button>' : '')+'</div></div>';
   return h;
 }
-function bindCards(){ document.querySelectorAll('[data-ref]').forEach(function(c){ c.onclick=function(){ openRef(c.getAttribute('data-ref')); }; }); }
+function quickOut(rid,n){
+  var r=S.refs.find(function(x){ return x.id===rid; }); if(!r||r.qte<=0) return;
+  n=Math.max(1,Math.min(n||1,r.qte)); r.qte-=n; save();
+  toast((n>1? n+' bouteilles sorties' : '1 bouteille sortie')+' · '+(r.domaine||'')+' · reste '+r.qte+(r.qte===0? ' (épuisée)' : ''), function(){ r.qte+=n; save(); toast('Sortie annulée'); });
+}
+function bindCards(){
+  document.querySelectorAll('[data-ref]').forEach(function(c){ c.onclick=function(){ openRef(c.getAttribute('data-ref')); }; });
+  document.querySelectorAll('[data-minus]').forEach(function(b){ b.onclick=function(e){ e.stopPropagation(); quickOut(b.getAttribute('data-minus'),1); }; });
+}
 
+// Carte schématique des régions (tuiles) : [région, libellé court, ligne, colonne]
+var REGMAP=[['Normandie','Norm.',1,'2'],['Île-de-France','IdF',1,'3'],['Champagne','Champ.',1,'4'],['Nord-Est','N.-Est',1,'5'],['Alsace','Alsace',1,'6'],
+ ['Loire','Loire',2,'1 / span 2'],['Bourgogne','Bourg.',2,'4'],['Jura','Jura',2,'5'],['Beaujolais','Beauj.',3,'4'],['Savoie','Savoie',3,'5'],
+ ['Bordeaux','Bdx',4,'1'],['Rhône','Rhône',4,'4'],['Sud-Ouest','S.-Ouest',5,'2'],['Languedoc','Lang.',5,'3'],['Provence','Prov.',5,'5'],['Corse','Corse',5,'6']];
+var RSHORT={}; REGMAP.forEach(function(m){ RSHORT[m[0]]=m[1]; });
+function mapHTML(cur){
+  var h='<div class="fmap">', onMap={};
+  REGMAP.forEach(function(m){
+    onMap[m[0]]=1;
+    var rr=qsum(cur.filter(function(r){ return r.region===m[0]&&r.couleur==='Rouge'; })), bb=qsum(cur.filter(function(r){ return r.region===m[0]&&r.couleur==='Blanc'; }));
+    var z=rr+bb===0;
+    h+='<div class="ftile'+(z?' zero':'')+'" style="grid-row:'+m[2]+';grid-column:'+m[3]+'" title="'+esc(m[0])+'"><span class="n">'+esc(m[1])+'</span><span class="c">'+(z?'—':'<i class="r">'+rr+'</i><i class="b">'+bb+'</i>')+'</span></div>';
+  });
+  var autre=qsum(cur.filter(function(r){ return !onMap[r.region] && (r.couleur==='Rouge'||r.couleur==='Blanc'); }));
+  h+='</div><p class="maplegend">Carte schématique : rouges et blancs par région. Pointillés : aucune bouteille.'+(autre? ' Hors carte (Autre) : <span class="mono">'+autre+'</span>.' : '')+'</p>';
+  return h;
+}
+function colRecap(cur){
+  return '<div class="colrecap">'+[['Blanc','Blancs','blanc'],['Rouge','Rouges','rouge'],['Effervescent','Effervescents','eff'],['Rosé','Rosés','rose']].map(function(x){
+    return '<div><span class="pastille p-'+x[2]+'"></span><b>'+qsum(cur.filter(function(r){ return r.couleur===x[0]; }))+'</b><span>'+x[1]+'</span></div>'; }).join('')+'</div>';
+}
 function vDash(){
-  var cur=current(), refs=cur.length;
-  var bientot=cur.filter(function(r){ return inWindow(r)||soonWindow(r); }).length;
-  var bas=cur.filter(function(r){ return r.qte<=seuilBas(r.qteInit); }).length;
-  var mal=cur.filter(function(r){ return r.zone==='garage'&&isLongGarde(r); }).length;
-  var als=allAlerts().slice(0,4);
-  var recent=S.refs.filter(function(r){ return r.qte>0; }).sort(function(a,b){ return (b.dateEntree||'').localeCompare(a.dateEntree||''); }).slice(0,4);
-  var h='';
-  h+='<div class="viewhead"><div><span class="eyebrow">Vue d’ensemble</span><h2>Bonjour Nicolas</h2><p class="hint">'+(allAlerts().length? 'Quelques points demandent votre attention.' : 'Votre cave est en ordre. Bonne dégustation !')+'</p></div><button class="btn hide-m" id="d-add">＋ Ajouter une bouteille</button></div>';
-  h+='<div class="tiles">';
-  h+='<div class="tile"><b class="mono">'+qsum(cur)+'</b><span>bouteilles en cave · '+refs+' réf.</span></div>';
-  h+='<div class="tile"><b class="mono">'+bientot+'</b><span>à boire bientôt</span></div>';
-  h+='<div class="tile"><b class="mono">'+bas+'</b><span>stock bas</span></div>';
-  h+='<div class="tile"><b class="mono">'+mal+'</b><span>mal placées</span></div>';
-  h+='</div>';
-  h+='<div class="panel only-m"><div class="gauges">'+gaugesHTML()+'</div></div>';
-  h+='<div class="panel"><h3>Alertes récentes</h3>';
-  if(als.length){ als.forEach(function(x){ h+='<div class="alert-item"><span><b>'+esc(nomVin(x.ref))+'</b> '+esc(x.ref.millesime)+' — '+esc(x.a.txt)+'</span><span class="sev '+x.a.sev+'">'+(x.a.sev==='crit'?'Critique':'À surveiller')+'</span></div>'; }); }
-  else h+='<p class="hint">Aucune alerte active. 🍷</p>';
-  h+='<button class="linkbtn" id="d-alerts">Tout voir →</button></div>';
-  h+='<div class="panel"><h3>Ajoutées récemment</h3><div class="grid">'+(recent.length? recent.map(refCard).join(''):'<p class="hint">Aucune bouteille pour l’instant.</p>')+'</div><button class="linkbtn" id="d-cave">Voir la cave →</button></div>';
+  var cur=current(), now=new Date();
+  var low=cur.filter(function(r){ return r.qte<=seuilBas(r.qteInit); });
+  var drink=cur.filter(function(r){ var s=apoState(r); return s==='ok'||s==='vite'; }).sort(function(a,b){ var sa=apoState(a)==='vite'?0:1, sb=apoState(b)==='vite'?0:1; return (sa-sb)||(apYears(a).f-apYears(b).f); });
+  var others=allAlerts().filter(function(x){ return !/^Stock bas/.test(x.a.txt); });
+  var fr=qsum(cur.filter(function(r){ return r.zone!=='garage'; })), ga=qsum(cur.filter(function(r){ return r.zone==='garage'; }));
+  var pn=prenom();
+  var h='<div class="viewhead"><div><span class="eyebrow">'+esc(now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}))+'</span><h2>'+(now.getHours()>=18?'Bonsoir':'Bonjour')+(pn? ' '+esc(pn) : '')+'</h2></div><button class="btn hide-m" id="d-add">＋ Ajouter une bouteille</button></div>';
+  h+='<div class="summary"><span>'+qsum(cur)+' bouteille'+(qsum(cur)>1?'s':'')+' · '+cur.length+' réf.</span><span>Frigo '+fr+'/75</span><span>Garage '+ga+'/150</span></div>';
+  if(!cur.length){ h+='<p class="hint" style="margin-top:20px">Aucune bouteille pour l’instant. Touchez ＋ ou le micro pour commencer.</p>'; }
+  if(low.length){
+    h+='<div class="gtitle alert"><span>Stock bas</span></div><div class="group">';
+    low.forEach(function(r){ h+='<div class="lrow" data-ref="'+r.id+'"><span class="l">'+pastille(r)+'<span><div class="t">'+esc(nomVin(r))+'</div><div class="s">'+subLine(r)+'</div></span></span><span class="r mono">reste '+r.qte+'</span></div>'; });
+    h+='</div>';
+  }
+  if(drink.length){
+    h+='<div class="gtitle"><span>À boire maintenant</span><button class="linkbtn" id="d-drink">Tout voir</button></div><div class="group">'+drink.slice(0,5).map(refCard).join('')+'</div>';
+  }
+  if(others.length){
+    h+='<div class="gtitle"><span>Autres alertes</span><button class="linkbtn" id="d-alerts">Tout voir</button></div><div class="group">';
+    others.slice(0,6).forEach(function(x){ h+='<div class="lrow" data-ref="'+x.ref.id+'"><span class="l">'+ICO.warn+'<span><div class="t">'+esc(nomVin(x.ref))+' <span class="mono" style="font-family:var(--sys);font-weight:400;font-size:13px">'+esc(x.ref.millesime)+'</span></div><div class="s">'+esc(x.a.txt)+'</div></span></span></div>'; });
+    h+='</div>';
+  }
+  if(cur.length){
+    h+='<div class="gtitle"><span>Rouges et blancs par région</span></div>'+mapHTML(cur);
+    h+='<div class="gtitle"><span>Par couleur</span></div>'+colRecap(cur);
+  }
   document.getElementById('main').innerHTML=h;
-  document.getElementById('d-add').onclick=function(){ S.view='add'; render(); };
-  document.getElementById('d-alerts').onclick=function(){ S.view='alertes'; render(); };
-  document.getElementById('d-cave').onclick=function(){ S.view='cave'; render(); };
+  document.getElementById('d-add').onclick=function(){ go('add'); };
+  var da=document.getElementById('d-alerts'); if(da) da.onclick=function(){ go('alertes'); };
+  var dd=document.getElementById('d-drink'); if(dd) dd.onclick=function(){ S.sort='apo'; S.filter='Tous'; try{ localStorage.setItem('cave-sort','apo'); }catch(e){} go('cave'); };
   bindCards();
 }
 
@@ -543,7 +695,8 @@ function vCave(){
   h+='<div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><div class="vh-actions"><button class="btn sec" id="c-batch" title="Compléter les fiches (apogée, cépages, région)">🤖 Compléter</button><button class="btn hide-m" id="c-add">＋ Ajouter</button></div></div>';
   h+='<div class="searchbar"><input type="search" id="c-search" enterkeyhint="search" autocomplete="off" placeholder="Domaine, région, appellation, millésime…"><button class="btn sec" id="c-micro" title="Recherche vocale">🎤</button></div>';
   h+='<div class="chips">'+chips.map(function(c){ return '<button class="chip'+(S.filter===c?' on':'')+'" data-chip="'+c+'">'+c+'</button>'; }).join('')+'</div>';
-  h+='<p class="hint" id="c-count" style="margin:-4px 0 10px"></p><div class="grid" id="c-grid"></div>';
+  h+='<div class="sortseg">'+[['reg','Régions'],['mil','Millésime'],['apo','Apogée']].map(function(x){ return '<button class="'+(S.sort===x[0]?'on':'')+'" data-sort="'+x[0]+'">'+x[1]+'</button>'; }).join('')+'</div>';
+  h+='<p class="hint" id="c-count" style="margin:0 4px 8px"></p><div id="c-grid"></div>';
   document.getElementById('main').innerHTML=h;
   var se=document.getElementById('c-search'); se.value=S.search;
   // on ne redessine que la liste : le clavier du téléphone reste ouvert pendant la frappe
@@ -553,6 +706,10 @@ function vCave(){
     S.filter=b.getAttribute('data-chip');
     document.querySelectorAll('[data-chip]').forEach(function(x){ x.classList.toggle('on', x===b); });
     caveGrid(); }; });
+  document.querySelectorAll('[data-sort]').forEach(function(b){ b.onclick=function(){
+    S.sort=b.getAttribute('data-sort'); try{ localStorage.setItem('cave-sort',S.sort); }catch(e){}
+    document.querySelectorAll('[data-sort]').forEach(function(x){ x.classList.toggle('on', x===b); });
+    caveGrid(); window.scrollTo(0,0); }; });
   document.getElementById('c-add').onclick=function(){ go('add'); };
   document.getElementById('c-batch').onclick=batchPanel;
   function plainSearch(t){ S.search=t; se.value=t; caveGrid(); }
@@ -577,10 +734,46 @@ function caveGrid(){
     return r.qte>0&&r.couleur===S.filter;
   });
   if(S.search){ list=list.filter(function(r){ return matchQ(S.search,[r.domaine,r.cuvee||'',r.region,r.appellation,r.millesime,r.cepages,r.couleur]); }); }
-  list.sort(function(a,b){ return (a.domaine||'').localeCompare(b.domaine||''); });
-  document.getElementById('c-count').textContent=list.length+' référence'+(list.length>1?'s':'')+' · '+qsum(list)+' bouteille'+(qsum(list)>1?'s':'');
-  document.getElementById('c-grid').innerHTML=list.length? list.map(refCard).join('') : '<p class="empty">Aucune bouteille ne correspond.</p>';
+  var secs=caveSections(list);
+  document.getElementById('c-count').textContent=list.length+' référence'+(list.length>1?'s':'')+' · '+qsum(list)+' bouteille'+(qsum(list)>1?'s':'')+(S.sort==='reg'? ' · régions de la plus fournie à la moins fournie' : S.sort==='apo'? ' · par état d’apogée, les plus urgents d’abord' : ' · du plus ancien au plus récent');
+  document.getElementById('c-grid').innerHTML=secs.length? secs.map(function(s,i){
+    var q=qsum(s.items);
+    return '<div class="csec" id="sec-'+i+'"><div class="sec"><span>'+esc(s.lab)+'</span><small>'+(S.filter==='Épuisées'? s.items.length+' réf.' : q+' bouteille'+(q>1?'s':''))+'</small></div><div class="group">'+s.items.map(refCard).join('')+'</div></div>';
+  }).join('') : '<p class="empty">Aucune bouteille ne correspond.</p>';
+  var rail=document.getElementById('rail');
+  if(secs.length>=4){
+    rail.innerHTML=secs.map(function(s,i){ return '<button type="button" data-jump="'+i+'" aria-label="'+esc(s.lab)+'">'+esc(s.short)+'</button>'; }).join('');
+    rail.classList.add('show'); document.body.classList.add('hasrail');
+    rail.querySelectorAll('[data-jump]').forEach(function(b){ b.onclick=function(){ var el=document.getElementById('sec-'+b.getAttribute('data-jump')); if(!el) return;
+      var hh=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh'),10)||0;
+      window.scrollTo(0, el.getBoundingClientRect().top+window.pageYOffset-hh-2); }; });
+  } else { rail.classList.remove('show'); document.body.classList.remove('hasrail'); }
   bindCards();
+}
+function domKey(r){ return noAcc((r.domaine||'').replace(/^(domaine|château|chateau|maison|mas|clos|vignoble)s?\s+(de la |de l’|de l'|des |du |de )?/i,'')); }
+function caveSections(list){
+  var sorted=list.slice(), key, lab, short, order;
+  if(S.sort==='mil'){
+    key=function(r){ var m=/\d{4}/.exec(String(r.millesime||'')); return m? m[0] : 'SM'; };
+    sorted.sort(function(a,b){ var ka=key(a), kb=key(b); if(ka==='SM') ka='9999'; if(kb==='SM') kb='9999'; return ka.localeCompare(kb) || domKey(a).localeCompare(domKey(b)); });
+    lab=function(k){ return k==='SM'? 'Sans millésime' : 'Millésime '+k; }; short=function(k){ return k==='SM'? '—' : '’'+k.slice(2); };
+  } else if(S.sort==='apo'){
+    order={past:0,vite:1,ok:2,early:3,none:4};
+    key=apoState;
+    sorted.sort(function(a,b){ var sa=apoState(a), sb=apoState(b); if(order[sa]!==order[sb]) return order[sa]-order[sb];
+      if(sa==='none') return domKey(a).localeCompare(domKey(b));
+      var ya=apYears(a), yb=apYears(b); return (sa==='early'? ya.d-yb.d : ya.f-yb.f) || domKey(a).localeCompare(domKey(b)); });
+    lab=function(k){ return APOL[k]; }; short=function(k){ return {past:'Passé',vite:'Vite',ok:'Boire',early:'Tôt',none:'—'}[k]; };
+  } else {
+    var tot={}, cnt={};
+    key=function(r){ return r.region||'Autre'; };
+    list.forEach(function(r){ var k=key(r); tot[k]=(tot[k]||0)+Math.max(0,r.qte); cnt[k]=(cnt[k]||0)+1; });
+    sorted.sort(function(a,b){ var ka=key(a), kb=key(b); return (tot[kb]-tot[ka]) || (cnt[kb]-cnt[ka]) || ka.localeCompare(kb) || domKey(a).localeCompare(domKey(b)); });
+    lab=function(k){ return k; }; short=function(k){ return RSHORT[k]||k.slice(0,6); };
+  }
+  var out=[];
+  sorted.forEach(function(r){ var k=key(r); if(!out.length||out[out.length-1].k!==k) out.push({k:k,lab:lab(k),short:short(k),items:[]}); out[out.length-1].items.push(r); });
+  return out;
 }
 
 function LB(k,text){ return '<label class="flabel"><span>'+text+'</span><span class="prov" id="p-'+k+'"></span><button type="button" class="fedit" data-edit="'+k+'" title="Redicter ce champ" aria-label="Redicter '+text+'">✏️</button></label>'; }
@@ -745,37 +938,41 @@ function vAlertes(){
 
 function openRef(rid){
   var r=S.refs.find(function(x){ return x.id===rid; }); if(!r) return;
-  var a=apYears(r), y=new Date().getFullYear(), apbar='';
+  var a=apYears(r), y=new Date().getFullYear(), apbar='', st=apoState(r), n=1;
   if(a&&a.f>a.d){ var tot=a.f-a.d+1, pos=Math.max(0,Math.min(100,(y-a.d)/tot*100));
     apbar='<label style="margin-top:16px">Fenêtre d’apogée · '+esc(r.apogee)+'</label><div class="apobar"><div class="range" style="left:0;width:100%"></div><div class="now" style="left:'+pos+'%"></div></div><div class="hint">Le curseur indique où nous en sommes ('+y+').</div>';
   } else if(r.apogee){ apbar='<p class="hint" style="margin-top:14px">Apogée : '+esc(r.apogee)+'</p>'; }
   var lots='';
   if((r.lots||[]).length>1){ lots='<label style="margin-top:18px">Historique des entrées</label>'; r.lots.forEach(function(l){ lots+='<div class="alert-item"><span class="hint">Lot</span><span><span class="mono">'+l.qte+' b.</span> entrées le '+esc(l.date)+'</span></div>'; }); }
-  var h='';
-  h+='<span class="eyebrow">'+esc(r.region)+'</span>';
-  h+='<h2 style="margin:4px 0 2px">'+esc(nomVin(r))+'</h2>';
-  h+='<p class="hint">'+esc(r.appellation)+' · '+esc(r.couleur)+'</p>';
+  var h='<div class="dband p-'+(PCLS[r.couleur]||'blanc')+'"></div>';
+  h+='<h2 class="dname">'+esc(r.domaine||'')+'</h2>'+(r.cuvee? '<div class="dcuv">'+esc(r.cuvee)+'</div>' : '');
+  h+='<div class="csub" style="margin-top:6px">'+subLine(r)+'</div>';
+  h+='<div class="cmeta">'+(r.qte<=0? '<span class="apo apo-dead">Épuisée</span>' : (st!=='none'? '<span class="apo apo-'+st+'">'+APOL[st]+'</span>' : ''))+'</div>';
+  if(r.qte>0){
+    h+='<div class="stepper"><button type="button" id="d-m" aria-label="Moins">−</button><b class="mono" id="d-n">1</b><button type="button" id="d-p" aria-label="Plus">+</button></div>';
+    h+='<button class="btn" id="d-out" style="width:100%;justify-content:center">Sortir 1 bouteille</button>';
+  } else {
+    h+='<p class="hint" style="color:var(--red);margin-top:12px">Référence épuisée — réactivable au réassort.</p>';
+  }
+  h+='<button class="btn sec" id="d-edit" style="width:100%;justify-content:center;margin-top:8px">Modifier la fiche</button>';
   h+='<div class="facts">';
-  h+='<div class="fact"><span>Millésime</span><b class="mono">'+esc(r.millesime)+'</b></div>';
-  h+='<div class="fact"><span>Quantité</span><b class="mono">×'+r.qte+' <span class="hint">(init. '+r.qteInit+')</span></b></div>';
-  h+='<div class="fact"><span>Emplacement</span><b>'+(r.zone==='garage'?'Garage':'Frigo · étagère '+r.etagere)+'</b></div>';
+  h+='<div class="fact"><span>En cave</span><b class="mono">×'+Math.max(0,r.qte)+' <span class="hint">(init. '+r.qteInit+')</span></b></div>';
+  h+='<div class="fact"><span>Emplacement</span><b>'+(r.zone==='garage'?'Garage':'Frigo · étagère '+(r.etagere||'—'))+'</b></div>';
+  h+='<div class="fact"><span>Couleur</span><b>'+esc(r.couleur||'—')+'</b></div>';
+  h+='<div class="fact"><span>Région</span><b>'+esc(r.region||'—')+'</b></div>';
   h+='<div class="fact"><span>Entrée en cave</span><b class="mono">'+esc(r.dateEntree||'—')+'</b></div>';
   h+='<div class="fact"><span>Cépages</span><b>'+esc(r.cepages||'—')+'</b></div>';
   h+='<div class="fact"><span>Prix d’achat</span><b class="mono">'+(r.prix? (r.prixEstime?'≈ ':'')+r.prix+' €'+(r.prixEstime?' <span class="hint">(estimé)</span>':'') : '—')+'</b></div>';
   h+='</div>'+apbar+lots;
   if(r.note) h+='<p class="hint" style="margin-top:14px">📝 '+esc(r.note)+'</p>';
-  if(r.qte<=0) h+='<p class="hint" style="color:var(--red);margin-top:12px">Référence épuisée — réactivable au réassort.</p>';
-  h+='<div class="formfoot" style="margin-top:22px">';
-  h+='<button class="btn" id="d-out">Sortir une bouteille</button>';
-  h+='<button class="btn sec" id="d-edit">Modifier la fiche</button>';
-  h+='<button class="btn danger" id="d-del">Supprimer</button>';
-  h+='</div>';
+  h+='<button type="button" class="linkdel" id="d-del">Supprimer la fiche</button>';
   drawerOpen(h);
-  document.getElementById('d-out').onclick=function(){
-    if(r.qte<=0){ toast('Référence déjà épuisée'); return; }
-    r.qte--; toast(r.qte===0? 'Dernière bouteille ! La fiche est conservée (épuisée) — réactivable au réassort.' : 'Une bouteille sortie · reste '+r.qte);
-    save(); openRef(rid);
-  };
+  if(r.qte>0){
+    var upd=function(){ document.getElementById('d-n').textContent=n; document.getElementById('d-out').textContent='Sortir '+n+' bouteille'+(n>1?'s':''); };
+    document.getElementById('d-m').onclick=function(){ if(n>1){ n--; upd(); } };
+    document.getElementById('d-p').onclick=function(){ if(n<r.qte){ n++; upd(); } };
+    document.getElementById('d-out').onclick=function(){ closeDrawer(); quickOut(rid,n); };
+  }
   document.getElementById('d-edit').onclick=function(){ S.editId=rid; S.view='add'; S.dict=''; resetProv(); closeDrawer(); render(); };
   document.getElementById('d-del').onclick=function(){ if(confirm('Supprimer définitivement la fiche « '+nomVin(r)+' '+r.millesime+' » ?')){ S.refs=S.refs.filter(function(x){ return x.id!==rid; }); closeDrawer(); save(); toast('Fiche supprimée'); } };
 }
@@ -1220,7 +1417,7 @@ function aiResults(r,text){
   var list=(r.resultats||[]).map(refById).filter(Boolean);
   var h='<span class="eyebrow">Recherche</span><h3 style="margin:4px 0 6px">« '+esc(text)+' »</h3>';
   if(r.message) h+='<p style="margin-bottom:12px;font-size:14.5px">'+esc(r.message)+'</p>';
-  h+=list.length? '<div class="grid">'+list.map(refCard).join('')+'</div>' : '<p class="hint">Aucune bouteille ne correspond.</p>';
+  h+=list.length? '<div class="group">'+list.map(refCard).join('')+'</div>' : '<p class="hint">Aucune bouteille ne correspond.</p>';
   drawerOpen(h); bindCards();
 }
 
@@ -1966,8 +2163,8 @@ localLoad();
 inaoLoad();
 document.getElementById('overlay').onclick=closeDrawer;
 document.getElementById('voicebar').onclick=function(){ if(VOICE) VOICE.stop(); };
-document.getElementById('btn-export').onclick=doExport;
-document.getElementById('btn-import').onclick=function(){ document.getElementById('fileinput').click(); };
+document.getElementById('fab-mic').onclick=voiceAssistant;
+window.addEventListener('resize',setHH);
 document.getElementById('fileinput').onchange=function(){ doImport(this); };
 if(!OD.token) odStatus('off','OneDrive non connecté');
 odHandleCode();
