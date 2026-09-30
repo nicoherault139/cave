@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cave — Nicolas</title>
+<title>Cave</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <meta name="theme-color" content="#f2f1f4" media="(prefers-color-scheme: light)">
@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f2f1f4;--card:#ffffff;--card2:#f7f6f8;--ink:#1d1719;--muted:#776e72;--line:#e2dfe4;--acc:#7b1e35;--on-acc:#ffffff;--gold:#8a6618;--green:#2e7548;--red:#c2410c;--alert-bg:#fbe9df;--ok-bg:#e3f1e8;--early:#46607f;--early-bg:#e6ecf4;--past:#8c8387;--past-bg:#efedef;--w-rouge:#7d1428;--w-blanc:#e3cf7d;--w-rose:#e89aa6;--w-eff:#eadba0;--shadow:0 1px 3px rgba(40,20,25,.07);--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;--serif:"Fraunces",Georgia,serif}
 @media(prefers-color-scheme:dark){:root{--bg:#150e0f;--card:#211617;--card2:#2a1c1d;--ink:#f2e9dc;--muted:#a7968c;--line:#3a2729;--acc:#d47a8c;--on-acc:#1a1011;--gold:#d8b265;--green:#79c795;--red:#ff8052;--alert-bg:#3d1f16;--ok-bg:#1b2e22;--early:#9db2cf;--early-bg:#1f2633;--past:#8f8178;--past-bg:#2a2222;--w-rouge:#b0243f;--w-blanc:#e6d488;--w-rose:#eaa0ab;--w-eff:#efe2a8;--shadow:0 1px 3px rgba(0,0,0,.4)}}
@@ -287,11 +287,44 @@ html.standalone .brand small{display:none}
 .cname{font-size:16.5px}
 }
 
+/* v2.12 : zones, premier lancement, guides */
+.zrow{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:var(--card2)}
+.zline{display:flex;gap:8px;align-items:center}
+.zline input[type=text]{flex:1}
+.z3{margin-top:8px;align-items:flex-end}
+.z3 label{flex:1;margin:0}
+.z3 input[type=number]{width:100%;margin-top:4px}
+.z-chk{display:flex!important;align-items:center;gap:6px;white-space:nowrap;padding-bottom:10px}
+.z-chk input{width:auto}
+.z-del{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);flex:none}
+.zadd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+#onb{position:fixed;inset:0;z-index:80;background:var(--bg);overflow-y:auto;display:none;padding:calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 24px)}
+#onb.open{display:block}
+.onb-in{max-width:560px;margin:0 auto}
+.onb-in h2{font-size:28px;margin:4px 0 10px;line-height:1.15}
+.onb-in>p{margin-bottom:14px;line-height:1.45}
+.onb-lead{font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.5}
+.msg{font-family:var(--serif);font-weight:400;font-size:16px;line-height:1.5}
+.chatin input::placeholder{font-family:var(--serif)}
+.onb-in input[type=text],.onb-in input[type=password]{width:100%}
+.onb-dots{display:flex;gap:6px;margin-bottom:18px}
+.onb-dots span{width:8px;height:8px;border-radius:99px;background:var(--line)}
+.onb-dots span.on{background:var(--acc);width:22px}
+.onb-foot{display:flex;gap:10px;margin-top:18px}
+.onb-foot .btn{flex:1;justify-content:center}
+#onb .btn.sec{position:static;padding:11px 18px;font-size:14.5px;font-weight:600;align-items:center;justify-content:center;border-bottom:1px solid var(--line);margin-bottom:0;max-width:none}
+.onb-later{display:block;margin:14px auto 0}
+.guide{margin-top:10px;font-size:13.5px}
+.guide summary{cursor:pointer;color:var(--acc);font-weight:600;padding:6px 0}
+.guide ol{padding-left:20px;margin:6px 0}
+.guide li{margin:6px 0;line-height:1.4}
+.guide a{color:var(--acc)}
+.apo-ex{background:var(--early-bg);color:var(--early)}
 </style>
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>v2.11</small></div>
+ <div class="brand"><h1>Cave</h1><small>v2.12</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span></div>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
@@ -313,9 +346,10 @@ html.standalone .brand small{display:none}
 <div id="overlay"></div>
 <div id="drawer"></div>
 <div id="toast"></div>
+<div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.11';
+var APPV='v2.12';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -351,7 +385,7 @@ function alertsFor(r){
   if(inWindow(r)) out.push({sev:'ok',txt:'Apogée en cours ('+r.apogee+') — à boire'});
   else if(soonWindow(r)) out.push({sev:'warn',txt:'Apogée proche ('+r.apogee+')'});
   else if(pastWindow(r)) out.push({sev:'warn',txt:'Apogée passée ('+r.apogee+') — à ouvrir sans tarder'});
-  if(r.zone==='garage' && isLongGarde(r)) out.push({sev:'crit',txt:'Vin de garde stocké au garage'});
+  if(zoneBad(r)) out.push({sev:'crit',txt:'Vin de garde rangé dans une zone non adaptée ('+zoneOf(r).nom+')'});
   if(r.qte<=seuilBas(r.qteInit)) out.push({sev:'warn',txt:'Stock bas ('+r.qte+' restante'+(r.qte>1?'s':'')+')'});
   return out;
 }
@@ -363,14 +397,248 @@ function qsum(l){ return l.reduce(function(a,r){ return a+Math.max(0,r.qte); },0
 var LSKEY='cave-nicolas-v2';
 function localSave(){ localStorage.setItem(LSKEY, JSON.stringify(S.refs)); }
 function localLoad(){ try{ S.refs = JSON.parse(localStorage.getItem(LSKEY)||'[]'); }catch(e){ S.refs=[]; } }
+/* ===== v2.12 : zones configurables (partage et paramétrage) ===== */
+// Chaque zone : id (fixe, sert dans les données), nom, detail (ex. « 15 °C »), cap (0 = non suivie), et (nombre d'étagères, 0 = aucune), garde (adaptée à la garde longue)
+var ZDEF=[{id:'frigo',nom:'Cave frigo',detail:'15 °C',cap:75,et:5,garde:true},{id:'garage',nom:'Garage',detail:'',cap:150,et:0,garde:false}];
+function zonesRead(){ try{ var z=JSON.parse(localStorage.getItem('cave-zones')||'null'); if(z&&z.length) return z; }catch(e){} return null; }
+// Utilisateur déjà installé avant la v2.12 (données locales ou OneDrive déjà configuré) : on reprend sa cave telle quelle
+function legacyUser(){ try{ var d=JSON.parse(localStorage.getItem(LSKEY)||'[]'); return (d&&d.length>0) || !!localStorage.getItem('od_client') || !!localStorage.getItem('od_refresh'); }catch(e){ return false; } }
+var ZONES=zonesRead();
+function zonesInit(){
+  if(ZONES) return;
+  if(legacyUser()){ ZONES=JSON.parse(JSON.stringify(ZDEF)); zonesSave(false); try{ localStorage.setItem('cave-onboard','legacy'); }catch(e){} }
+  else ZONES=[{id:'cave',nom:'Ma cave',detail:'',cap:0,et:0,garde:true}];
+}
+function zonesSave(push){ try{ localStorage.setItem('cave-zones',JSON.stringify(ZONES)); }catch(e){} applyZones(); if(push!==false && OD.token) odPushZones(); }
+function zslug(n,taken){ var s=noAcc(String(n||'')).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'zone'; var b=s, i=2; while(taken.indexOf(s)>=0){ s=b+'-'+i; i++; } return s; }
+function capWord(s){ s=String(s||''); return s.charAt(0).toUpperCase()+s.slice(1); }
+function zoneById(id){ var z=ZONES.find(function(x){ return x.id===id; }); return z || (id? {id:id,nom:capWord(String(id).replace(/-/g,' ')),detail:'',cap:0,et:0,garde:true,inconnue:true} : ZONES[0]); }
+function zoneOf(r){ return zoneById(r.zone||ZONES[0].id); }
+// Zones présentes dans les données mais absentes de la configuration (import, autre appareil) : on les ajoute pour ne rien perdre
+function zonesAdopt(){
+  var added=false;
+  S.refs.forEach(function(r){ if(!r.zone){ r.zone=ZONES[0].id; return; } if(!ZONES.some(function(z){ return z.id===r.zone; })){ var z=zoneById(r.zone); delete z.inconnue; ZONES.push(z); added=true; } });
+  if(added) zonesSave(false);
+}
+function locTxt(r){ var z=zoneOf(r); return z.nom+(z.et>0 && r.etagere? ' · étag. '+r.etagere : ''); }
+function zoneBad(r){ return !zoneOf(r).garde && isLongGarde(r); }
+function maxEt(){ return ZONES.reduce(function(a,z){ return Math.max(a,z.et||0); },0); }
+function zoneWithShelves(){ return ZONES.find(function(z){ return z.et>0; })||null; }
+// Mots qui désignent une zone à l'oral : son nom complet et ses mots significatifs (+ « frigo » pour la zone historique)
+var ZSTOP=['cave','vin','vins','rouge','blanc','zone','etagere','etageres','le','la','les','de','du','des','mon','ma','mes','a','au','en','dans','l','d'];
+function zoneWords(z){
+  var w=noAcc(z.nom).replace(/[^a-z0-9 ]+/g,' ').split(/\s+/).filter(function(x){ return x.length>=3 && ZSTOP.indexOf(x)<0; });
+  if(z.id==='frigo') w.push('frigo');
+  if(z.id==='garage') w.push('garage');
+  return w;
+}
+function zoneFromText(t){
+  var s=' '+noAcc(String(t||'')).replace(/[^a-z0-9 ]+/g,' ')+' ';
+  var exact=ZONES.find(function(z){ return z.id===String(t).trim() || s.indexOf(' '+noAcc(z.nom).replace(/[^a-z0-9 ]+/g,' ').trim()+' ')>=0; });
+  if(exact) return exact;
+  var best=null;
+  ZONES.forEach(function(z){ if(best) return; if(zoneWords(z).some(function(w){ return s.indexOf(' '+w+' ')>=0; })) best=z; });
+  if(!best && ZONES.length===1 && /\bcave\b/.test(s)) best=ZONES[0];
+  return best;
+}
+function zoneTailRe(){ var w=[]; ZONES.forEach(function(z){ w=w.concat(zoneWords(z)); }); return w.length? '|'+w.map(function(x){ return x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('|') : ''; }
+function zoneLabel(z){ return z.nom+(z.detail? ' · '+z.detail : ''); }
+function applyZones(){
+  if(typeof FPROMPT!=='undefined'){ var p='Emplacement : '+(zoneWithShelves()? '« étagère 3 » ou ' : '')+ZONES.map(function(z){ return '« '+z.nom.toLowerCase()+' »'; }).join(', '); FPROMPT.zone=p; FPROMPT.etagere=p; }
+  if(typeof buildSysAjout==='function') SYS_AJOUT=buildSysAjout();
+}
+function zoneSelectHTML(sel){ return ZONES.map(function(z){ return '<option value="'+esc(z.id)+'"'+(z.id===sel?' selected':'')+'>'+esc(z.nom)+'</option>'; }).join(''); }
+function etagesHTML(zid,sel){ var z=zoneById(zid), o='<option value=""'+(!sel?' selected':'')+'>—</option>'; for(var n=1;n<=(z.et||0);n++) o+='<option'+(n===sel?' selected':'')+'>'+n+'</option>'; return o; }
+
+/* --- Éditeur de zones (Réglages et premier lancement) --- */
+var ZPRESETS=[['Cave à vin (armoire)',50,5,true],['Cave enterrée',100,0,true],['Cellier',30,0,false],['Garage',50,0,false],['Placard',12,0,false]];
+function zoneEditorHTML(draft){
+  var h='<div id="zed">';
+  draft.forEach(function(z,i){
+    h+='<div class="zrow" data-zi="'+i+'">';
+    h+='<div class="zline"><input type="text" class="z-nom" value="'+esc(z.nom)+'" placeholder="Nom de la zone" aria-label="Nom de la zone">'+(draft.length>1? '<button type="button" class="z-del" data-zdel="'+i+'" aria-label="Supprimer la zone">✕</button>' : '')+'</div>';
+    h+='<div class="zline z3"><label>Capacité<input type="number" min="0" inputmode="numeric" class="z-cap" value="'+(z.cap||'')+'" placeholder="—"></label>';
+    h+='<label>Étagères<input type="number" min="0" max="30" inputmode="numeric" class="z-et" value="'+(z.et||'')+'" placeholder="0"></label>';
+    h+='<label class="z-chk"><input type="checkbox" class="z-garde"'+(z.garde?' checked':'')+'> Garde longue</label></div>';
+    h+='</div>';
+  });
+  h+='<div class="zadd"><span class="hint">Ajouter :</span>'+ZPRESETS.map(function(p,i){ return '<button type="button" class="chip" data-zpre="'+i+'">'+esc(p[0])+'</button>'; }).join('')+'<button type="button" class="chip" data-zpre="-1">Autre…</button></div>';
+  h+='<p class="hint" style="margin-top:8px">Capacité vide = pas de jauge. Étagères à 0 = pas de numéro d’étagère. « Garde longue » : cochez si la température y est stable ; sinon l’appli vous signale les vins de garde qui y sont rangés.</p>';
+  return h+'</div>';
+}
+function zoneEditorRead(draft){
+  document.querySelectorAll('#zed .zrow').forEach(function(row){
+    var z=draft[parseInt(row.getAttribute('data-zi'),10)]; if(!z) return;
+    z.nom=row.querySelector('.z-nom').value.trim()||z.nom||'Zone';
+    z.cap=Math.max(0,parseInt(row.querySelector('.z-cap').value,10)||0);
+    z.et=Math.min(30,Math.max(0,parseInt(row.querySelector('.z-et').value,10)||0));
+    z.garde=row.querySelector('.z-garde').checked;
+  });
+  return draft;
+}
+function zoneEditorBind(draft,rerender){
+  document.querySelectorAll('[data-zdel]').forEach(function(b){ b.onclick=function(){
+    zoneEditorRead(draft); var i=parseInt(b.getAttribute('data-zdel'),10), z=draft[i];
+    var n=S.refs.filter(function(r){ return r.zone===z.id && r.qte>0; }).reduce(function(a,r){ return a+r.qte; },0);
+    if(n>0){ toast('Déplacez d’abord les '+n+' bouteille'+(n>1?'s':'')+' de « '+z.nom+' »'); return; }
+    draft.splice(i,1); rerender(); }; });
+  document.querySelectorAll('[data-zpre]').forEach(function(b){ b.onclick=function(){
+    zoneEditorRead(draft); var p=ZPRESETS[parseInt(b.getAttribute('data-zpre'),10)];
+    draft.push(p? {id:null,nom:p[0],detail:'',cap:p[1],et:p[2],garde:p[3]} : {id:null,nom:'',detail:'',cap:0,et:0,garde:true});
+    rerender(); var ins=document.querySelectorAll('#zed .z-nom'); var last=ins[ins.length-1]; if(last&&!p) last.focus(); }; });
+}
+// Enregistre le brouillon : ids créés pour les nouvelles zones, fiches des zones supprimées rattachées à la première zone
+function zonesCommit(draft){
+  zoneEditorRead(draft);
+  // les ids déjà utilisés (y compris par des fiches) ne sont jamais réattribués
+  var taken=draft.map(function(z){ return z.id; }).filter(Boolean).concat(ZONES.map(function(z){ return z.id; }), S.refs.map(function(r){ return r.zone; }));
+  draft.forEach(function(z){ if(!z.id){ z.id=zslug(z.nom,taken); taken.push(z.id); } });
+  ZONES=draft;
+  var ids=ZONES.map(function(z){ return z.id; }), moved=false;
+  S.refs.forEach(function(r){
+    if(ids.indexOf(r.zone)<0){ r.zone=ZONES[0].id; r.etagere=null; moved=true; }
+    var z=zoneById(r.zone); if(r.etagere && (!z.et || r.etagere>z.et)){ r.etagere=null; moved=true; }
+  });
+  zonesSave();
+  if(moved) save(); else render();
+}
+zonesInit();
+function zonesPanel(){
+  var draft=JSON.parse(JSON.stringify(ZONES));
+  function draw(){
+    drawerOpen('<span class="eyebrow">Réglages</span><h3 style="margin:4px 0 12px">Ma cave : zones de rangement</h3>'+zoneEditorHTML(draft)+'<div class="formfoot"><button class="btn" id="zp-ok">Enregistrer</button><button class="btn sec" id="zp-no">Annuler</button></div>');
+    zoneEditorBind(draft,draw);
+    document.getElementById('zp-ok').onclick=function(){ zonesCommit(draft); closeDrawer(); toast('Zones enregistrées'); };
+    document.getElementById('zp-no').onclick=closeDrawer;
+  }
+  draw();
+}
+
+/* --- Synchronisation des zones : petit fichier Cave/cave-zones.json à côté du CSV --- */
+var ZFILE='/Cave/cave-zones.json';
+function odPushZones(){
+  if(!OD.token) return Promise.resolve();
+  return odEnsureFolder().then(function(){ return graph('PUT','/me/drive/root:'+ZFILE+':/content', JSON.stringify({zones:ZONES,prenom:prenom()}), 'application/json'); }).catch(function(){});
+}
+function odPullZones(){
+  if(!OD.token) return Promise.resolve(false);
+  return graph('GET','/me/drive/root:'+ZFILE+':/content').then(function(r){
+    if(r.status===404){ odPushZones(); return false; }
+    if(!r.ok) return false;
+    return r.json().then(function(d){
+      if(d && d.zones && d.zones.length && JSON.stringify(d.zones)!==JSON.stringify(ZONES)){ ZONES=d.zones; zonesSave(false); zonesAdopt(); return true; }
+      return false;
+    });
+  }).catch(function(){ return false; });
+}
+
+/* ===== v2.12 : premier lancement, vins d'exemple, guides ===== */
+// Client ID de l'inscription Azure partagée (identifiant public, pas un secret : connexion PKCE sans mot de passe d'application)
+var OD_DEFAULT_CLIENT='8bfb5a8a-8798-4854-b722-e064c82ecbec';
+var OD_DEFAULT_TENANT='common';
+
+// Vins d'exemple : producteurs FICTIFS (badge « Exemple »), appellations réelles
+function sampleRefs(){
+  var z=ZONES.find(function(x){ return x.garde && x.et>0; })||ZONES.find(function(x){ return x.garde; })||ZONES[0], y=new Date().getFullYear(), d=(new Date().getMonth()+1)+'/'+y;
+  function mk(o){ o.id=id(); o.exemple=true; o.zone=z.id; o.etagere=z.et>0? Math.min(o.et||1,z.et) : null; delete o.et; o.qteInit=o.qteInit||o.qte; o.dateEntree=d; o.lots=[{qte:o.qteInit,date:d}]; o.prix=null; o.note='Vin d’exemple (producteur fictif) — supprimez-le quand vous voulez.'; o.cuvee=''; return o; }
+  return [
+    mk({domaine:'Domaine des Essais (exemple)',appellation:'Muscadet Sèvre et Maine',region:'Loire',couleur:'Blanc',millesime:String(y-4),cepages:'Melon de Bourgogne',qte:1,qteInit:3,apogee:(y-2)+' – '+(y+1),et:1}),
+    mk({domaine:'Domaine de la Démonstration (exemple)',appellation:'Saint-Joseph',region:'Rhône',couleur:'Rouge',millesime:String(y-6),cepages:'Syrah',qte:6,apogee:(y-1)+' – '+(y+6),et:2}),
+    mk({domaine:'Château Modèle (exemple)',appellation:'Bordeaux Supérieur',region:'Bordeaux',couleur:'Rouge',millesime:String(y-5),cepages:'Merlot, Cabernet Sauvignon',qte:3,apogee:(y+2)+' – '+(y+10),et:3}),
+    mk({domaine:'Clos de l’Exemple (exemple)',appellation:'Chablis',region:'Bourgogne',couleur:'Blanc',millesime:String(y-3),cepages:'Chardonnay',qte:2,apogee:(y-1)+' – '+(y+3),et:1})
+  ];
+}
+function hasSamples(){ return S.refs.some(function(r){ return r.exemple; }); }
+function removeSamples(){
+  var n=S.refs.filter(function(r){ return r.exemple; }).length; if(!n) return;
+  S.refs=S.refs.filter(function(r){ return !r.exemple; }); save(); toast(n+' vin'+(n>1?'s':'')+' d’exemple supprimé'+(n>1?'s':''));
+}
+
+/* --- Guides pas à pas --- */
+function guideMS(){
+  return '<details class="guide"><summary>Je n’ai pas de compte Microsoft</summary><ol>'+
+   '<li>Un compte Microsoft est gratuit et peut utiliser <b>votre adresse e-mail actuelle, Gmail comprise</b> : inutile de créer une adresse Outlook.</li>'+
+   '<li>Ouvrez <a href="https://account.microsoft.com" target="_blank" rel="noopener">account.microsoft.com</a> et choisissez de <b>créer un compte</b>.</li>'+
+   '<li>Saisissez votre adresse e-mail (par ex. votre Gmail), puis choisissez un mot de passe <b>propre à ce compte Microsoft</b>.</li>'+
+   '<li>Microsoft envoie un <b>code de vérification</b> sur cette adresse : ouvrez votre messagerie et recopiez-le. Une petite vérification « je ne suis pas un robot » peut suivre.</li>'+
+   '<li>Revenez ici, touchez <b>Connecter OneDrive</b> et connectez-vous avec ce compte. Acceptez l’accès demandé (vos fichiers et votre profil) : l’appli crée seulement un dossier <b>Cave</b> dans <b>votre</b> OneDrive.</li>'+
+   '</ol><p class="hint">Si Microsoft vous indique que l’adresse a déjà un compte, utilisez simplement « Connecter OneDrive » avec cette adresse.</p></details>';
+}
+function guideGemini(){
+  return '<details class="guide"><summary>Créer ma clé Google Gemini (gratuite)</summary><ol>'+
+   '<li>Il faut un compte Google (une adresse Gmail suffit).</li>'+
+   '<li>Ouvrez <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> et connectez-vous. À la première visite, acceptez les conditions d’utilisation.</li>'+
+   '<li>Touchez <b>Create API key</b> (« Créer une clé API »). Si un projet vous est demandé, gardez celui proposé.</li>'+
+   '<li>Copiez la clé affichée (longue suite de lettres et de chiffres).</li>'+
+   '<li>Collez-la dans le champ ci-dessous, puis touchez <b>Tester</b>.</li>'+
+   '</ol><p class="hint">À savoir : l’offre gratuite a des quotas (le service peut être saturé par moments ; la dictée marche alors sans IA). Avec l’offre gratuite, Google indique que les contenus envoyés peuvent servir à améliorer ses produits : ici, la phrase dictée et le nom de vos vins. N’activez pas la facturation, elle n’est pas nécessaire. Gardez la clé pour vous : elle reste enregistrée sur cet appareil uniquement.</p></details>';
+}
+
+/* --- Premier lancement : 3 écrans, tous passables --- */
+var ONB={step:0,draft:null};
+function needOnboarding(){ try{ return !localStorage.getItem('cave-onboard'); }catch(e){ return false; } }
+function onbFinish(){
+  try{ localStorage.setItem('cave-onboard',new Date().toISOString().slice(0,10)); }catch(e){}
+  if(!S.refs.length){ S.refs=sampleRefs(); localSave(); }
+  document.getElementById('onb').classList.remove('open'); document.body.classList.remove('noscroll');
+  S.view='dash'; render();
+}
+function onbShow(){
+  var o=document.getElementById('onb'); o.classList.add('open'); document.body.classList.add('noscroll');
+  var s=ONB.step, h='<div class="onb-in"><div class="onb-dots">'+[0,1,2].map(function(i){ return '<span class="'+(i===s?'on':'')+'"></span>'; }).join('')+'</div>';
+  if(s===0){
+    h+='<span class="eyebrow">Bienvenue</span><h2>Votre cave à jour, sans y penser.</h2>';
+    h+='<p class="onb-lead">Une bouteille arrive ? Dites-la au micro, la fiche se remplit toute seule. Une bouteille s’ouvre ? Un geste sur « −1 ». Votre cave est toujours à jour… et vous savez quoi ouvrir ce soir.</p>';
+    h+='<p class="hint" style="margin-bottom:14px">Trois questions pour démarrer, tout se modifie ensuite dans Réglages.</p>';
+    if(!isStandalone() && /iPhone|iPad/.test(navigator.userAgent)) h+='<p class="banner">Sur iPhone : installez d’abord l’appli (dans Safari, bouton <b>Partager</b> → <b>Sur l’écran d’accueil</b>), puis ouvrez-la depuis l’icône et faites ce réglage là : l’appli de l’écran d’accueil a sa propre mémoire.</p>';
+    h+='<label for="onb-prenom">Votre prénom (affiché sur l’accueil)</label><input type="text" id="onb-prenom" autocomplete="given-name" value="'+esc(localStorage.getItem('cave-prenom')||'')+'">';
+    h+='<p class="hint" style="margin-top:8px">Vos données restent sur cet appareil. Rien n’est envoyé ailleurs sans votre accord.</p>';
+  }
+  if(s===1){
+    if(!ONB.draft) ONB.draft=JSON.parse(JSON.stringify(ZONES));
+    h+='<span class="eyebrow">Étape 2 sur 3</span><h2>Où rangez-vous vos bouteilles ?</h2>';
+    h+='<p>Une zone par lieu de stockage : cave à vin, cellier, garage… Indiquez les étagères si vous voulez les numéroter.</p>'+zoneEditorHTML(ONB.draft);
+  }
+  if(s===2){
+    h+='<span class="eyebrow">Étape 3 sur 3 · facultatif</span><h2>Options</h2>';
+    h+='<div class="panel"><h3>Utiliser la cave sur plusieurs appareils</h3><p class="hint" style="margin:6px 0 10px">Par défaut, la cave vit sur cet appareil (sauvegarde possible par export). Pour la retrouver aussi sur ordinateur, connectez <b>votre</b> OneDrive : un fichier Cave/cave-data.csv y sera tenu à jour.</p>';
+    h+='<button class="btn sec" id="onb-od" type="button">Connecter OneDrive</button>'+guideMS()+'</div>';
+    h+='<div class="panel"><h3>Dictée intelligente (IA)</h3><p class="hint" style="margin:6px 0 10px">Sans IA, la dictée fonctionne déjà (analyse sur l’appareil). Avec une clé Google Gemini gratuite, elle comprend mieux les phrases libres et estime l’apogée.</p>';
+    h+=guideGemini()+'<input type="password" id="onb-key" autocomplete="off" placeholder="Coller la clé Gemini ici" style="margin-top:10px"><div class="formfoot" style="margin-top:8px"><button class="btn sm sec" id="onb-test" type="button">Tester</button></div><p class="hint" id="onb-res"></p></div>';
+  }
+  h+='<div class="onb-foot">'+(s>0? '<button class="btn sec" id="onb-back" type="button">Retour</button>' : '<button class="btn sec" id="onb-skip" type="button">Plus tard</button>')+'<button class="btn" id="onb-next" type="button">'+(s<2? 'Suivant' : 'Commencer')+'</button></div>';
+  if(s===1) h+='<button class="linkbtn onb-later" id="onb-later2" type="button">Passer cette étape</button>';
+  o.innerHTML=h+'</div>';
+  var lat=document.getElementById('onb-later2'); if(lat) lat.onclick=function(){ ONB.draft=null; ONB.step++; onbShow(); };
+  if(s===1) zoneEditorBind(ONB.draft,onbShow);
+  if(s===2){
+    document.getElementById('onb-od').onclick=function(){ onbSaveStep(); onbFinish(); if(!OD.clientId){ OD.clientId=OD_DEFAULT_CLIENT; } if(!OD.clientId){ toast('Connexion OneDrive indisponible : Client ID manquant (Réglages OneDrive)'); openCfg(); return; } odConnect(); };
+    document.getElementById('onb-test').onclick=function(){
+      var k=document.getElementById('onb-key').value.trim(), out=document.getElementById('onb-res'); if(!k){ out.textContent='Collez d’abord la clé.'; return; }
+      lsSet('ai_provider','gemini'); lsSet('ai_key_gemini',k); lsSet('ai_model_gemini',''); lsSet('ai_models_gemini','');
+      out.textContent='Test en cours…';
+      aiCallRaw(SYS_AJOUT, promptAjout('domaine leflaive puligny montrachet deux mille dix-neuf trois bouteilles').usr, 'gemini').then(function(){ out.textContent='✔ La clé fonctionne. Assistant IA activé.'; })
+      .catch(function(e){ out.textContent='✖ '+(e&&e.message? e.message : 'Échec du test')+'. La clé est tout de même enregistrée : vous pourrez retester dans Réglages.'; });
+    };
+  }
+  var sk=document.getElementById('onb-skip'); if(sk) sk.onclick=onbFinish;
+  var bk=document.getElementById('onb-back'); if(bk) bk.onclick=function(){ onbSaveStep(); ONB.step--; onbShow(); };
+  document.getElementById('onb-next').onclick=function(){ onbSaveStep(); if(ONB.step<2){ ONB.step++; onbShow(); o.scrollTop=0; } else onbFinish(); };
+}
+function onbSaveStep(){
+  if(ONB.step===0){ var p=document.getElementById('onb-prenom'); if(p) try{ localStorage.setItem('cave-prenom',p.value.trim()); }catch(e){} }
+  if(ONB.step===1 && ONB.draft){ zonesCommit(ONB.draft); ONB.draft=null; }
+  if(ONB.step===2){ var k=document.getElementById('onb-key'); if(k && k.value.trim() && !aiKey('gemini')){ lsSet('ai_provider','gemini'); lsSet('ai_key_gemini',k.value.trim()); } }
+}
+
 
 function csvCell(v){ v=String(v==null?'':v); return /[";\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function toCSV(){
-  var head=['domaine','cuvee','region','appellation','couleur','millesime','cepages','qte','qteInit','zone','etagere','apogee','prix','prixEstime','note','dateEntree','lots'];
+  var head=['domaine','cuvee','region','appellation','couleur','millesime','cepages','qte','qteInit','zone','etagere','apogee','prix','prixEstime','note','dateEntree','lots','exemple'];
   var lines=[head.join(';')];
   S.refs.forEach(function(r){
     var lots=(r.lots||[]).map(function(l){ return l.qte+'@'+l.date; }).join(',');
-    lines.push([r.domaine,r.cuvee||'',r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.prixEstime?'1':'',r.note||'',r.dateEntree||'',lots].map(csvCell).join(';'));
+    lines.push([r.domaine,r.cuvee||'',r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.prixEstime?'1':'',r.note||'',r.dateEntree||'',lots,r.exemple?'1':''].map(csvCell).join(';'));
   });
   return lines.join('\n');
 }
@@ -394,16 +662,16 @@ function parseCSV(text){
     var lotsRaw=get(rw,'lots'), lots=[];
     if(lotsRaw){ lotsRaw.split(',').forEach(function(p){ var t=p.split('@'); if(t[0]) lots.push({qte:parseInt(t[0],10)||0,date:t[1]||''}); }); }
     var o=map[key];
-    if(!o){ o={ id:id(), domaine:dom, cuvee:get(rw,'cuvee'), prixEstime:get(rw,'prixestime')==='1', region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:(get(rw,'zone')==='garage'?'garage':'frigo'), etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots }; map[key]=o; order.push(key); }
+    if(!o){ o={ id:id(), exemple:get(rw,'exemple')==='1', domaine:dom, cuvee:get(rw,'cuvee'), prixEstime:get(rw,'prixestime')==='1', region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:(get(rw,'zone')==='garage'?'garage':'frigo'), etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots }; map[key]=o; order.push(key); }
     else { o.qte+=parseInt(get(rw,'qte'),10)||0; o.qteInit+=parseInt(get(rw,'qteInit'),10)||0; if(lots.length) o.lots=o.lots.concat(lots); }
   });
   return order.map(function(k){ return map[k]; });
 }
 
-var OD = { token: sessionStorage.getItem('od_token')||'', lastSnap: localStorage.getItem('od_snap')||'', clientId: localStorage.getItem('od_client')||'', tenant: localStorage.getItem('od_tenant')||'organizations' };
+var OD = { token: sessionStorage.getItem('od_token')||'', lastSnap: localStorage.getItem('od_snap')||'', clientId: localStorage.getItem('od_client')||'', tenant: localStorage.getItem('od_tenant')||'' };
 var FILE_PATH='/Cave/cave-data.csv';
 var GRAPH='https://graph.microsoft.com/v1.0';
-var TENANT=OD.tenant||'organizations';
+var TENANT=localStorage.getItem('od_tenant')||OD_DEFAULT_TENANT;
 function graphRaw(method,path,body,mime){
   return fetch(GRAPH+path,{ method:method, headers:Object.assign({'Authorization':'Bearer '+OD.token}, body?{'Content-Type':(mime||'text/plain')}:{}), body:body||undefined });
 }
@@ -427,12 +695,14 @@ function odEnsureFolder(){ return graph('POST','/me/drive/root/children', JSON.s
 function odPull(){
   if(!OD.token) return Promise.resolve(false);
   odStatus('off','Synchronisation OneDrive…');
-  return graph('GET','/me/drive/root:'+FILE_PATH+':/content').then(function(r){
+  return odPullZones().then(function(){ return graph('GET','/me/drive/root:'+FILE_PATH+':/content'); }).then(function(r){
+    if(r.status===404) return null;   // premier branchement de ce compte : on y dépose la cave locale
     if(!r.ok) throw new Error('absent');
     return r.text();
   }).then(function(csv){
+    if(csv===null){ odPush(); return true; }
     var norm=csv.replace(/\r/g,'');
-    if(norm!==OD.lastSnap){ var refs=parseCSV(norm); if(refs.length||S.refs.length===0){ S.refs=refs; localSave(); } OD.lastSnap=norm; localStorage.setItem('od_snap',norm); }
+    if(norm!==OD.lastSnap){ var refs=parseCSV(norm); if(refs.length||S.refs.length===0){ S.refs=refs; localSave(); zonesAdopt(); } OD.lastSnap=norm; localStorage.setItem('od_snap',norm); }
     odStatus('ok','OneDrive synchronisé · cave-data.csv');
     return true;
   }).catch(function(){ odStatus('err','OneDrive indisponible'); return false; });
@@ -449,6 +719,7 @@ function save(push){ localSave(); if(push!==false && OD.token) odPush(); render(
 
 function b64url(a){ return btoa(String.fromCharCode.apply(null,a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function odConnect(){
+  if(!OD.clientId) OD.clientId=OD_DEFAULT_CLIENT;
   if(!OD.clientId){ toast('Renseignez votre Client ID (Réglages OneDrive)'); openCfg(); return; }
   localStorage.setItem('od_client',OD.clientId); localStorage.setItem('od_tenant',TENANT);
   var v=b64url(crypto.getRandomValues(new Uint8Array(32)));
@@ -505,10 +776,10 @@ function openCfg(){
   h+='<span class="eyebrow">Stockage</span>';
   h+='<h3 style="margin:4px 0 14px">Réglages OneDrive</h3>';
   h+='<label>Client ID de l’application Microsoft</label>';
-  h+='<input type="text" id="cfg-client" value="'+esc(OD.clientId)+'" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">';
+  h+='<input type="text" id="cfg-client" value="'+esc(OD.clientId||OD_DEFAULT_CLIENT)+'" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">';
   h+='<label style="margin-top:10px">Type de compte</label>';
-  h+='<select id="cfg-tenant"><option value="organizations"'+(TENANT==='organizations'?' selected':'')+'>Compte Microsoft 365 / organisation (travail)</option><option value="consumers"'+(TENANT==='consumers'?' selected':'')+'>Compte Microsoft personnel</option></select>';
-  h+='<p class="hint" style="margin:8px 0 12px">Choisissez « organisation » si votre inscription Azure est dans un client M365, « personnel » pour un compte @outlook/@hotmail. Le fichier passerelle est <b>Cave/cave-data.csv</b> à la racine de votre OneDrive.</p>';
+  h+='<select id="cfg-tenant"><option value="common"'+(TENANT==='common'?' selected':'')+'>Tout compte Microsoft (recommandé)</option><option value="organizations"'+(TENANT==='organizations'?' selected':'')+'>Compte Microsoft 365 / organisation (travail)</option><option value="consumers"'+(TENANT==='consumers'?' selected':'')+'>Compte Microsoft personnel</option></select>';
+  h+='<p class="hint" style="margin:8px 0 12px">Choisissez « organisation » si votre inscription Azure est dans un client M365, « personnel » pour un compte @outlook/@hotmail. Le fichier passerelle est <b>Cave/cave-data.csv</b> à la racine de votre OneDrive (et vos zones dans Cave/cave-zones.json).'+(OD_DEFAULT_CLIENT?' Le Client ID est déjà renseigné : il suffit de toucher « Connecter OneDrive ».':'')+'</p>'+guideMS();
   h+='<div class="formfoot">';
   h+='<button class="btn sm" id="cfg-save">Enregistrer</button>';
   h+='<button class="btn sm sec" id="cfg-connect">'+(OD.token?'Reconnecter':'Connecter OneDrive')+'</button>';
@@ -576,19 +847,19 @@ function plusMenu(){
 }
 function go(v){ if(VOICE) VOICE.stop(); S.view=v; S.editId=null; if(v!=='add'){ S.dict=''; resetProv(); } closeDrawer(); render(); window.scrollTo(0,0); }
 function gaugesHTML(){
-  var frigo=0, gar=0;
-  current().forEach(function(r){ if(r.zone==='garage') gar+=r.qte; else frigo+=r.qte; });
-  var g='';
-  g+='<div class="gauge"><div>Cave frigo · 15 °C · <span class="mono">'+frigo+'/75</span></div><div class="gbar"><div class="gfill" style="width:'+Math.min(100,frigo/75*100)+'%"></div></div></div>';
-  g+='<div class="gauge garage"><div>Garage · <span class="mono">'+gar+'/150</span></div><div class="gbar"><div class="gfill" style="width:'+Math.min(100,gar/150*100)+'%"></div></div></div>';
+  var cur=current(), g='';
+  ZONES.forEach(function(z){
+    var q=qsum(cur.filter(function(r){ return zoneOf(r).id===z.id; }));
+    g+='<div class="gauge'+(z.garde?'':' garage')+'"><div>'+esc(zoneLabel(z))+' · <span class="mono">'+q+(z.cap? '/'+z.cap : ' bout.')+'</span></div>'+(z.cap? '<div class="gbar"><div class="gfill" style="width:'+Math.min(100,q/z.cap*100)+'%"></div></div>' : '')+'</div>';
+  });
   return g;
 }
 function openMenu(){ go('reglages'); }
-function prenom(){ try{ var p=localStorage.getItem('cave-prenom'); return p===null? 'Nicolas' : p; }catch(e){ return 'Nicolas'; } }
+function prenom(){ try{ var p=localStorage.getItem('cave-prenom'); return p===null? (localStorage.getItem('cave-onboard')==='legacy'? 'Nicolas' : '') : p; }catch(e){ return ''; } }
 function vReglages(){
   var h='<div class="viewhead"><div><span class="eyebrow">Cave · '+APPV+'</span><h2>Réglages</h2></div></div><div class="setgroup">';
   h+='<div class="panel"><h3>Profil</h3><label>Prénom affiché sur l’accueil</label><input type="text" id="m-prenom" autocomplete="off" value="'+esc(prenom())+'"></div>';
-  h+='<div class="panel"><h3>Occupation</h3><div class="gauges">'+gaugesHTML()+'</div></div>';
+  h+='<div class="panel"><h3>Ma cave</h3><div class="gauges">'+gaugesHTML()+'</div><div class="formfoot" style="flex-direction:column"><button class="btn sec" id="m-zones">Modifier les zones de rangement…</button>'+(hasSamples()? '<button class="btn sec" id="m-samples">Supprimer les vins d’exemple</button>' : '')+'<button class="btn sec" id="m-onb">Revoir l’accueil de démarrage</button></div></div>';
   h+='<div class="panel"><h3>Synchronisation</h3><div id="m-sync" style="font-size:14px;margin-bottom:12px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
   h+='<div class="formfoot" style="flex-direction:column;margin-top:0"><button class="btn sec" id="m-cfg">Réglages OneDrive…</button><button class="btn sec" id="m-pull">Relire depuis OneDrive</button><button class="btn sec" id="m-exp">Exporter une copie (.json)</button><button class="btn sec" id="m-imp">Importer un fichier .json</button></div></div>';
   h+='<div class="panel"><h3>Dictée et assistant</h3><label>Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
@@ -598,6 +869,9 @@ function vReglages(){
   document.getElementById('main').innerHTML=h;
   var pr=document.getElementById('m-prenom'); pr.onchange=function(){ try{ localStorage.setItem('cave-prenom',pr.value.trim()); }catch(e){} toast('Prénom enregistré'); };
   document.getElementById('m-cfg').onclick=openCfg;
+  document.getElementById('m-zones').onclick=zonesPanel;
+  var ms=document.getElementById('m-samples'); if(ms) ms.onclick=function(){ removeSamples(); vReglages(); };
+  document.getElementById('m-onb').onclick=function(){ ONB.step=0; ONB.draft=null; onbShow(); };
   aiSettingsBind();
   document.getElementById('m-voice').onchange=function(){ try{ localStorage.setItem('cave-voice',this.value); }catch(e){} toast('Mode de dictée enregistré'); };
   document.getElementById('m-pull').onclick=function(){ odPull().then(function(ok){ render(); toast(ok?'Fichier OneDrive relu':'OneDrive non connecté ou indisponible'); }); };
@@ -610,7 +884,6 @@ var APOL={past:'Apogée passée',vite:'À boire vite',ok:'À boire',early:'Trop 
 // « À boire vite » : dans la fenêtre et fin d'apogée cette année ou l'an prochain
 function apoState(r){ var a=apYears(r); if(!a) return 'none'; var y=new Date().getFullYear(); if(y<a.d) return 'early'; if(y>a.f) return 'past'; if(a.f-y<=1) return 'vite'; return 'ok'; }
 function subLine(r){ return (r.appellation? esc(r.appellation) : '<span class="reg">'+esc(r.region||'')+'</span>')+(r.millesime? ' · <span class="mono">'+esc(r.millesime)+'</span>' : ''); }
-function locTxt(r){ return r.zone==='garage'? 'Garage' : 'Frigo · étag. '+(r.etagere||'—'); }
 function refCard(r){
   var st=apoState(r), crit=alertsFor(r).some(function(a){ return a.sev==='crit'; });
   var h='<div class="card" data-ref="'+r.id+'">'+pastille(r);
@@ -619,7 +892,8 @@ function refCard(r){
   if(r.qte<=0) h+='<span class="apo apo-dead">Épuisée</span>';
   else if(st!=='none') h+='<span class="apo apo-'+st+'">'+APOL[st]+'</span>';
   if(r.qte>0 && r.qte<=seuilBas(r.qteInit)) h+='<span class="apo apo-warn">Stock bas</span>';
-  if(crit) h+='<span class="apo apo-warn">Garde au garage</span>';
+  if(crit) h+='<span class="apo apo-warn">Zone non adaptée</span>';
+  if(r.exemple) h+='<span class="apo apo-ex">Exemple</span>';
   h+='<span class="loc">'+esc(locTxt(r))+'</span></div></div>';
   h+='<div class="cqty"><b>×'+Math.max(0,r.qte)+'</b>'+(r.qte>0? '<button type="button" class="minus" data-minus="'+r.id+'" aria-label="Sortir une bouteille">−1</button>' : '')+'</div></div>';
   return h;
@@ -660,10 +934,10 @@ function vDash(){
   var low=cur.filter(function(r){ return r.qte<=seuilBas(r.qteInit); });
   var drink=cur.filter(function(r){ var s=apoState(r); return s==='ok'||s==='vite'; }).sort(function(a,b){ var sa=apoState(a)==='vite'?0:1, sb=apoState(b)==='vite'?0:1; return (sa-sb)||(apYears(a).f-apYears(b).f); });
   var others=allAlerts().filter(function(x){ return !/^Stock bas/.test(x.a.txt); });
-  var fr=qsum(cur.filter(function(r){ return r.zone!=='garage'; })), ga=qsum(cur.filter(function(r){ return r.zone==='garage'; }));
   var pn=prenom();
   var h='<div class="viewhead"><div><span class="eyebrow">'+esc(now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}))+'</span><h2>'+(now.getHours()>=18?'Bonsoir':'Bonjour')+(pn? ' '+esc(pn) : '')+'</h2></div><button class="btn hide-m" id="d-add">＋ Ajouter une bouteille</button></div>';
-  h+='<div class="summary"><span>'+qsum(cur)+' bouteille'+(qsum(cur)>1?'s':'')+' · '+cur.length+' réf.</span><span>Frigo '+fr+'/75</span><span>Garage '+ga+'/150</span></div>';
+  h+='<div class="summary"><span>'+qsum(cur)+' bouteille'+(qsum(cur)>1?'s':'')+' · '+cur.length+' réf.</span>'+(ZONES.length>1? ZONES.map(function(z){ var q=qsum(cur.filter(function(r){ return zoneOf(r).id===z.id; })); return '<span>'+esc(z.nom)+' '+q+(z.cap?'/'+z.cap:'')+'</span>'; }).join('') : '')+'</div>';
+  if(hasSamples()) h+='<div class="banner" style="margin-top:14px">Les vins marqués « Exemple » sont là pour découvrir l’appli (producteurs fictifs). <button class="linkbtn" id="d-samples">Les supprimer</button></div>';
   if(!cur.length){ h+='<p class="hint" style="margin-top:20px">Aucune bouteille pour l’instant. Touchez ＋ ou le micro pour commencer.</p>'; }
   if(low.length){
     h+='<div class="gtitle alert"><span>Stock bas</span></div><div class="group">';
@@ -684,13 +958,14 @@ function vDash(){
   }
   document.getElementById('main').innerHTML=h;
   document.getElementById('d-add').onclick=function(){ go('add'); };
+  var dsm=document.getElementById('d-samples'); if(dsm) dsm.onclick=removeSamples;
   var da=document.getElementById('d-alerts'); if(da) da.onclick=function(){ go('alertes'); };
   var dd=document.getElementById('d-drink'); if(dd) dd.onclick=function(){ S.sort='apo'; S.filter='Tous'; try{ localStorage.setItem('cave-sort','apo'); }catch(e){} go('cave'); };
   bindCards();
 }
 
 function vCave(){
-  var chips=['Tous','Rouge','Blanc','Rosé','Effervescent','Cave frigo','Garage','Épuisées'];
+  var chips=['Tous','Rouge','Blanc','Rosé','Effervescent'].concat(ZONES.length>1? ZONES.map(function(z){ return z.nom; }) : [],['Épuisées']);
   var h='';
   h+='<div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><div class="vh-actions"><button class="btn sec" id="c-batch" title="Compléter les fiches (apogée, cépages, région)">🤖 Compléter</button><button class="btn hide-m" id="c-add">＋ Ajouter</button></div></div>';
   h+='<div class="searchbar"><input type="search" id="c-search" enterkeyhint="search" autocomplete="off" placeholder="Domaine, région, appellation, millésime…"><button class="btn sec" id="c-micro" title="Recherche vocale">🎤</button></div>';
@@ -729,8 +1004,7 @@ function caveGrid(){
   var list=S.refs.filter(function(r){
     if(S.filter==='Tous') return r.qte>0;
     if(S.filter==='Épuisées') return r.qte<=0;
-    if(S.filter==='Cave frigo') return r.qte>0&&r.zone==='frigo';
-    if(S.filter==='Garage') return r.qte>0&&r.zone==='garage';
+    var zf=ZONES.find(function(z){ return z.nom===S.filter; }); if(zf) return r.qte>0&&zoneOf(r).id===zf.id;
     return r.qte>0&&r.couleur===S.filter;
   });
   if(S.search){ list=list.filter(function(r){ return matchQ(S.search,[r.domaine,r.cuvee||'',r.region,r.appellation,r.millesime,r.cepages,r.couleur]); }); }
@@ -780,7 +1054,7 @@ function LB(k,text){ return '<label class="flabel"><span>'+text+'</span><span cl
 function vAdd(){
   var r=S.editId? S.refs.find(function(x){ return x.id===S.editId; }) : null;
   function opts(arr,sel){ return arr.map(function(o){ return '<option'+(o===sel?' selected':'')+'>'+o+'</option>'; }).join(''); }
-  function etages(sel){ var o='<option value=""'+(!sel?' selected':'')+'>—</option>'; [1,2,3,4,5].forEach(function(n){ o+='<option'+(n===sel?' selected':'')+'>'+n+'</option>'; }); return o; }
+  var zsel=r? zoneOf(r).id : ZONES[0].id;
   var nowM=(new Date().getMonth()+1)+'/'+new Date().getFullYear();
   var h='';
   h+='<div class="viewhead"><div><span class="eyebrow">'+(r?'Modifier la fiche':'Entrée en cave')+'</span><h2>'+(r?'Modifier':'Ajouter')+'</h2></div>';
@@ -797,8 +1071,8 @@ function vAdd(){
   h+='<div>'+LB('millesime','Millésime *')+'<input type="text" id="f-millesime" required inputmode="numeric" placeholder="2020" value="'+esc(r?r.millesime:'')+'"></div></div>';
   h+='<div class="row"><div>'+LB('cepages','Cépage(s) (optionnel)')+'<input type="text" id="f-cepages" list="cep-list" autocomplete="off" value="'+esc(r?r.cepages:'')+'"></div>';
   h+='<div>'+LB('qte','Quantité *')+'<input type="number" id="f-qte" min="1" required value="'+(r?r.qte:1)+'"></div></div>';
-  h+='<div class="row"><div>'+LB('zone','Emplacement *')+'<select id="f-zone"><option value="frigo"'+(!r||r.zone==='frigo'?' selected':'')+'>Cave frigo</option><option value="garage"'+(r&&r.zone==='garage'?' selected':'')+'>Garage</option></select></div>';
-  h+='<div>'+LB('etagere','Étagère (cave frigo)')+'<select id="f-etagere">'+etages(r?r.etagere:null)+'</select></div></div>';
+  h+='<div class="row"><div>'+LB('zone','Emplacement *')+'<select id="f-zone">'+zoneSelectHTML(zsel)+'</select></div>';
+  h+='<div id="f-etbox"'+(zoneById(zsel).et>0?'':' style="visibility:hidden"')+'>'+LB('etagere','Étagère')+'<select id="f-etagere">'+etagesHTML(zsel,r?r.etagere:null)+'</select></div></div>';
   h+='<div class="row"><div>'+LB('dateEntree','Date d’entrée (MM/AAAA)')+'<input type="text" id="f-date" placeholder="'+nowM+'" value="'+esc(r?r.dateEntree:'')+'"></div>';
   h+='<div>'+LB('apogee','Apogée (ex. 2026 – 2032)')+'<input type="text" id="f-apogee" value="'+esc(r?r.apogee:'')+'"></div></div>';
   h+='<div class="row"><div>'+LB('prix','Prix d’achat (optionnel)')+'<input type="text" id="f-prix" inputmode="decimal" value="'+esc(r&&r.prix!=null?r.prix:'')+'"></div><div></div></div>';
@@ -820,15 +1094,16 @@ function vAdd(){
   fillDomLists();
   renderProv();
   function zoneWarn(){
-    var z=val('f-zone'), ap=val('f-apogee');
-    document.getElementById('f-warn').textContent=(z==='garage'&&isLongGarde({apogee:ap}))? 'Attention : vin de garde placé au garage (zone inadaptée). Confirmez votre choix.' : '';
+    var z=zoneById(val('f-zone')), ap=val('f-apogee');
+    document.getElementById('f-warn').textContent=(!z.garde&&isLongGarde({apogee:ap}))? 'Attention : vin de garde placé dans « '+z.nom+' » (zone non adaptée à la garde). Confirmez votre choix.' : '';
   }
+  document.getElementById('f-zone').addEventListener('change',function(){ var z=zoneById(val('f-zone')), et=document.getElementById('f-etagere'), cur=et.value; et.innerHTML=etagesHTML(z.id,cur? parseInt(cur,10) : null); if(cur && parseInt(cur,10)<=z.et) et.value=cur; document.getElementById('f-etbox').style.visibility=z.et>0?'visible':'hidden'; });
   ['f-zone','f-apogee'].forEach(function(fid){ document.getElementById(fid).addEventListener('change',zoneWarn); });
   document.getElementById('a-form').onsubmit=function(e){
     e.preventDefault();
     var zone=val('f-zone'), ap=val('f-apogee');
-    if(zone==='garage'&&isLongGarde({apogee:ap})){ if(!confirm('Ce vin semble destiné à une garde longue et serait placé au garage (zone inadaptée). Confirmer ?')) return; }
-    var o={ domaine:val('f-domaine'), cuvee:val('f-cuvee'), prixEstime:(S.prov.prix==='deduit'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zone==='frigo'?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
+    if(!zoneById(zone).garde&&isLongGarde({apogee:ap})){ if(!confirm('Ce vin semble destiné à une garde longue et serait placé dans « '+zoneById(zone).nom+' » (zone non adaptée). Confirmer ?')) return; }
+    var o={ domaine:val('f-domaine'), cuvee:val('f-cuvee'), prixEstime:(S.prov.prix==='deduit'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zoneById(zone).et>0?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
     if(r){ if((r.lots||[]).length<=1) r.lots=[{qte:o.qte,date:o.dateEntree}];
       if(o.qte>(r.qteInit||0)) o.qteInit=o.qte; else o.qteInit=r.qteInit;
       Object.assign(r,o); toast('Fiche modifiée');
@@ -879,7 +1154,7 @@ function restock(refId,n0,msg){
 }
 
 function vSoir(){
-  if(!S.chat.length) S.chat=[{me:false,txt:'Bonsoir Nicolas ! Décrivez-moi l’occasion, un plat ou une envie — je vous suggère des bouteilles disponibles en cave. 🍷'}];
+  if(!S.chat.length) S.chat=[{me:false,txt:'Bonsoir'+(prenom()? ' '+esc(prenom()) : '')+' ! Décrivez-moi l’occasion, un plat ou une envie — je vous suggère des bouteilles disponibles en cave. 🍷'}];
   var h='';
   h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div></div>';
   h+='<div class="chatbox" id="chat"></div>';
@@ -921,7 +1196,7 @@ function recoSoir(t){
   var out=intro+'\n\n';
   picks.forEach(function(r,i){
     out+='<b>'+(i+1)+'. '+esc(nomVin(r))+' '+esc(r.millesime)+'</b> — '+esc(r.appellation)+' ('+esc(r.region)+', '+esc(r.couleur)+')\n';
-    out+=(inWindow(r)? '✔ À son apogée ('+esc(r.apogee)+')' : 'Apogée : '+esc(r.apogee||'n.c.'))+' · ×'+r.qte+' en stock · '+(r.zone==='garage'?'Garage':'Frigo, étagère '+r.etagere)+'\n\n';
+    out+=(inWindow(r)? '✔ À son apogée ('+esc(r.apogee)+')' : 'Apogée : '+esc(r.apogee||'n.c.'))+' · ×'+r.qte+' en stock · '+locTxt(r)+'\n\n';
   });
   return out+'Bonne dégustation ! 🥂';
 }
@@ -957,7 +1232,7 @@ function openRef(rid){
   h+='<button class="btn sec" id="d-edit" style="width:100%;justify-content:center;margin-top:8px">Modifier la fiche</button>';
   h+='<div class="facts">';
   h+='<div class="fact"><span>En cave</span><b class="mono">×'+Math.max(0,r.qte)+' <span class="hint">(init. '+r.qteInit+')</span></b></div>';
-  h+='<div class="fact"><span>Emplacement</span><b>'+(r.zone==='garage'?'Garage':'Frigo · étagère '+(r.etagere||'—'))+'</b></div>';
+  h+='<div class="fact"><span>Emplacement</span><b>'+esc(locTxt(r))+'</b></div>';
   h+='<div class="fact"><span>Couleur</span><b>'+esc(r.couleur||'—')+'</b></div>';
   h+='<div class="fact"><span>Région</span><b>'+esc(r.region||'—')+'</b></div>';
   h+='<div class="fact"><span>Entrée en cave</span><b class="mono">'+esc(r.dateEntree||'—')+'</b></div>';
@@ -1192,7 +1467,7 @@ function parseDictation(t){
   if(seg.note) neutral=neutral.slice(0,seg.note.start);
   // Une couleur dite juste après l'appellation (« … villages rouge ») va dans Couleur, pas dans l'appellation
   // Domaine et appellation s'arrêtent aussi au premier élément reconnaissable non annoncé (année, couleur, « 6 bouteilles », garage…)
-  function cutTail(v){ var m=/\s(?:19\d{2}|20\d{2}|(?:\d+|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|quinze|vingt)\s+bouteilles?|rouges?|blancs?|ros[ée]s?|effervescent|garage|frigo|en cave)\b/i.exec(' '+v); return (m? (' '+v).slice(0,m.index) : ' '+v).trim(); }
+  function cutTail(v){ var m=new RegExp('\\s(?:19\\d{2}|20\\d{2}|(?:\\d+|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|quinze|vingt)\\s+bouteilles?|rouges?|blancs?|ros[ée]s?|effervescent|garage|frigo|en cave'+zoneTailRe()+')\\b','i').exec(' '+v); return (m? (' '+v).slice(0,m.index) : ' '+v).trim(); }
   if(dom) dom=cutTail(dom);
   var app=cutTail(sv('appellation'));
   // Région
@@ -1218,10 +1493,9 @@ function parseDictation(t){
   // Emplacement
   var zone=null, et=null;
   var esrc=noAcc(sv('emplacement')+' '+sv('etagere'));
-  if(/garage/.test(esrc)||(!seg.emplacement&&!seg.etagere&&/\bgarage\b/.test(noAcc(neutral)))) zone='garage';
-  var en=firstNum(sv('etagere'))||(/etagere\s*(\d)/.exec(frWordsToDigits(esrc))||[])[1];
-  if(en){ en=parseInt(en,10); if(en>=1&&en<=5){ et=en; zone='frigo'; } }
-  if(!zone && /frigo|cave/.test(esrc)) zone='frigo';
+  var zm=zoneFromText(esrc)||((!seg.emplacement&&!seg.etagere)? zoneFromText(neutral.replace(/\bcave\b/gi,' ')) : null); if(zm) zone=zm.id;
+  var en=firstNum(sv('etagere'))||(/etagere\s*(\d+)/.exec(frWordsToDigits(esrc))||[])[1];
+  if(en){ en=parseInt(en,10); var zz=zone? zoneById(zone) : zoneWithShelves(); if(zz && en>=1 && en<=zz.et){ et=en; zone=zz.id; } }
   // Apogée « 2026 à 2032 »
   var ay=years(sv('apogee')), ap=ay.length>1? ay[0]+' – '+ay[1] : (ay[0]||null);
   // Prix « 25 », « 25,50 », « 25 euros 50 »
@@ -1232,7 +1506,7 @@ function parseDictation(t){
 
   var cuv=sv('cuvee'); if(cuv) cuv=cutTail(cuv);
   var V={ domaine:dom?capFr(dom):null, cuvee:cuv?capFr(cuv):null, appellation:app?capFr(app):null, region:reg, couleur:col, millesime:mil, cepages:cep||null, qte:qte, apogee:ap, prix:prix,
-    note:note? note.charAt(0).toUpperCase()+note.slice(1) : null, dateEntree:dEnt, zone:zone, etagere:(zone==='frigo'&&et)?et:null };
+    note:note? note.charAt(0).toUpperCase()+note.slice(1) : null, dateEntree:dEnt, zone:zone, etagere:(zone&&zoneById(zone).et>0&&et)?et:null };
   return V;
 }
 // Analyse locale d'une dictée complète → formulaire (origine « dicté »)
@@ -1372,8 +1646,8 @@ function aiAjout(r,text){
   Object.keys(FMAP).forEach(function(k){
     var v=f[k]; if(v===null||v===undefined||v==='') return;
     var el=document.getElementById(FMAP[k]); if(!el) return;
-    if(k==='zone'){ el.value=(String(v).toLowerCase()==='garage')?'garage':'frigo'; if(el.value==='garage') document.getElementById('f-etagere').value=''; return; }
-    if(k==='etagere'){ var n=parseInt(v,10); if(n>=1&&n<=5) el.value=String(n); return; }
+    if(k==='zone'){ var zf=zoneFromText(v); if(!zf) return; el.value=zf.id; el.dispatchEvent(new Event('change')); if(!zf.et) document.getElementById('f-etagere').value=''; return; }
+    if(k==='etagere'){ var n=parseInt(v,10), zc=zoneById(document.getElementById('f-zone').value); if(!(zc.et>=n)){ zc=zoneWithShelves(); if(zc && zc.et>=n){ document.getElementById('f-zone').value=zc.id; document.getElementById('f-zone').dispatchEvent(new Event('change')); } } if(zc && n>=1&&n<=zc.et) el.value=String(n); return; }
     if(k==='region'||k==='couleur'){ var list=k==='region'?REGIONS:COULEURS; var hit=list.find(function(x){ return noAcc(x)===noAcc(v); }); if(hit) el.value=hit; else return; }
     else if(k==='prix'){ el.value=String(v).replace('.',','); }
     else el.value=String(v);
@@ -1401,7 +1675,7 @@ function aiSortie(r){
 }
 function confirmOut(ref,n,msg){
   if(!ref) return; n=Math.max(1,Math.min(n,ref.qte||1));
-  var h='<span class="eyebrow">Sortie</span><h3 style="margin:4px 0 2px">'+esc(nomVin(ref))+' '+esc(ref.millesime)+'</h3><p class="hint">'+esc(ref.appellation)+' · '+(ref.zone==='garage'?'Garage':'Frigo, étagère '+ref.etagere)+' · en stock : ×'+ref.qte+'</p>';
+  var h='<span class="eyebrow">Sortie</span><h3 style="margin:4px 0 2px">'+esc(nomVin(ref))+' '+esc(ref.millesime)+'</h3><p class="hint">'+esc(ref.appellation)+' · '+esc(locTxt(ref))+' · en stock : ×'+ref.qte+'</p>';
   if(msg) h+='<p class="hint" style="margin-top:6px">'+esc(msg)+'</p>';
   if(ref.qte<=0){ h+='<p class="hint" style="color:var(--red);margin-top:12px">Cette référence est déjà épuisée.</p>'; drawerOpen(h); return; }
   h+='<div class="stepper"><button type="button" id="so-m">−</button><b class="mono" id="so-n">'+n+'</b><button type="button" id="so-p">+</button></div>';
@@ -1435,6 +1709,7 @@ function aiSettingsHTML(){
   h+='<select id="ai-prov"><option value="none"'+(p==='none'?' selected':'')+'>Désactivé (analyse simple)</option><option value="gemini"'+(p==='gemini'?' selected':'')+'>Google Gemini — gratuit</option><option value="mistral"'+(p==='mistral'?' selected':'')+'>Mistral — gratuit</option></select>';
   h+='<div id="ai-keybox" style="margin-top:8px'+(p==='none'?';display:none':'')+'"><input type="password" id="ai-key" autocomplete="off" placeholder="Clé API" value="'+esc(aiKey(p==='none'?'gemini':p))+'">';
   h+='<p class="hint" id="ai-help" style="margin:6px 0 8px"></p>';
+  h+=guideGemini();
   h+='<div id="ai-modelbox" style="display:none;margin-bottom:8px"><label>Modèle Gemini</label><select id="ai-model"></select></div>';
   h+='<div class="formfoot" style="margin-top:0"><button class="btn sm" id="ai-save">Enregistrer</button><button class="btn sm sec" id="ai-test">Tester</button></div><p class="hint" id="ai-res" style="margin-top:8px"></p></div>';
   return h;
@@ -1491,8 +1766,8 @@ function normVal(k,v){
   v=String(v).trim(); if(!v) return null;
   if(k==='region'){ var r=REGIONS.find(function(x){ return noAcc(x)===noAcc(v); }); return r||null; }
   if(k==='couleur'){ var c=COULEURS.find(function(x){ return noAcc(x)===noAcc(v); }); return c||null; }
-  if(k==='zone'){ return /garage/i.test(v)? 'garage' : 'frigo'; }
-  if(k==='etagere'){ var n=parseInt(v,10); return (n>=1&&n<=5)? String(n) : null; }
+  if(k==='zone'){ var zf=zoneFromText(v); return zf? zf.id : null; }
+  if(k==='etagere'){ var n=parseInt(v,10); return (n>=1&&n<=maxEt())? String(n) : null; }
   if(k==='qte'){ var q=parseInt(v,10); return q>0? String(q) : null; }
   if(k==='prix') return v.replace('.',',').replace(/\s*€$/,'');
   return v;
@@ -1501,10 +1776,10 @@ function sameVal(k,a,b){ return noAcc(String(a||'')).replace(/[\s–-]+/g,' ').t
 function setField(k,v){
   var el=document.getElementById(FIDS[k]); if(!el) return false;
   v=normVal(k,v); if(v===null) return false;
+  if(k==='etagere'){ var z=document.getElementById('f-zone'); if(z && !(zoneById(z.value).et>=parseInt(v,10))){ var zw=ZONES.find(function(x){ return x.et>=parseInt(v,10); }); if(zw){ z.value=zw.id; z.dispatchEvent(new Event('change')); } } }
   el.value=v;
-  if(k==='zone' && v==='garage'){ var et=document.getElementById('f-etagere'); if(et) et.value=''; delete S.prov.etagere; }
-  if(k==='etagere'){ var z=document.getElementById('f-zone'); if(z) z.value='frigo'; }
-  if(k==='zone'||k==='apogee'){ el.dispatchEvent(new Event('change')); }
+  if(k==='zone'){ el.dispatchEvent(new Event('change')); if(!zoneById(v).et){ var et=document.getElementById('f-etagere'); if(et) et.value=''; delete S.prov.etagere; } }
+  if(k==='apogee'){ el.dispatchEvent(new Event('change')); }
   return true;
 }
 // Remplit le formulaire avec des valeurs d'une origine donnée, sans toucher aux champs retouchés à la main
@@ -1596,7 +1871,7 @@ function voiceAdd(){
   if(VOICE){ VOICE.stop(); return; }
   var tr=document.getElementById('a-transcript'); tr.style.display='block';
   var prev=S.dict||'';
-  if(!prev) tr.innerHTML='🎤 Parlez naturellement. Plus vous annoncez les champs (domaine, appellation, millésime, quantité, étagère ou garage, apogée, prix, note en dernier), plus l’analyse locale est précise'+(aiOn()?' ; l’IA affine ensuite.':'.');
+  if(!prev) tr.innerHTML='🎤 Parlez naturellement. Plus vous annoncez les champs (domaine, appellation, millésime, quantité, emplacement, apogée, prix, note en dernier), plus l’analyse locale est précise'+(aiOn()?' ; l’IA affine ensuite.':'.');
   listen({ title:'Dicter la fiche', ok:'Remplir la fiche', rows:6, prefix:prev, silence:4000,
     help:'Ex. « Domaine Leflaive, Puligny-Montrachet 2019, six bouteilles, étagère 2, prix 65 euros »',
     live:function(t){ S.dict=t; showDict(); extractVoice(t); },
@@ -1612,7 +1887,7 @@ function parseField(k,t){
   if(k==='appellation'){ var a=clean.replace(/[.,;]+$/,'').replace(/\s+(rouges?|blancs?|ros[ée]s?)$/i,''); return a? capFr(a) : null; }
   if(k==='note'){ var n=clean.replace(/[\s.]+$/,''); return n? n.charAt(0).toUpperCase()+n.slice(1) : null; }
   var V=parseDictation(FKEY[k]+' '+clean);
-  if(k==='zone'||k==='etagere'){ if(V.zone==='garage') return {zone:'garage'}; if(V.etagere) return {zone:'frigo',etagere:V.etagere}; if(V.zone) return {zone:V.zone}; var en=firstNum(clean); if(en>=1&&en<=5) return {zone:'frigo',etagere:en}; return null; }
+  if(k==='zone'||k==='etagere'){ if(V.etagere) return {zone:V.zone,etagere:V.etagere}; if(V.zone) return {zone:V.zone}; var en=firstNum(clean), zw=en? ZONES.find(function(x){ return x.et>=en; }) : null; if(zw) return {zone:zw.id,etagere:en}; return null; }
   if(k==='region' && !V.region){ var r=REGIONS.find(function(x){ return noAcc(clean).indexOf(noAcc(x))>=0; }); return r||null; }
   if(k==='cepages'){ return clean? (CEPS? cepNormalize(clean) : (V.cepages||capFr(clean))) : null; }
   if(k==='qte' && V.qte==null){ return firstNum(clean); }
@@ -1632,7 +1907,7 @@ function fieldDictate(k){
       Object.keys(keys).forEach(function(kk){ delete S.userEdited[kk]; delete S.provOld[kk]; if(setField(kk,keys[kk])) S.prov[kk]='dicte'; });
       renderProv(); if(k==='appellation') inaoAssist('');
       var el=document.getElementById(FIDS[k]); if(el){ el.classList.add('flash'); setTimeout(function(){ el.classList.remove('flash'); },900); }
-      toast(FLABEL[k]+' : '+(typeof v==='object'? (v.zone==='garage'?'Garage':'Frigo'+(v.etagere?' étagère '+v.etagere:'')) : v));
+      toast(FLABEL[k]+' : '+(typeof v==='object'? (zoneById(v.zone).nom+(v.etagere?' étagère '+v.etagere:'')) : v));
       // noms propres : l'IA peut corriger l'orthographe en arrière-plan
       if(aiOn() && (k==='domaine'||k==='cuvee'||k==='appellation'||k==='cepages')){
         var tok=++S.aiTok;
@@ -2042,12 +2317,13 @@ function enrichForm(manual){
 /* ===== v2.10 : prompts allégés par intention, zéro IA quand le local est sûr, relais Gemini ⇄ Mistral ===== */
 var COUL_TXT=COULEURS.join('|');
 // Consignes courtes, une par intention
-var SYS_AJOUT=[
+function buildSysAjout(){ return [
  'Dictée (transcription automatique, fautes possibles) d’un vin qui entre en cave. JSON seul : {"intention":"ajout|reassort","fiche":{},"refId":null,"qte":null}.',
- 'fiche : n’inclure que les champs dits parmi domaine, cuvee, appellation, couleur ('+COUL_TXT+'), millesime, cepages, qte, zone (frigo|garage), etagere (1-5), apogee ("AAAA – AAAA"), prix, note. Rien n’est deviné.',
+ 'fiche : n’inclure que les champs dits parmi domaine, cuvee, appellation, couleur ('+COUL_TXT+'), millesime, cepages, qte, zone ('+ZONES.map(function(z){ return z.nom; }).join('|')+')'+(maxEt()? ', etagere (1-'+maxEt()+')' : '')+', apogee ("AAAA – AAAA"), prix, note. Rien n’est deviné.',
  'Corrige l’orthographe des noms ; garde « Domaine », « Château », « Clos » s’ils sont dits ; cuvée sans le mot « cuvée » ; nombres en chiffres.',
  'Si le vin est l’une des fiches listées (même domaine, appellation, millésime) : intention reassort, refId et qte.'
-].join('\n');
+].join('\n'); }
+var SYS_AJOUT=buildSysAjout();
 var SYS_MOUV=[
  'Dictée d’une sortie ou d’un ajout de bouteilles pour une fiche de cave. JSON seul : {"intention":"sortie|reassort|ajout","refId":null,"qte":1,"message":""}.',
  'refId = id de la fiche listée concernée ; aucune ne correspond : refId null (intention ajout s’il s’agit d’un nouveau vin) ; hésitation : refId null et une question courte dans message.'
@@ -2142,13 +2418,13 @@ function localCount(t){
 }
 
 function doExport(){
-  var blob=new Blob([JSON.stringify(S.refs,null,1)],{type:'application/json'});
+  var blob=new Blob([JSON.stringify({version:APPV,zones:ZONES,refs:S.refs},null,1)],{type:'application/json'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='cave-export-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
   toast('Copie exportée');
 }
 function doImport(input){
   var f=input.files[0]; if(!f) return;
-  f.text().then(function(t){ var d=JSON.parse(t); if(Array.isArray(d)){ S.refs=d; save(); toast('Import réussi · '+d.length+' références'); } }).catch(function(){ toast('Fichier invalide'); });
+  f.text().then(function(t){ var d=JSON.parse(t); if(d && !Array.isArray(d) && Array.isArray(d.refs)){ if(d.zones&&d.zones.length){ ZONES=d.zones; zonesSave(); } d=d.refs; } if(Array.isArray(d)){ S.refs=d; zonesAdopt(); save(); toast('Import réussi · '+d.length+' références'); } else toast('Fichier invalide'); }).catch(function(){ toast('Fichier invalide'); });
 }
 
 function isStandalone(){ return window.navigator.standalone===true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); }
@@ -2160,6 +2436,7 @@ if(window.visualViewport){
   visualViewport.addEventListener('resize',kbSync); visualViewport.addEventListener('scroll',kbSync);
 }
 localLoad();
+zonesInit(); zonesAdopt(); applyZones();
 inaoLoad();
 document.getElementById('overlay').onclick=closeDrawer;
 document.getElementById('voicebar').onclick=function(){ if(VOICE) VOICE.stop(); };
@@ -2171,6 +2448,7 @@ odHandleCode();
 odRestore();
 if(OD.token && !location.search) odPull().then(render);
 render();
+if(needOnboarding() && !location.search) onbShow();
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(function(reg){ try{ reg.update(); }catch(e){} }).catch(function(){});
   // une nouvelle version vient d'être installée → rechargement automatique une seule fois
