@@ -1349,7 +1349,8 @@ function vAlertes(){
   bindCards();
 }
 
- return { appellation:getField('appellation'), millesime:getField('millesime'), couleur:getField('couleur'), style:(document.getElementById('f-style')||{}).value||'', format:(document.getElementById('f-format')||{}).value||'', cepages:getField('cepages'), cuvee:getField('cuvee') }; }
+function formRef(){
+  return { appellation:getField('appellation'), millesime:getField('millesime'), couleur:getField('couleur'), style:(document.getElementById('f-style')||{}).value||'', format:(document.getElementById('f-format')||{}).value||'', cepages:getField('cepages'), cuvee:getField('cuvee') }; }
 function apoSrcLine(r){
   var el=document.getElementById('f-aposrc'); if(!el) return;
   var p=S.prov.apogee, t='';
