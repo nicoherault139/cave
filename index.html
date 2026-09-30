@@ -217,7 +217,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>Nicolas · v2.8.1</small></div>
+ <div class="brand"><h1>Cave</h1><small>Nicolas · v2.9.1</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-voice" class="micbtn" aria-label="Parler à la cave">🎤</button><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
  <button class="btn hide-m" id="btn-voice-d">🎤 Parler à la cave</button>
  <nav class="nav" id="nav"></nav>
@@ -236,14 +236,16 @@ html.standalone .brand small{display:none}
 <div id="aisug"></div>
 <datalist id="inao-list"></datalist>
 <datalist id="cep-list"></datalist>
+<datalist id="dom-list"></datalist>
+<datalist id="cuv-list"></datalist>
 <div id="overlay"></div>
 <div id="drawer"></div>
 <div id="toast"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.8.1';
+var APPV='v2.9.1';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '' };
-var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Autre'];
+var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
 
 function nomVin(r){ return (r.domaine||'')+(r.cuvee? ' · '+r.cuvee : ''); }
@@ -538,7 +540,7 @@ function vDash(){
 function vCave(){
   var chips=['Tous','Rouge','Blanc','Rosé','Effervescent','Cave frigo','Garage','Épuisées'];
   var h='';
-  h+='<div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><button class="btn hide-m" id="c-add">＋ Ajouter</button></div>';
+  h+='<div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><div class="vh-actions"><button class="btn sec" id="c-batch" title="Compléter les fiches (apogée, cépages, région)">🤖 Compléter</button><button class="btn hide-m" id="c-add">＋ Ajouter</button></div></div>';
   h+='<div class="searchbar"><input type="search" id="c-search" enterkeyhint="search" autocomplete="off" placeholder="Domaine, région, appellation, millésime…"><button class="btn sec" id="c-micro" title="Recherche vocale">🎤</button></div>';
   h+='<div class="chips">'+chips.map(function(c){ return '<button class="chip'+(S.filter===c?' on':'')+'" data-chip="'+c+'">'+c+'</button>'; }).join('')+'</div>';
   h+='<p class="hint" id="c-count" style="margin:-4px 0 10px"></p><div class="grid" id="c-grid"></div>';
@@ -552,6 +554,7 @@ function vCave(){
     document.querySelectorAll('[data-chip]').forEach(function(x){ x.classList.toggle('on', x===b); });
     caveGrid(); }; });
   document.getElementById('c-add').onclick=function(){ go('add'); };
+  document.getElementById('c-batch').onclick=batchPanel;
   function plainSearch(t){ S.search=t; se.value=t; caveGrid(); }
   document.getElementById('c-micro').onclick=function(){
     listen({ title:'Rechercher', ok:'Rechercher', silence:2500, done:function(t){ hybridAssist(localIntent(t)==='ajout'? t+' ?' : t); } });
@@ -593,8 +596,8 @@ function vAdd(){
   h+='<div id="a-aistate" class="aistate" style="display:none"></div>';
   h+='<p class="hint" id="a-legend" style="display:none;margin:0 0 10px">Origine des champs : ✅ dicté · 📚 référentiel (INAO, cépages) · 🤖 corrigé par l’IA · 🔮 estimé par l’IA — touchez ✏️ pour redicter un seul champ.</p>';
   h+='<form id="a-form" class="panel">';
-  h+='<div class="row"><div>'+LB('domaine','Domaine / producteur *')+'<input type="text" id="f-domaine" required value="'+esc(r?r.domaine:'')+'"></div>';
-  h+='<div>'+LB('cuvee','Cuvée (optionnel)')+'<input type="text" id="f-cuvee" value="'+esc(r&&r.cuvee?r.cuvee:'')+'"></div></div>';
+  h+='<div class="row"><div>'+LB('domaine','Domaine / producteur *')+'<input type="text" id="f-domaine" list="dom-list" autocomplete="off" required value="'+esc(r?r.domaine:'')+'"></div>';
+  h+='<div>'+LB('cuvee','Cuvée (optionnel)')+'<input type="text" id="f-cuvee" list="cuv-list" autocomplete="off" value="'+esc(r&&r.cuvee?r.cuvee:'')+'"></div></div>';
   h+='<div class="row"><div>'+LB('couleur','Couleur *')+'<select id="f-couleur">'+opts(COULEURS,r?r.couleur:'Rouge')+'</select></div>';
   h+='<div>'+LB('region','Macro-région *')+'<select id="f-region">'+opts(REGIONS,r?r.region:'Bourgogne')+'</select></div></div>';
   h+='<div class="row"><div>'+LB('appellation','Appellation *')+'<input type="text" id="f-appellation" list="inao-list" autocomplete="off" required value="'+esc(r?r.appellation:'')+'"></div>';
@@ -621,6 +624,7 @@ function vAdd(){
   Object.keys(FIDS).forEach(function(k){ var el=document.getElementById(FIDS[k]); if(!el) return;
     function mark(){ S.userEdited[k]=true; delete S.prov[k]; delete S.provOld[k]; renderProv(); }
     el.addEventListener('input',mark); if(el.tagName==='SELECT') el.addEventListener('change',function(e){ if(e.isTrusted) mark(); }); });
+  fillDomLists();
   renderProv();
   function zoneWarn(){
     var z=val('f-zone'), ap=val('f-apogee');
@@ -1654,12 +1658,128 @@ function enrichSystem(){
   '- apogee : fenêtre de dégustation optimale « AAAA – AAAA » selon appellation, couleur et millésime ; null si impossible à estimer.'
   ].join('\n');
 }
+
+// ===================== v2.9 : apogée locale, autocomplétion domaines, complétion en lot =====================
+// Estimation locale d'apogée : [min,max] années de garde après le millésime, par règles sur appellation/région/couleur.
+// Heuristique volontairement simple — l'IA reste disponible via « Compléter » si aucune règle ne s'applique.
+function apoGarde(app,region,couleur){
+  var a=noAcc(String(app||'').toLowerCase()), r=region||'';
+  if(/sauternes|barsac|banyuls|maury|riteau|rasteau mousseux|sable de camargue|pineau|floc|vdn|vin doux|sainte-croix|muscat|rivesaltes/.test(a)) return [6,20];
+  if(/champagne|cremant|limoux|clairette de die|blanquette/.test(a)) return [2,8];
+  if(/morgon|moulin-a-vent/.test(a)) return [4,12];
+  if(/beaujolais|fleurie|chenas|julienas|chiroubles|regnie|brouilly|saint-amour|cote de brouilly/.test(a)) return [2,6];
+  if(/chateauneuf|cote rotie|hermitage|saint-joseph|cornas|bandol|chateau rayas/.test(a)) return [7,18];
+  if(/grand cru/.test(a)&&r==='Bourgogne') return [8,20];
+  if(/premier cru|1er cru/.test(a)&&r==='Bourgogne') return [5,14];
+  if(/pauillac|margaux|saint-julien|pessac|graves|saint-emilion|pomerol|lalande|louis|fronsac|castillon|lussac|puisseguin/.test(a)) return [6,18];
+  if(/bordeaux|medoc|listrac|moulis|haut-medoc/.test(a)) return [2,10];
+  if(/vacqueyras|gigondas|lirac|cotes du rhone|rhone/.test(a)) return [2,8];
+  if(/gewurz|riesling|pinot gris|tokay|alsace/.test(a)) return [2,8];
+  if(/chinon|bourgueil|saint-nicolas|saumur|savennieres|vouvray|montlouis|bonnezeaux|quarts/.test(a)) return [3,12];
+  if(/sancerre|pouilly|menetou|quincy|reuilly|cheverny|touraine|anjou/.test(a)) return [1,5];
+  if(/arbois|chateau-chalon|jura|etoile|cotes du jura/.test(a)) return [3,10];
+  if(/savoie|bugey|seyssel/.test(a)) return [1,4];
+  if(/corbieres|minervois|fitou|saint-chinian|faugeres|pic saint|terroir|costieres|collioure|roussillon|languedoc|cathare/.test(a)) return [1,6];
+  if(/provence|cotes de provence|alpilles|palette/.test(a)) return [1,5];
+  if(/moselle|toul|meuse/.test(a)) return [1,5];
+  switch(r){
+    case 'Bourgogne': return [2,7];
+    case 'Beaujolais': return [2,5];
+    case 'Bordeaux': return [2,10];
+    case 'Rhône': return [2,8];
+    case 'Champagne': return [2,8];
+    case 'Alsace': return [2,7];
+    case 'Loire': return [1,6];
+    case 'Provence': case 'Languedoc': return [1,5];
+    case 'Sud-Ouest': case 'Jura': return [2,8];
+    case 'Savoie': case 'Corse': case 'Nord-Est': case 'Normandie': case 'Île-de-France': return [1,5];
+  }
+  return null;
+}
+function apoFormat(mil,g){
+  var m=parseInt(mil,10); if(!m||m<1950||m>2100) return null;
+  return (m+g[0])+' – '+(m+g[1]);
+}
+function apoLocal(r){ var g=apoGarde(r.appellation,r.region,r.couleur); return g? apoFormat(r.millesime,g):null; }
+
+// Domaines de référence (suggestions) + tout ce qui est déjà en cave : autocomplétion du champ Domaine
+var DOMS_REF='Domaine de la Romanée-Conti|Domaine Leflaive|Domaine Coche-Dury|Domaine des Comtes Lafon|Domaine Ramonet|Domaine Bernard Moreau|Domaine Vincent Dauvissat|Domaine Raveneau|Domaine Méo-Camuzet|Domaine Armand Rousseau|Domaine Sylvain Cathiard|Domaine du Comte Georges de Vogüé|Domaine Dujac|Domaine des Lambrays|Clos de Tart|Domaine Gouges|Domaine Mugneret-Gibourg|Domaine Georges Roumier|Domaine Roulot|Domaine Michel Lafarge|Domaine Denis Bachelet|Domaine Arnoux-Lachaux|Domaine Rossignol-Trapet|Domaine Henri Boillot|Domaine Charles Lachaux|Domaine Berthelemot|Domaine Ballot-Millot|Domaine Bernard-Bonin|Domaine Valette|Joseph Drouhin|Louis Jadot|Bouchard Père & Fils|Faiveley|William Fèvre|Olivier Leflaive|Château de Meursault|Domaine Marquis dAngerville|Domaine Vincent Dauvissat|Domaine Bernard Van Berg|Château Thivin|Domaine Chignard|Domaine Jean-Paul Thévenet|Yvon Métras|Clos de la Roilette|Château des Jacques|Domaine du Vissoux|Domaine des Terres Doriane|Château Margaux|Château Latour|Château Lafite Rothschild|Château Mouton Rothschild|Château Haut-Brion|Château Pétrus|Château Cheval Blanc|Château Ausone|Château Angélus|Château Pavie|Château Lynch-Bages|Château Pontet-Canet|Château Montrose|Château Cos d Estournel|Château Ducru-Beaucaillou|Château Léoville Barton|Château Palmer|Château Smith Haut Lafitte|Château Figeac|Château Talbot|Château Beychevelle|Château Brane-Cantenac|Château d Yquem|Château Suduiraut|Château Climens|Château Doisy-Daëne|Château Guiraud|Ets Jean-Pierre Moueix|Domaines Barons de Rothschild|Guigal|M. Chapoutier|Jean-Luc Colomba|Jean-Luc Colombo|Domaine Jean-Luc Colombo|Domaine Jamet|René Rostaing|Domaine Gonon|Domaine du Collier|Domaine Thierry Allemand|Château Rayas|Domaine du Vieux Télégraphe|Domaine de la Janasse|Domaine Pégau|Clos des Papes|Domaine des Beaurenard|Domaine de la Mordorée|Domaine Alary|Domaine Combier|Domaine de la Vieille Julienne|Domaine des Amouriers|Domaine Les Aphillanthes|Domaine Mont Redon|Domaine La Roche Buissière|Domaine Marcel Lapierre|Domaine Jean Foillard|Domaine Chignard|Didier Dagueneau|Domaine Vacheron|François Cotat|Domaine Huet|Domaine des Baumard|Domaine Jo Landron|Domaine de l Ecu|Nicolas Joly|Domaine Luneau-Papin|Domaine de la Pépière|Domaine Breton|Charles Joguet|Domaine Olga Raffault|Clos Rougeard|Domaine Vincent Ricard|Domaine du Clocher|Domaine Raffault|Domaine Pithon-Paillé|Zind-Humbrecht|Domaine Weinbach|Trimbach|Domaine Marcel Deiss|Domaine Albert Mann|Domaine Ostertag|Hugel|Domaine Josmeyer|Domaine Bott-Geyl|Domaine Kreydenweiss|Bollinger|Krug|Louis Roederer|Pol Roger|Jacques Selosse|Egly-Ouriet|Ulysse Collin|Pierre Péters|Bérèche|Chartogne-Taillet|Larmandier-Bernier|Domaine Agrapart|Vilmart|Gosset|Taittinger|Salon|Jacquesson|Paul Bara|Domaine Overnoy|Domaine Ganevat|Domaine Labet|Domaine Tissot|Domaine Macle|Domaine des Ardoisières|Domaine Berlioz|Domaine Tempier|Château Simone|Domaine Ott|Clos Sainte-Magdeleine|Domaine de Trévallon|Mas de Daumas Gassac|Domaine Peyre Rose|Domaine de l Hortus|Château Puech-Haut|Mas Jullien|Domaine de la Grange des Pères|Mas Champart|Domaine Gauby|Domaine de la Rectorie|Domaine des Clos des Fées|Château de Jau|Domaine Cazes|Domaine de l Eden|Château Montus|Château Bouscassé|Domaine du Cros|Clos La Coutale|Château du Cèdre|Clos Triguedina|Château Lafitte-Teston|Domaine des Plageoles|Domaine Cauhape|Clos Lapeyre|Domaine Larredya';
+function fillDomLists(){
+  var dl=document.getElementById('dom-list'); if(!dl) return;
+  var seen={}, list=[];
+  DOMS_REF.split('|').forEach(function(d){ var v=d.replace(/'/g,"\u2019"); if(v&&!seen[v]){ seen[v]=1; list.push(v); } });
+  S.refs.forEach(function(r){ if(r.domaine&&!seen[r.domaine]){ seen[r.domaine]=1; list.push(r.domaine); } });
+  dl.innerHTML=list.slice(0,900).map(function(d){ return '<option value="'+esc(d)+'">'; }).join('');
+  var cl=document.getElementById('cuv-list');
+  if(cl){ var cs={}, co=[]; S.refs.forEach(function(r){ if(r.cuvee&&!cs[r.cuvee]){ cs[r.cuvee]=1; co.push(r.cuvee); } }); cl.innerHTML=co.map(function(c){ return '<option value="'+esc(c)+'">'; }).join(''); }
+}
+
+// Complétion en lot : local d'abord (INAO, apogée), IA ensuite en une requête par paquet de 8 fiches
+var BLAB={region:'Région',apogee:'Apogée',cepages:'Cépages'};
+var BSRCS={inao:['📚','référentiel INAO'],est:['🔮','estimation locale'],ia:['🤖','IA']};
+function batchPanel(){
+  var todo=S.refs.filter(function(r){ return r.qte>0 && ((!r.apogee)||(!r.cepages)||(!r.region)||r.region==='Autre'); });
+  if(!todo.length){ toast('Rien à compléter : toutes les fiches actives sont remplies'); return; }
+  var props=[], aiBatch=[];
+  todo.forEach(function(r){
+    var manque=[];
+    if(!r.region||r.region==='Autre'){
+      if(r.appellation){ var e=inaoFind(r.appellation)||((inaoMatch(r.appellation,1)[0]||{}).sc>=0.8? inaoMatch(r.appellation,1)[0].e : null);
+        if(e&&e.r) props.push({r:r,f:'region',v:e.r,src:'inao'}); else manque.push('region'); }
+      else manque.push('region');
+    }
+    if(!r.apogee){ var a=apoLocal(r); if(a) props.push({r:r,f:'apogee',v:a,src:'est'}); else manque.push('apogee'); }
+    if(!r.cepages) manque.push('cepages');
+    if(manque.length) aiBatch.push({r:r,manque:manque});
+  });
+  if(!aiBatch.length || !aiOn()){ batchDrawer(props); return; }
+  var chunks=[]; for(var i=0;i<aiBatch.length;i+=8) chunks.push(aiBatch.slice(i,i+8));
+  var done=0, failed=false;
+  busy(true,'🤖 Complétion IA : 0/'+aiBatch.length+' fiche(s)…');
+  chunks.reduce(function(p,c){
+    return p.then(function(){
+      var fiches=c.map(function(x){ return {id:x.r.id,domaine:x.r.domaine,cuvee:x.r.cuvee||'',appellation:x.r.appellation,couleur:x.r.couleur,millesime:x.r.millesime,manque:x.manque}; });
+      var sys="Tu complètes des fiches de cave à vin. Pour chaque fiche, estime les champs listés dans \"manque\". Réponds UNIQUEMENT en JSON : {\"res\":[{\"id\":\"...\",\"apogee\":\"AAAA – AAAA\" ou null,\"cepages\":\"...\" ou null,\"region\":\"...\" ou null}]} (un objet par fiche, id identique). Apogée : fenêtre de consommation réaliste au format \"AAAA – AAAA\". Cépages : 1 à 4 cépages principaux de l'appellation, séparés par des virgules. region ∈ "+JSON.stringify(REGIONS)+". Pas sûr : null.";
+      return aiCallRaw(sys,'Fiches à compléter : '+JSON.stringify(fiches)).then(function(d){
+        (d.res||[]).forEach(function(x){ var ref=null; S.refs.forEach(function(r){ if(r.id===x.id) ref=r; }); if(!ref) return;
+          ['apogee','cepages','region'].forEach(function(f){
+            if(x[f] && !ref[f]) props.push({r:ref,f:f,v:String(x[f]),src:'ia'});
+          });
+        });
+        done+=c.length; busy(true,'🤖 Complétion IA : '+done+'/'+aiBatch.length+' fiche(s)…');
+      }).catch(function(){ failed=true; });
+    });
+  }, Promise.resolve()).then(function(){ busy(false);
+    if(failed) toast('IA indisponible — propositions locales uniquement');
+    batchDrawer(props);
+  });
+}
+function batchDrawer(props){
+  var seen={}; props=(props||[]).filter(function(p){ var k=p.r.id+'|'+p.f; if(seen[k]) return false; seen[k]=true; return true; });
+  S.batch=props;
+  if(!props.length){ closeDrawer(); toast('Aucune proposition : activez l\'assistant IA (⚙︎) pour les champs non estimables'); return; }
+  var ids={}; props.forEach(function(p){ ids[p.r.id]=1; });
+  var h='<span class="eyebrow">Ma cave</span><h3 style="margin:4px 0 12px">Compléter '+props.length+' champ(s) sur '+Object.keys(ids).length+' fiche(s)</h3>';
+  h+='<p class="hint" style="margin-bottom:10px">Vérifiez puis appliquez. Les champs déjà saisis ne sont jamais modifiés.</p><div id="b-list" style="display:flex;flex-direction:column;gap:8px">';
+  props.forEach(function(p,i){ h+='<div class="alert-item"><span><b>'+esc(nomVin(p.r))+'</b> '+esc(p.r.millesime)+'<br><span class="hint">'+BLAB[p.f]+' → <b>'+esc(p.v)+'</b> '+BSRCS[p.src][0]+' ('+BSRCS[p.src][1]+')</span></span><button class="btn sm" data-bx="'+i+'">✕</button></div>'; });
+  h+='</div><button class="btn" id="b-apply" style="width:100%;margin-top:12px">Appliquer tout</button>';
+  drawerOpen(h);
+  document.querySelectorAll('[data-bx]').forEach(function(b){ b.onclick=function(){ S.batch.splice(parseInt(b.getAttribute('data-bx'),10),1); batchDrawer(S.batch); }; });
+  document.getElementById('b-apply').onclick=function(){
+    S.batch.forEach(function(p){ p.r[p.f]=p.v; });
+    S.batch=[]; closeDrawer(); save(); toast('Fiches complétées');
+  };
+}
+
 function enrichForm(manual){
   if(!document.getElementById('f-domaine')) return;
   // 1. référentiel local, sans IA
   var appNow=getField('appellation'), e=appNow? inaoFind(appNow)||((inaoMatch(appNow,1)[0]||{}).sc>=0.72? inaoMatch(appNow,1)[0].e : null) : null;
   if(e){ inaoFill(e); renderProv(); }
   var needApp=!fieldKnown('appellation'), needApo=!fieldKnown('apogee');
+  // v2.9 : estimation locale d'apogée (gratuite, instantanée) avant de solliciter l'IA
+  if(needApo){ var gl=apoGarde(getField('appellation'),getField('region'),getField('couleur')); var ap=gl? apoFormat(getField('millesime'),gl) : null;
+    if(ap && setField('apogee',ap)){ S.prov.apogee='deduit'; needApo=false; if(manual) toast('Apogée estimée localement 🔮 — à vérifier'); } }
   if(!needApp && !needApo){ if(manual) toast(e? 'Région / couleur complétées depuis le référentiel INAO' : 'Rien à compléter'); return; }
   if(!aiOn()){ if(manual) toast(needApp? 'Appellation manquante : dictez-la ou activez l’assistant IA' : 'Activez l’assistant IA pour estimer l’apogée'); return; }
   var known={}; ['domaine','cuvee','appellation','couleur','millesime'].forEach(function(k){ if(fieldKnown(k)){ var v=getField(k); if(v) known[k]=v; } });
