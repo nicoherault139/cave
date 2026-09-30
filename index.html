@@ -169,7 +169,9 @@ input,select,textarea{width:100%}
 .loc{font-size:12px;color:var(--muted)}
 .apo{font-size:11.5px;font-weight:600;border-radius:99px;padding:1px 8px;white-space:nowrap}
 .apo-early{color:var(--early);background:var(--early-bg)}.apo-ok{color:var(--green);background:var(--ok-bg)}
-.apo-vite{color:var(--red);background:var(--alert-bg)}.apo-past{color:var(--past);background:var(--past-bg);text-decoration:line-through}
+.apo-vite{color:var(--red);background:var(--alert-bg)}.apo-past{color:var(--red);background:var(--alert-bg)}.apo-old{color:var(--past);background:var(--past-bg);text-decoration:line-through}
+.apo-soon{color:var(--gold);background:var(--early-bg)}
+.apo-src{font-size:12px;color:var(--muted);margin-top:4px}
 .apo-warn{color:var(--red);background:var(--alert-bg)}.apo-dead{color:var(--past);background:var(--past-bg)}
 .cqty{display:flex;flex-direction:column;align-items:center;gap:4px}
 .cqty b{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -331,7 +333,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>v2.14</small></div>
+ <div class="brand"><h1>Cave</h1><small>v2.15</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span></div>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
@@ -355,7 +357,7 @@ html.standalone .brand small{display:none}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.14';
+var APPV='v2.15';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -373,24 +375,35 @@ function set$(fid,v){ var el=document.getElementById(fid); if(!el||v===null||v==
   if(el.tagName==='SELECT'){ for(var i=0;i<el.options.length;i++){ if(el.options[i].text.toLowerCase().indexOf(String(v).toLowerCase())>=0){ el.selectedIndex=i; break; } } }
   else el.value=v; }
 
+// Fenêtre d'apogée : « 2026 – 2032 », « 2030 » (une seule année) ou « dès 2030 » (fin inconnue : open)
 function apYears(r){
-  var m = /(\d{4})\s*(?:[–\-—]|a|à|jusqu|to)?\s*(\d{4})?/.exec(String(r.apogee||''));
+  var t=String(r.apogee||''), open=/^\s*(d[eè]s|à partir de|a partir de)\s/i.test(t) || /\d{4}\s*[–\-—]\s*(…|\.\.\.|\?)?\s*$/.test(t);
+  var m = /(\d{4})\s*(?:[–\-—]|a|à|jusqu|to)?\s*(\d{4})?/.exec(t);
   if(!m) return null;
-  var d = parseInt(m[1],10), f = m[2] ? parseInt(m[2],10) : d;
-  if(f < d) f = d; return { d:d, f:f };
+  var d = parseInt(m[1],10), f = m[2] ? parseInt(m[2],10) : (open? null : d);
+  if(f!==null && f < d) f = d; return { d:d, f:f, open:f===null };
 }
-function inWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return y>=a.d && y<=a.f; }
-function soonWindow(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return a.d>y && a.d-y<=2; }
-function pastWindow(r){ var a=apYears(r); if(!a) return false; return new Date().getFullYear()>a.f; }
-function isLongGarde(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); return (a.f-a.d>8) || (a.f-y>5); }
+// Règles B (décisions du 30/09/2026) : « Bientôt prêt » = l'année précédant l'ouverture ; « À boire vite » = dernier tiers de la fenêtre, au moins 2 ans ;
+// « Dépassé » en deux paliers : jusqu'à 2 ans après la fin, puis au-delà. Précision à l'année.
+var APO_SOON=1, APO_VITE_MIN=2, APO_PAST_PALIER=2;
+function viteFrom(a){ var n=a.f-a.d+1, len=Math.max(APO_VITE_MIN, Math.ceil(n/3)); return a.f-len+1; }
+function apoState(r){ var a=apYears(r); if(!a) return 'none'; var y=new Date().getFullYear();
+  if(y<a.d) return (a.d-y<=APO_SOON)? 'soon' : 'early';
+  if(a.open) return 'ok';
+  if(y>a.f) return (y-a.f<=APO_PAST_PALIER)? 'past' : 'old';
+  if(y>=viteFrom(a)) return 'vite'; return 'ok'; }
+function inWindow(r){ var s=apoState(r); return s==='ok'||s==='vite'; }
+function pastWindow(r){ var s=apoState(r); return s==='past'||s==='old'; }
+function isLongGarde(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); if(a.open) return true; return (a.f-a.d>8) || (a.f-y>5); }
 
 function seuilBas(qi){ qi=qi||0; if(qi<=2) return 0; if(qi<=5) return 1; return 2; }
 function alertsFor(r){
   var out=[];
   if(r.qte<=0) return out;
-  if(inWindow(r)) out.push({sev:'ok',txt:'Apogée en cours ('+r.apogee+') — à boire'});
-  else if(soonWindow(r)) out.push({sev:'warn',txt:'Apogée proche ('+r.apogee+')'});
-  else if(pastWindow(r)) out.push({sev:'warn',txt:'Apogée passée ('+r.apogee+') — à ouvrir sans tarder'});
+  var st=apoState(r);
+  if(st==='ok'||st==='vite') out.push({sev:'ok',txt:'Apogée en cours ('+r.apogee+') — à boire'});
+  else if(st==='past') out.push({sev:'warn',txt:'Apogée dépassée ('+r.apogee+') — à ouvrir vite'});
+  else if(st==='old') out.push({sev:'warn',txt:'Apogée dépassée depuis plus de '+APO_PAST_PALIER+' ans ('+r.apogee+') — à goûter, risque de déclin'});
   if(zoneBad(r)) out.push({sev:'crit',txt:'Vin de garde rangé dans une zone non adaptée ('+zoneOf(r).nom+')'});
   if(r.qte<=seuilBas(r.qteInit)) out.push({sev:'warn',txt:'Stock bas ('+r.qte+' restante'+(r.qte>1?'s':'')+')'});
   return out;
@@ -640,11 +653,11 @@ function onbSaveStep(){
 
 function csvCell(v){ v=String(v==null?'':v); return /[";\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function toCSV(){
-  var head=['domaine','cuvee','region','appellation','couleur','millesime','cepages','qte','qteInit','zone','etagere','apogee','prix','prixEstime','note','dateEntree','lots','exemple','refus','verifie'];
+  var head=['domaine','cuvee','region','appellation','couleur','millesime','cepages','qte','qteInit','zone','etagere','apogee','prix','prixEstime','note','dateEntree','lots','exemple','refus','verifie','apoSrc','style','format'];
   var lines=[head.join(';')];
   S.refs.forEach(function(r){
     var lots=(r.lots||[]).map(function(l){ return l.qte+'@'+l.date; }).join(',');
-    lines.push([r.domaine,r.cuvee||'',r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.prixEstime?'1':'',r.note||'',r.dateEntree||'',lots,r.exemple?'1':'',(r.refus||[]).join('¦'),r.verifie||''].map(csvCell).join(';'));
+    lines.push([r.domaine,r.cuvee||'',r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.prixEstime?'1':'',r.note||'',r.dateEntree||'',lots,r.exemple?'1':'',(r.refus||[]).join('¦'),r.verifie||'',r.apoSrc||'',r.style||'',r.format||''].map(csvCell).join(';'));
   });
   return lines.join('\n');
 }
@@ -668,7 +681,7 @@ function parseCSV(text){
     var lotsRaw=get(rw,'lots'), lots=[];
     if(lotsRaw){ lotsRaw.split(',').forEach(function(p){ var t=p.split('@'); if(t[0]) lots.push({qte:parseInt(t[0],10)||0,date:t[1]||''}); }); }
     var o=map[key];
-    if(!o){ o={ id:id(), exemple:get(rw,'exemple')==='1', domaine:dom, cuvee:get(rw,'cuvee'), prixEstime:get(rw,'prixestime')==='1', region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:(get(rw,'zone')==='garage'?'garage':'frigo'), etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots, refus:splitRefus(get(rw,'refus')), verifie:get(rw,'verifie') }; map[key]=o; order.push(key); }
+    if(!o){ o={ id:id(), exemple:get(rw,'exemple')==='1', domaine:dom, cuvee:get(rw,'cuvee'), prixEstime:get(rw,'prixestime')==='1', region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:get(rw,'zone')||'', etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots, refus:splitRefus(get(rw,'refus')), verifie:get(rw,'verifie'), apoSrc:get(rw,'apoSrc'), style:get(rw,'style'), format:get(rw,'format') }; map[key]=o; order.push(key); }
     else { o.qte+=parseInt(get(rw,'qte'),10)||0; o.qteInit+=parseInt(get(rw,'qteInit'),10)||0; if(lots.length) o.lots=o.lots.concat(lots); splitRefus(get(rw,'refus')).forEach(function(x){ o.refus=o.refus||[]; if(o.refus.indexOf(x)<0) o.refus.push(x); }); }
   });
   return order.map(function(k){ return map[k]; });
@@ -865,7 +878,7 @@ function prenom(){ try{ var p=localStorage.getItem('cave-prenom'); return p===nu
 function vReglages(){
   var h='<div class="viewhead"><div><span class="eyebrow">Cave · '+APPV+'</span><h2>Réglages</h2></div></div><div class="setgroup">';
   h+='<div class="panel"><h3>Profil</h3><label>Prénom affiché sur l’accueil</label><input type="text" id="m-prenom" autocomplete="off" value="'+esc(prenom())+'"></div>';
-  h+='<div class="panel"><h3>Ma cave</h3><div class="gauges">'+gaugesHTML()+'</div><div class="formfoot" style="flex-direction:column"><button class="btn sec" id="m-zones">Modifier les zones de rangement…</button><button class="btn sec" id="m-batch">Vérifier et compléter les fiches</button>'+(hasSamples()? '<button class="btn sec" id="m-samples">Supprimer les vins d’exemple</button>' : '')+'<button class="btn sec" id="m-onb">Revoir l’accueil de démarrage</button></div></div>';
+  h+='<div class="panel"><h3>Ma cave</h3><div class="gauges">'+gaugesHTML()+'</div><div class="formfoot" style="flex-direction:column"><button class="btn sec" id="m-zones">Modifier les zones de rangement…</button><button class="btn sec" id="m-batch">Vérifier et compléter les fiches</button><button class="btn sec" id="m-garde">Table de garde (apogée)…</button>'+(hasSamples()? '<button class="btn sec" id="m-samples">Supprimer les vins d’exemple</button>' : '')+'<button class="btn sec" id="m-onb">Revoir l’accueil de démarrage</button></div></div>';
   h+='<div class="panel"><h3>Synchronisation</h3><div id="m-sync" style="font-size:14px;margin-bottom:12px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
   h+='<div class="formfoot" style="flex-direction:column;margin-top:0"><button class="btn sec" id="m-cfg">Réglages OneDrive…</button><button class="btn sec" id="m-pull">Relire depuis OneDrive</button><button class="btn sec" id="m-exp">Exporter une copie (.json)</button><button class="btn sec" id="m-imp">Importer un fichier .json</button></div></div>';
   h+='<div class="panel"><h3>Dictée et assistant</h3><label>Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
@@ -877,6 +890,7 @@ function vReglages(){
   document.getElementById('m-cfg').onclick=openCfg;
   document.getElementById('m-zones').onclick=zonesPanel;
   document.getElementById('m-batch').onclick=batchPanel;
+  document.getElementById('m-garde').onclick=function(){ inaoLoad().then(function(){ gardePanel(''); }); };
   var ms=document.getElementById('m-samples'); if(ms) ms.onclick=function(){ removeSamples(); vReglages(); };
   document.getElementById('m-onb').onclick=function(){ ONB.step=0; ONB.draft=null; onbShow(); };
   aiSettingsBind();
@@ -887,9 +901,7 @@ function vReglages(){
 }
 var PCLS={'Rouge':'rouge','Blanc':'blanc','Rosé':'rose','Effervescent':'eff'};
 function pastille(r){ return '<span class="pastille p-'+(PCLS[r.couleur]||'blanc')+'" title="'+esc(r.couleur||'')+'"></span>'; }
-var APOL={past:'Apogée passée',vite:'À boire vite',ok:'À boire',early:'Trop tôt',none:'Sans apogée'};
-// « À boire vite » : dans la fenêtre et fin d'apogée cette année ou l'an prochain
-function apoState(r){ var a=apYears(r); if(!a) return 'none'; var y=new Date().getFullYear(); if(y<a.d) return 'early'; if(y>a.f) return 'past'; if(a.f-y<=1) return 'vite'; return 'ok'; }
+var APOL={old:'Dépassé · à goûter',past:'Dépassé · à ouvrir',vite:'À boire vite',ok:'À boire',soon:'Bientôt prêt',early:'Trop tôt',none:'Sans apogée'};
 function subLine(r){ return (r.appellation? esc(r.appellation) : '<span class="reg">'+esc(r.region||'')+'</span>')+(r.millesime? ' · <span class="mono">'+esc(r.millesime)+'</span>' : ''); }
 function refCard(r){
   var st=apoState(r), crit=alertsFor(r).some(function(a){ return a.sev==='crit'; });
@@ -939,7 +951,7 @@ function colRecap(cur){
 function vDash(){
   var cur=current(), now=new Date();
   var low=cur.filter(function(r){ return r.qte<=seuilBas(r.qteInit); });
-  var drink=cur.filter(function(r){ var s=apoState(r); return s==='ok'||s==='vite'; }).sort(function(a,b){ var sa=apoState(a)==='vite'?0:1, sb=apoState(b)==='vite'?0:1; return (sa-sb)||(apYears(a).f-apYears(b).f); });
+  var drink=cur.filter(function(r){ var s=apoState(r); return s==='ok'||s==='vite'; }).sort(function(a,b){ var sa=apoState(a)==='vite'?0:1, sb=apoState(b)==='vite'?0:1; return (sa-sb)||((apYears(a).f||9999)-(apYears(b).f||9999)); });
   var others=allAlerts().filter(function(x){ return !/^Stock bas/.test(x.a.txt); });
   var pn=prenom();
   var h='<div class="viewhead"><div><span class="eyebrow">'+esc(now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}))+'</span><h2>'+(now.getHours()>=18?'Bonsoir':'Bonjour')+(pn? ' '+esc(pn) : '')+'</h2></div><button class="btn hide-m" id="d-add">＋ Ajouter une bouteille</button></div>';
@@ -1058,7 +1070,7 @@ function fillInfo(){
   var h='<span class="eyebrow">Ma cave</span><h3 style="margin:4px 0 6px">Compléter les fiches</h3>';
   h+='<p class="hint">Pour les bouteilles en stock, l’appli cherche la région, l’apogée et les cépages qui manquent, et repère les fautes de frappe.</p>';
   h+='<ul class="infolist">';
-  h+='<li><b>D’abord sans IA, sur votre téléphone.</b> Région et appellation d’après le référentiel INAO, apogée estimée par des règles (appellation, région, couleur, millésime), coquilles corrigées dans les appellations, les cépages et les domaines connus.</li>';
+  h+='<li><b>D’abord sans IA, sur votre téléphone.</b> Région et appellation d’après le référentiel INAO, apogée calculée avec la table de garde (durées publiées par le Guide Hachette des Vins, appellation par appellation), coquilles corrigées dans les appellations, les cépages et les domaines connus.</li>';
   h+='<li><b>Contrôle de cohérence (⚠️).</b> Si l’appellation d’une fiche est reconnue exactement, sa région et sa couleur sont comparées à celles du référentiel INAO, même si elles sont déjà remplies. Un écart est signalé, jamais corrigé seul : si c’est l’appellation qui est fausse, corrigez-la plutôt.</li>';
   h+='<li><b>Ensuite l’IA, pour ce qui reste.</b> Si l’assistant IA est activé, les champs encore vides sont demandés par paquets de 8 fiches, et l’orthographe des domaines est vérifiée une fois par fiche (à nouveau seulement si le domaine ou la cuvée change). Les réponses sont mémorisées pour ne pas redemander.</li>';
   h+='<li><b>Rien n’est appliqué sans vous.</b> Les propositions s’affichent avec leur origine (📚 référentiel, 🔮 estimation, 🤖 IA). Les propositions identiques sont regroupées (« 3 fiches »). Le ✕ retire une proposition <b>et la mémorise</b> : elle ne reviendra plus pour ces fiches. Puis vous appliquez.</li>';
@@ -1076,12 +1088,12 @@ function caveSections(list){
     sorted.sort(function(a,b){ var ka=key(a), kb=key(b); if(ka==='SM') ka='9999'; if(kb==='SM') kb='9999'; return ka.localeCompare(kb) || domKey(a).localeCompare(domKey(b)); });
     lab=function(k){ return k==='SM'? 'Sans millésime' : 'Millésime '+k; }; short=function(k){ return k==='SM'? '—' : '’'+k.slice(2); };
   } else if(S.sort==='apo'){
-    order={past:0,vite:1,ok:2,early:3,none:4};
+    order={old:0,past:1,vite:2,ok:3,soon:4,early:5,none:6};
     key=apoState;
     sorted.sort(function(a,b){ var sa=apoState(a), sb=apoState(b); if(order[sa]!==order[sb]) return order[sa]-order[sb];
       if(sa==='none') return domKey(a).localeCompare(domKey(b));
-      var ya=apYears(a), yb=apYears(b); return (sa==='early'? ya.d-yb.d : ya.f-yb.f) || domKey(a).localeCompare(domKey(b)); });
-    lab=function(k){ return APOL[k]; }; short=function(k){ return {past:'Passé',vite:'Vite',ok:'Boire',early:'Tôt',none:'—'}[k]; };
+      var ya=apYears(a), yb=apYears(b); return ((sa==='early'||sa==='soon')? ya.d-yb.d : ((ya.f||9999)-(yb.f||9999))) || domKey(a).localeCompare(domKey(b)); });
+    lab=function(k){ return APOL[k]; }; short=function(k){ return {old:'Déclin',past:'Passé',vite:'Vite',ok:'Boire',soon:'Bientôt',early:'Tôt',none:'—'}[k]; };
   } else {
     var tot={}, cnt={};
     key=function(r){ return r.region||'Autre'; };
@@ -1119,6 +1131,9 @@ function vAdd(){
   h+='<div id="f-etbox"'+(zoneById(zsel).et>0?'':' style="visibility:hidden"')+'>'+LB('etagere','Étagère')+'<select id="f-etagere">'+etagesHTML(zsel,r?r.etagere:null)+'</select></div></div>';
   h+='<div class="row"><div>'+LB('dateEntree','Date d’entrée (MM/AAAA)')+'<input type="text" id="f-date" placeholder="'+nowM+'" value="'+esc(r?r.dateEntree:'')+'"></div>';
   h+='<div>'+LB('apogee','Apogée (ex. 2026 – 2032)')+'<input type="text" id="f-apogee" value="'+esc(r?r.apogee:'')+'"></div></div>';
+  h+='<p class="apo-src" id="f-aposrc"></p>';
+  h+='<div class="row"><div><label>Style (optionnel)</label><select id="f-style">'+STYLES.map(function(x){ return '<option value="'+x[0]+'"'+((r&&r.style||'')===x[0]?' selected':'')+'>'+x[1]+'</option>'; }).join('')+'</select></div>';
+  h+='<div><label>Format (optionnel)</label><select id="f-format">'+FORMATS.map(function(x){ return '<option value="'+x[0]+'"'+((r&&r.format||'')===x[0]?' selected':'')+'>'+x[1]+'</option>'; }).join('')+'</select></div></div>';
   h+='<div class="row"><div>'+LB('prix','Prix d’achat (optionnel)')+'<input type="text" id="f-prix" inputmode="decimal" value="'+esc(r&&r.prix!=null?r.prix:'')+'"></div><div></div></div>';
   h+='<div class="row"><div class="full">'+LB('note','Note personnelle (optionnelle)')+'<textarea id="f-note" rows="2">'+esc(r?r.note:'')+'</textarea></div></div>';
   h+='<p class="hint" id="f-warn" style="color:var(--red)"></p>';
@@ -1143,11 +1158,18 @@ function vAdd(){
   }
   document.getElementById('f-zone').addEventListener('change',function(){ var z=zoneById(val('f-zone')), et=document.getElementById('f-etagere'), cur=et.value; et.innerHTML=etagesHTML(z.id,cur? parseInt(cur,10) : null); if(cur && parseInt(cur,10)<=z.et) et.value=cur; document.getElementById('f-etbox').style.visibility=z.et>0?'visible':'hidden'; });
   ['f-zone','f-apogee'].forEach(function(fid){ document.getElementById(fid).addEventListener('change',zoneWarn); });
+  // A1/A2 : la fenêtre saisie (ou d'origine inconnue) n'est jamais recalculée ; sinon elle suit l'appellation, le millésime, la couleur, le style et le format
+  S.apoLock=!!(r && r.apogee && r.apoSrc!=='regle' && r.apoSrc!=='ia');
+  if(r && r.apoSrc==='regle') S.prov.apogee='regle'; else if(r && r.apoSrc==='ia') S.prov.apogee='deduit';
+  apoSrcLine(r);
+  ['f-appellation','f-millesime','f-couleur','f-style','f-format','f-cepages'].forEach(function(fid){ var el=document.getElementById(fid); if(el) el.addEventListener('change',function(){ autoApo(); }); });
+  document.getElementById('f-apogee').addEventListener('input',function(){ S.apoLock=true; apoSrcLine(null); });
   document.getElementById('a-form').onsubmit=function(e){
     e.preventDefault();
     var zone=val('f-zone'), ap=val('f-apogee');
     if(!zoneById(zone).garde&&isLongGarde({apogee:ap})){ if(!confirm('Ce vin semble destiné à une garde longue et serait placé dans « '+zoneById(zone).nom+' » (zone non adaptée). Confirmer ?')) return; }
-    var o={ domaine:val('f-domaine'), cuvee:val('f-cuvee'), prixEstime:(S.prov.prix==='deduit'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zoneById(zone).et>0?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
+    var apSrc= !ap? '' : S.prov.apogee==='regle'? 'regle' : S.prov.apogee==='deduit'? 'ia' : (S.userEdited.apogee||S.prov.apogee==='dicte'||!r)? 'saisie' : (r.apoSrc||'');
+    var o={ apoSrc:apSrc, style:val('f-style'), format:val('f-format'), domaine:val('f-domaine'), cuvee:val('f-cuvee'), prixEstime:(S.prov.prix==='deduit'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zoneById(zone).et>0?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
     if(r){ if((r.lots||[]).length<=1) r.lots=[{qte:o.qte,date:o.dateEntree}];
       if(o.qte>(r.qteInit||0)) o.qteInit=o.qte; else o.qteInit=r.qteInit;
       Object.assign(r,o); toast('Fiche modifiée');
@@ -1255,12 +1277,58 @@ function vAlertes(){
   bindCards();
 }
 
+function formRef(){ return { appellation:getField('appellation'), millesime:getField('millesime'), couleur:getField('couleur'), style:(document.getElementById('f-style')||{}).value||'', format:(document.getElementById('f-format')||{}).value||'', cepages:getField('cepages'), cuvee:getField('cuvee') }; }
+function apoSrcLine(r){
+  var el=document.getElementById('f-aposrc'); if(!el) return;
+  var p=S.prov.apogee, t='';
+  if(p==='regle'){ var x=apoRule(formRef()); t=x? '📖 '+apoRuleTxt(x) : ''; }
+  else if(p==='deduit') t='🔮 Fenêtre estimée par l’IA (aucune valeur publiée dans la table pour ce vin).';
+  else if(S.apoLock && getField('apogee')) t=r&&!r.apoSrc? 'Fenêtre d’origine inconnue : elle n’est pas recalculée. Videz le champ pour la recalculer.' : 'Fenêtre saisie par vous : elle n’est pas recalculée.';
+  el.textContent=t;
+}
+function autoApo(){
+  if(S.apoLock || S.userEdited.apogee || S.prov.apogee==='dicte') return;
+  var x=apoRule(formRef());
+  if(x){ if(getField('apogee')!==x.v) setField('apogee',x.v); S.prov.apogee='regle'; }
+  else if(S.prov.apogee==='regle'){ var el=document.getElementById('f-apogee'); if(el) el.value=''; delete S.prov.apogee; }
+  renderProv(); apoSrcLine(null);
+}
+function gardePanel(q){
+  var h='<span class="eyebrow">Réglages</span><h3 style="margin:4px 0 6px">Table de garde</h3>';
+  h+='<p class="hint">Durées publiées par appellation, en années après le millésime. Source : Guide Hachette des Vins (fiches appellations), complété par Vins Vignes Vignerons. Vous pouvez remplacer une valeur : votre choix s’applique aux fenêtres calculées par la table (pas à celles que vous avez saisies). Vos modifications restent sur cet appareil.</p>';
+  h+='<label style="margin-top:10px">Appellation</label><input type="text" id="g-q" list="inao-list" autocomplete="off" value="'+esc(q||'')+'">';
+  var e=q? inaoFind(q) : null, key=e&&e.gk? e.gk : (q? gardeKey({appellation:q,couleur:'Blanc'}) : null);
+  if(q && !key) h+='<p class="hint" style="margin-top:10px">Pas de valeur publiée pour « '+esc(q)+' » dans la table : la fenêtre sera estimée par l’IA (si elle est activée) ou restera à saisir.</p>';
+  if(key){
+    var g=GARDE&&GARDE[key]||{}, ov=gOver()[key]||{};
+    h+='<p class="hint" style="margin-top:10px">Fiche de référence : '+esc(key)+(g._? ' · <a href="https://www.hachette-vins.com/tout-sur-le-vin/appellations-vins/'+g._+'/'+esc(key)+'" target="_blank" rel="noopener">voir la source</a>' : '')+'</p>';
+    Object.keys(GSLOT).forEach(function(sl){ var x=g[sl], o=ov[sl]; if(!x && !o) return;
+      h+='<div class="alert-item" style="align-items:flex-start"><span><b>'+GSLOT[sl]+'</b><br><span class="hint">'+(x? GSRC[x[3]]+' : « '+esc(x[4])+' »'+(x[5]? ' — '+esc(x[5]) : '') : '—')+'</span></span>';
+      var a=o? o[0] : (x? x[0] : ''), b=o? o[1] : (x? x[1] : '');
+      h+='<span style="display:flex;gap:4px;align-items:center;white-space:nowrap"><input type="number" min="0" max="100" style="width:56px" data-ga="'+sl+'" value="'+(a==null?'':a)+'"> à <input type="number" min="0" max="120" style="width:56px" data-gb="'+sl+'" value="'+(b==null?'':b)+'" placeholder="∞"> ans'+(o? ' <button class="btn sm" data-gr="'+sl+'" title="Revenir à la source">↺</button>' : '')+'</span></div>'; });
+  }
+  h+='<label style="margin-top:16px">Magnum et plus : années ajoutées à la fin de la fenêtre</label><input type="number" id="g-mag" min="0" max="10" value="'+magnumBonus()+'">';
+  h+='<p class="hint">0 par défaut (en attente de votre décision). Une seule source trouvée : 2 à 3 ans de plus pour un magnum (Wine Guru).</p>';
+  drawerOpen(h);
+  var qi=document.getElementById('g-q'); qi.onchange=function(){ gardePanel(qi.value.trim()); };
+  document.getElementById('g-mag').onchange=function(){ try{ localStorage.setItem('cave-magnum-bonus',JSON.stringify(Math.max(0,parseInt(this.value,10)||0))); }catch(e){} toast('Réglage enregistré'); };
+  function saveSlot(sl){ var o=gOver(), a=document.querySelector('[data-ga="'+sl+'"]').value, b=document.querySelector('[data-gb="'+sl+'"]').value;
+    if(a===''){ return; } a=parseInt(a,10); b=b===''? null : parseInt(b,10); if(b!=null && b<a){ toast('La fin doit être après le début'); return; }
+    o[key]=o[key]||{}; o[key][sl]=[a,b]; try{ localStorage.setItem('cave-garde-over',JSON.stringify(o)); }catch(e){} toast('Valeur enregistrée'); gardePanel(q); }
+  document.querySelectorAll('[data-ga],[data-gb]').forEach(function(i){ i.onchange=function(){ saveSlot(i.getAttribute('data-ga')||i.getAttribute('data-gb')); }; });
+  document.querySelectorAll('[data-gr]').forEach(function(b){ b.onclick=function(){ var o=gOver(); if(o[key]){ delete o[key][b.getAttribute('data-gr')]; if(!Object.keys(o[key]).length) delete o[key]; } try{ localStorage.setItem('cave-garde-over',JSON.stringify(o)); }catch(e){} gardePanel(q); }; });
+}
 function openRef(rid){
   var r=S.refs.find(function(x){ return x.id===rid; }); if(!r) return;
   var a=apYears(r), y=new Date().getFullYear(), apbar='', st=apoState(r), n=1;
-  if(a&&a.f>a.d){ var tot=a.f-a.d+1, pos=Math.max(0,Math.min(100,(y-a.d)/tot*100));
+  if(a&&a.open){ apbar='<p class="hint" style="margin-top:14px">Apogée : '+esc(r.apogee)+' (fin non précisée par la source)</p>'; }
+  else if(a&&a.f>a.d){ var tot=a.f-a.d+1, pos=Math.max(0,Math.min(100,(y-a.d)/tot*100));
     apbar='<label style="margin-top:16px">Fenêtre d’apogée · '+esc(r.apogee)+'</label><div class="apobar"><div class="range" style="left:0;width:100%"></div><div class="now" style="left:'+pos+'%"></div></div><div class="hint">Le curseur indique où nous en sommes ('+y+').</div>';
   } else if(r.apogee){ apbar='<p class="hint" style="margin-top:14px">Apogée : '+esc(r.apogee)+'</p>'; }
+  if(r.apogee){ var rx=r.apoSrc==='regle'? apoRule(r) : null;
+    apbar+='<p class="apo-src">Source : '+esc(APOSRC[r.apoSrc||'']||APOSRC[''])+(rx? ' — '+esc(apoRuleTxt(rx)) : '')+'</p>'; }
+  var fmt=FORMATS.find(function(x){ return x[0]===(r.format||''); }), sty=STYLES.find(function(x){ return x[0]===(r.style||''); });
+  if((r.style||r.format)) apbar+='<p class="apo-src">'+(r.style&&sty? esc(sty[1]) : '')+(r.style&&r.format?' · ':'')+(r.format&&fmt? esc(fmt[1]) : '')+'</p>';
   var lots='';
   if((r.lots||[]).length>1){ lots='<label style="margin-top:18px">Historique des entrées</label>'; r.lots.forEach(function(l){ lots+='<div class="alert-item"><span class="hint">Lot</span><span><span class="mono">'+l.qte+' b.</span> entrées le '+esc(l.date)+'</span></div>'; }); }
   var h='<div class="dband p-'+(PCLS[r.couleur]||'blanc')+'"></div>';
@@ -1800,7 +1868,7 @@ var FIDS={ domaine:'f-domaine', cuvee:'f-cuvee', couleur:'f-couleur', region:'f-
 var FLABEL={ domaine:'Domaine', cuvee:'Cuvée', couleur:'Couleur', region:'Région', appellation:'Appellation', millesime:'Millésime', cepages:'Cépage(s)', qte:'Quantité', zone:'Emplacement', etagere:'Étagère', dateEntree:'Date d’entrée', apogee:'Apogée', prix:'Prix d’achat', note:'Note' };
 var FPROMPT={ domaine:'Domaine : redites le nom du producteur', cuvee:'Cuvée : redites le nom de la cuvée', couleur:'Couleur : rouge, blanc, rosé ou effervescent ?', region:'Région : redites la région', appellation:'Appellation : redites-la', millesime:'Millésime : redites l’année', cepages:'Cépage(s) : redites-les', qte:'Quantité : combien de bouteilles ?', zone:'Emplacement : « étagère 3 » ou « garage »', etagere:'Emplacement : « étagère 3 » ou « garage »', dateEntree:'Date d’entrée : mois et année', apogee:'Apogée : « 2026 à 2032 »', prix:'Prix d’achat : combien ?', note:'Note personnelle : dictez-la' };
 var FKEY={ domaine:'domaine', cuvee:'cuvée', couleur:'couleur', region:'région', appellation:'appellation', millesime:'millésime', cepages:'cépage', qte:'quantité', zone:'emplacement', etagere:'emplacement', dateEntree:'date d’entrée', apogee:'apogée', prix:'prix', note:'note' };
-var PROV={ dicte:['✅','dicté'], deduit:['🔮','estimé par l’IA'], ia:['🤖','corrigé par l’IA'], inao:['📚','référentiel'] };
+var PROV={ dicte:['✅','dicté'], deduit:['🔮','estimé par l’IA'], ia:['🤖','corrigé par l’IA'], inao:['📚','référentiel'], regle:['📖','table de garde'] };
 S.prov={}; S.provOld={}; S.userEdited={}; S.aiTok=0;
 
 function resetProv(){ S.prov={}; S.provOld={}; S.userEdited={}; S.aiMsg=''; S.aiTok++; }
@@ -2071,6 +2139,7 @@ function inaoLoad(){
     INAO=(d.a||[]).map(function(x){ var e=Array.isArray(x)? {n:x[0],c:x[1],r:x[2],t:x[3]} : x; e.c=e.c||[]; e.r=e.r||''; e.w=inaoNorm(e.n); e.aw=(e.al||[]).map(inaoNorm); return e; });
     INAO_TRI=INAO.map(function(e){ return [tri(e.w)].concat(e.aw.map(tri)); });
     // g : cépages [nom, couleur de baie, synonymes]
+    GARDE=d.d||null;
     CEPS=(d.g||[]).map(function(g){ return { n:g[0], k:g[1], w:[g[0]].concat(g[2]||[]).map(inaoNorm) }; });
     var dl=document.getElementById('inao-list'); if(dl) dl.innerHTML=INAO.map(function(e){ return '<option value="'+esc(e.n)+'">'; }).join('');
     var dc=document.getElementById('cep-list'); if(dc) dc.innerHTML=CEPS.map(function(c){ return '<option value="'+esc(c.n)+'">'; }).join('');
@@ -2174,48 +2243,67 @@ function enrichSystem(){
   ].join('\n');
 }
 
-// ===================== v2.9 : apogée locale, autocomplétion domaines, complétion en lot =====================
-// Estimation locale d'apogée : [min,max] années de garde après le millésime, par règles sur appellation/région/couleur.
-// Heuristique volontairement simple — l'IA reste disponible via « Compléter » si aucune règle ne s'applique.
-function apoGarde(app,region,couleur){
-  var a=noAcc(String(app||'').toLowerCase()), r=region||'';
-  if(/sauternes|barsac|banyuls|maury|riteau|rasteau mousseux|sable de camargue|pineau|floc|vdn|vin doux|sainte-croix|muscat|rivesaltes/.test(a)) return [6,20];
-  if(/champagne|cremant|limoux|clairette de die|blanquette/.test(a)) return [2,8];
-  if(/morgon|moulin-a-vent/.test(a)) return [4,12];
-  if(/beaujolais|fleurie|chenas|julienas|chiroubles|regnie|brouilly|saint-amour|cote de brouilly/.test(a)) return [2,6];
-  if(/chateauneuf|cote rotie|hermitage|saint-joseph|cornas|bandol|chateau rayas/.test(a)) return [7,18];
-  if(/grand cru/.test(a)&&r==='Bourgogne') return [8,20];
-  if(/premier cru|1er cru/.test(a)&&r==='Bourgogne') return [5,14];
-  if(/pauillac|margaux|saint-julien|pessac|graves|saint-emilion|pomerol|lalande|louis|fronsac|castillon|lussac|puisseguin/.test(a)) return [6,18];
-  if(/bordeaux|medoc|listrac|moulis|haut-medoc/.test(a)) return [2,10];
-  if(/vacqueyras|gigondas|lirac|cotes du rhone|rhone/.test(a)) return [2,8];
-  if(/gewurz|riesling|pinot gris|tokay|alsace/.test(a)) return [2,8];
-  if(/chinon|bourgueil|saint-nicolas|saumur|savennieres|vouvray|montlouis|bonnezeaux|quarts/.test(a)) return [3,12];
-  if(/sancerre|pouilly|menetou|quincy|reuilly|cheverny|touraine|anjou/.test(a)) return [1,5];
-  if(/arbois|chateau-chalon|jura|etoile|cotes du jura/.test(a)) return [3,10];
-  if(/savoie|bugey|seyssel/.test(a)) return [1,4];
-  if(/corbieres|minervois|fitou|saint-chinian|faugeres|pic saint|terroir|costieres|collioure|roussillon|languedoc|cathare/.test(a)) return [1,6];
-  if(/provence|cotes de provence|alpilles|palette/.test(a)) return [1,5];
-  if(/moselle|toul|meuse/.test(a)) return [1,5];
-  switch(r){
-    case 'Bourgogne': return [2,7];
-    case 'Beaujolais': return [2,5];
-    case 'Bordeaux': return [2,10];
-    case 'Rhône': return [2,8];
-    case 'Champagne': return [2,8];
-    case 'Alsace': return [2,7];
-    case 'Loire': return [1,6];
-    case 'Provence': case 'Languedoc': return [1,5];
-    case 'Sud-Ouest': case 'Jura': return [2,8];
-    case 'Savoie': case 'Corse': case 'Nord-Est': case 'Normandie': case 'Île-de-France': return [1,5];
+// ===================== v2.15 : apogée par table de garde sourcée =====================
+// La table (inao.json → d) donne, par appellation et par type de vin, le « potentiel de garde » publié :
+// Guide Hachette des Vins (source principale), Vins Vignes Vignerons (compléments). Chaque appellation INAO porte gk (clé de la table).
+// Lecture : « X à Y ans » = de millésime+X à millésime+Y ; « Y ans » ou « jusqu'à Y ans » = de millésime à millésime+Y ;
+// « à boire jeune » = millésime à millésime+1 ; « X ans et plus » = dès millésime+X, fin non précisée. Rien n'est calculé sans valeur publiée.
+var GARDE=null;
+var STYLES=[['','—'],['sec','Sec'],['moelleux','Moelleux / liquoreux'],['vdn','Vin doux naturel / de liqueur'],['jaune','Vin jaune'],['paille','Vin de paille']];
+var FORMATS=[['','75 cl (standard)'],['37.5','Demi-bouteille 37,5 cl'],['50','50 cl'],['150','Magnum 1,5 L'],['300','3 L et plus']];
+var GSLOT={R:'Rouge',B:'Blanc',P:'Rosé',E:'Effervescent',M:'Moelleux / liquoreux / VDN',J:'Vin jaune',S:'Vin de paille'};
+var GSRC={H:'Guide Hachette des Vins',V:'Vins Vignes Vignerons',U:'votre table'};
+var ALS_CEP=[[/riesling/,'alsace-riesling'],[/gewurz/,'alsace-gewurztraminer'],[/pinot gris|tokay/,'alsace-pinot-gris'],[/muscat/,'alsace-muscat'],[/sylvaner/,'alsace-sylvaner'],[/pinot blanc|klevner|auxerrois/,'alsace-pinot-blanc-ou-klevner'],[/chasselas|gutedel/,'alsace-chasselas-ou-gutedel'],[/edelzwicker/,'alsace-edelzwicker'],[/pinot noir/,'alsace-pinot-noir']];
+function lsJSON(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)||'null'); return v==null? def : v; }catch(e){ return def; } }
+function gOver(){ return lsJSON('cave-garde-over',{}); }
+function magnumBonus(){ var n=parseInt(lsJSON('cave-magnum-bonus',0),10); return n>0? n : 0; }
+function gardeKey(r){
+  var app=String(r.appellation||''); if(!app || !INAO) return null;
+  var e=inaoFind(app);
+  if(e && e.gk) return e.gk;
+  var a=noAcc(app);
+  if(/^alsace/.test(a) && !/grand cru/.test(a)){
+    if(r.couleur==='Rouge'||r.couleur==='Rosé') return 'alsace-pinot-noir';
+    var c=noAcc([r.cepages,r.cuvee].join(' '));
+    for(var i=0;i<ALS_CEP.length;i++) if(ALS_CEP[i][0].test(c)) return ALS_CEP[i][1];
   }
   return null;
 }
-function apoFormat(mil,g){
-  var m=parseInt(mil,10); if(!m||m<1950||m>2100) return null;
-  return (m+g[0])+' – '+(m+g[1]);
+function gardeSlots(r){
+  var st=r.style||'';
+  if(r.couleur==='Rouge') return st==='vdn'? ['M','R'] : ['R'];
+  if(r.couleur==='Rosé') return st==='vdn'? ['M','P'] : ['P'];
+  if(r.couleur==='Effervescent') return ['E','B'];
+  if(st==='moelleux'||st==='vdn') return ['M','B'];
+  if(st==='jaune') return ['J','B']; if(st==='paille') return ['S','B'];
+  return ['B','M'];
 }
-function apoLocal(r){ var g=apoGarde(r.appellation,r.region,r.couleur); return g? apoFormat(r.millesime,g):null; }
+function gardeEntry(key,slot){
+  var o=gOver()[key]; if(o && o[slot]) return {a:o[slot][0],b:o[slot][1],k:'user',s:'U',raw:'modifié par vous',n:null};
+  var g=GARDE&&GARDE[key]; if(!g||!g[slot]) return null; var x=g[slot];
+  return {a:x[0],b:x[1],k:x[2],s:x[3],raw:x[4],n:x[5]};
+}
+// Fenêtre calculée pour une fiche, ou null si la table n'a pas de valeur publiée
+function apoRule(r){
+  var key=gardeKey(r); if(!key) return null;
+  var m=parseInt(r.millesime,10); if(!m||m<1900||m>2100) return null;
+  var sl=gardeSlots(r), e=null, slot=null;
+  for(var i=0;i<sl.length;i++){ e=gardeEntry(key,sl[i]); if(e && e.a!=null){ slot=sl[i]; break; } e=null; }
+  if(!e) return null;
+  var d=m+e.a, f=(e.b==null)? null : m+e.b;
+  if(f!=null && (r.format==='150'||r.format==='300')) f+=magnumBonus();
+  return { v: f==null? 'dès '+d : (d===f? String(d) : d+' – '+f), key:key, slot:slot, e:e };
+}
+function apoRuleTxt(x){
+  if(!x) return '';
+  var raw=String(x.e.raw||''); if(x.e.n) raw=raw.replace('('+x.e.n+')','').trim();
+  var t=GSRC[x.e.s]+' · '+GSLOT[x.slot].toLowerCase()+' : « '+raw+' »';
+  if(x.e.k==='parent') t+=' (valeur de l’appellation mère, faute de valeur propre)';
+  if(x.e.n) t+=' — mention non prise en compte : « '+x.e.n+' »';
+  return t;
+}
+function apoLocal(r){ var x=apoRule(r); return x? x.v : null; }
+var APOSRC={saisie:'saisie par vous',regle:'table de garde',ia:'estimée par l’IA','':'origine inconnue (fiche antérieure à la v2.15)'};
 
 // Domaines de référence (suggestions) + tout ce qui est déjà en cave : autocomplétion du champ Domaine
 var DOMS_REF='Domaine de la Romanée-Conti|Domaine Leflaive|Domaine Coche-Dury|Domaine des Comtes Lafon|Domaine Ramonet|Domaine Bernard Moreau|Domaine Vincent Dauvissat|Domaine Raveneau|Domaine Méo-Camuzet|Domaine Armand Rousseau|Domaine Sylvain Cathiard|Domaine du Comte Georges de Vogüé|Domaine Dujac|Domaine des Lambrays|Clos de Tart|Domaine Gouges|Domaine Mugneret-Gibourg|Domaine Georges Roumier|Domaine Roulot|Domaine Michel Lafarge|Domaine Denis Bachelet|Domaine Arnoux-Lachaux|Domaine Rossignol-Trapet|Domaine Henri Boillot|Domaine Charles Lachaux|Domaine Berthelemot|Domaine Ballot-Millot|Domaine Bernard-Bonin|Domaine Valette|Joseph Drouhin|Louis Jadot|Bouchard Père & Fils|Faiveley|William Fèvre|Olivier Leflaive|Château de Meursault|Domaine Marquis dAngerville|Domaine Vincent Dauvissat|Domaine Bernard Van Berg|Château Thivin|Domaine Chignard|Domaine Jean-Paul Thévenet|Yvon Métras|Clos de la Roilette|Château des Jacques|Domaine du Vissoux|Domaine des Terres Doriane|Château Margaux|Château Latour|Château Lafite Rothschild|Château Mouton Rothschild|Château Haut-Brion|Château Pétrus|Château Cheval Blanc|Château Ausone|Château Angélus|Château Pavie|Château Lynch-Bages|Château Pontet-Canet|Château Montrose|Château Cos d Estournel|Château Ducru-Beaucaillou|Château Léoville Barton|Château Palmer|Château Smith Haut Lafitte|Château Figeac|Château Talbot|Château Beychevelle|Château Brane-Cantenac|Château d Yquem|Château Suduiraut|Château Climens|Château Doisy-Daëne|Château Guiraud|Ets Jean-Pierre Moueix|Domaines Barons de Rothschild|Guigal|M. Chapoutier|Jean-Luc Colomba|Jean-Luc Colombo|Domaine Jean-Luc Colombo|Domaine Jamet|René Rostaing|Domaine Gonon|Domaine du Collier|Domaine Thierry Allemand|Château Rayas|Domaine du Vieux Télégraphe|Domaine de la Janasse|Domaine Pégau|Clos des Papes|Domaine des Beaurenard|Domaine de la Mordorée|Domaine Alary|Domaine Combier|Domaine de la Vieille Julienne|Domaine des Amouriers|Domaine Les Aphillanthes|Domaine Mont Redon|Domaine La Roche Buissière|Domaine Marcel Lapierre|Domaine Jean Foillard|Domaine Chignard|Didier Dagueneau|Domaine Vacheron|François Cotat|Domaine Huet|Domaine des Baumard|Domaine Jo Landron|Domaine de l Ecu|Nicolas Joly|Domaine Luneau-Papin|Domaine de la Pépière|Domaine Breton|Charles Joguet|Domaine Olga Raffault|Clos Rougeard|Domaine Vincent Ricard|Domaine du Clocher|Domaine Raffault|Domaine Pithon-Paillé|Zind-Humbrecht|Domaine Weinbach|Trimbach|Domaine Marcel Deiss|Domaine Albert Mann|Domaine Ostertag|Hugel|Domaine Josmeyer|Domaine Bott-Geyl|Domaine Kreydenweiss|Bollinger|Krug|Louis Roederer|Pol Roger|Jacques Selosse|Egly-Ouriet|Ulysse Collin|Pierre Péters|Bérèche|Chartogne-Taillet|Larmandier-Bernier|Domaine Agrapart|Vilmart|Gosset|Taittinger|Salon|Jacquesson|Paul Bara|Domaine Overnoy|Domaine Ganevat|Domaine Labet|Domaine Tissot|Domaine Macle|Domaine des Ardoisières|Domaine Berlioz|Domaine Tempier|Château Simone|Domaine Ott|Clos Sainte-Magdeleine|Domaine de Trévallon|Mas de Daumas Gassac|Domaine Peyre Rose|Domaine de l Hortus|Château Puech-Haut|Mas Jullien|Domaine de la Grange des Pères|Mas Champart|Domaine Gauby|Domaine de la Rectorie|Domaine des Clos des Fées|Château de Jau|Domaine Cazes|Domaine de l Eden|Château Montus|Château Bouscassé|Domaine du Cros|Clos La Coutale|Château du Cèdre|Clos Triguedina|Château Lafitte-Teston|Domaine des Plageoles|Domaine Cauhape|Clos Lapeyre|Domaine Larredya';
@@ -2231,7 +2319,7 @@ function fillDomLists(){
 
 // Complétion en lot : local d'abord (INAO, apogée), IA ensuite en une requête par paquet de 8 fiches
 var BLAB={region:'Région',apogee:'Apogée',cepages:'Cépages',domaine:'Domaine (orthographe)',cuvee:'Cuvée (orthographe)',appellation:'Appellation (orthographe)',couleur:'Couleur'};
-var BSRCS={inao:['📚','référentiel'],est:['🔮','estimation locale'],ia:['🤖','IA']};
+var BSRCS={inao:['📚','référentiel'],est:['🔮','estimation locale'],regle:['📖','table de garde'],ia:['🤖','IA']};
 // Région renvoyée par l'IA ramenée à la liste de l'appli (« Vallée du Rhône » → Rhône), sinon ignorée
 function normRegion(v){
   if(!v) return null; var x=noAcc(String(v));
@@ -2296,7 +2384,9 @@ function batchPanel(){
     // 2. champs manquants
     var reg=r.region && r.region!=='Autre'? r.region : null;
     if(!reg){ if(e&&e.r){ addProp({r:r,f:'region',v:e.r,src:'inao'}); reg=e.r; } else manque.push('region'); }
-    if(!r.apogee){ var a=apoLocal({appellation:r.appellation,region:reg||r.region,couleur:r.couleur,millesime:r.millesime}); if(a) addProp({r:r,f:'apogee',v:a,src:'est'}); else manque.push('apogee'); }
+    var ax=apoRule(r);
+    if(!r.apogee){ if(ax) addProp({r:r,f:'apogee',v:ax.v,src:'regle'}); else manque.push('apogee'); }
+    else if(ax && r.apoSrc!=='saisie' && ax.v!==r.apogee) addProp({r:r,f:'apogee',v:ax.v,src:'regle',old:r.apogee});   // A2 : fenêtre non saisie → alignée sur la table (proposé, jamais imposé)
     if(!r.cepages) manque.push('cepages');
     if(manque.length) aiBatch.push({r:r,manque:manque});
   });
@@ -2370,7 +2460,9 @@ function batchDrawer(props){
     gr.items.forEach(function(p){ addRefus(p.r,p.f,p.v); if(p.f==='domaine'||p.f==='cuvee') p.r.verifie=verifKey(p.r); var k=S.batch.indexOf(p); if(k>=0) S.batch.splice(k,1); });
     pushSoon(); batchDrawer(S.batch); }; });
   document.getElementById('b-apply').onclick=function(){
-    S.batch.forEach(function(p){ p.r[p.f]=p.v; if(p.f==='domaine'||p.f==='cuvee') p.r.verifie=verifKey(p.r); });
+    S.batch.forEach(function(p){ p.r[p.f]=p.v; if(p.f==='domaine'||p.f==='cuvee') p.r.verifie=verifKey(p.r); if(p.f==='apogee') p.r.apoSrc=(p.src==='regle'?'regle':'ia'); });
+    // A2 : une correction d'appellation ou de couleur recalcule la fenêtre tirée de la table
+    S.batch.forEach(function(p){ if((p.f==='appellation'||p.f==='couleur') && p.r.apoSrc==='regle'){ var x=apoRule(p.r); if(x) p.r.apogee=x.v; } });
     S.batch=[]; closeDrawer(); save(); toast('Fiches complétées');
   };
 }
@@ -2381,8 +2473,8 @@ function enrichForm(manual){
   if(e){ inaoFill(e); renderProv(); }
   var needApp=!fieldKnown('appellation'), needApo=!fieldKnown('apogee');
   // v2.9 : estimation locale d'apogée (gratuite, instantanée) avant de solliciter l'IA
-  if(needApo){ var gl=apoGarde(getField('appellation'),getField('region'),getField('couleur')); var ap=gl? apoFormat(getField('millesime'),gl) : null;
-    if(ap && setField('apogee',ap)){ S.prov.apogee='deduit'; needApo=false; if(manual) toast('Apogée estimée localement 🔮 — à vérifier'); } }
+  if(needApo && !S.apoLock){ var gx=apoRule(formRef());
+    if(gx && setField('apogee',gx.v)){ S.prov.apogee='regle'; needApo=false; apoSrcLine(null); if(manual) toast('Apogée calculée avec la table de garde 📖'); } }
   if(!needApp && !needApo){ if(manual) toast(e? 'Région / couleur complétées depuis le référentiel INAO' : 'Rien à compléter'); return; }
   if(!aiOn()){ if(manual) toast(needApp? 'Appellation manquante : dictez-la ou activez l’assistant IA' : 'Activez l’assistant IA pour estimer l’apogée'); return; }
   var known={}; ['domaine','cuvee','appellation','couleur','millesime'].forEach(function(k){ if(fieldKnown(k)){ var v=getField(k); if(v) known[k]=v; } });
@@ -2400,7 +2492,7 @@ function enrichForm(manual){
       var m=inaoMatch(r.appellation,1)[0], ee=(m && m.sc>=0.8)? m.e : null;   // on ne garde qu'une appellation qui existe au référentiel (s'il est chargé)
       if(ee || !INAO){ setField('appellation', ee? ee.n : r.appellation); S.prov.appellation='deduit'; done.push('appellation'); if(ee) inaoFill(ee); }
     }
-    if(needApo && r.apogee && !fieldKnown('apogee')){ if(setField('apogee',r.apogee)){ S.prov.apogee='deduit'; done.push('apogée'); } }
+    if(needApo && r.apogee && !fieldKnown('apogee')){ if(setField('apogee',r.apogee)){ S.prov.apogee='deduit'; done.push('apogée'); apoSrcLine(null); } }
     renderProv();
     aiState((S.aiMsg? esc(S.aiMsg)+'<br>' : '')+(done.length? '🔮 Complété par l’IA'+(r._cache?' (mémoire)':'')+' : '+done.join(', ')+' — à vérifier' : '🔮 L’IA n’a rien pu compléter avec certitude'));
     S.aiMsg='';
