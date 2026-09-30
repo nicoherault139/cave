@@ -88,7 +88,7 @@ input,select,textarea{width:100%}
 .alert-item{display:flex;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
 .alert-item:last-child{border:none}
 .sev{font-size:11px;border-radius:99px;padding:2px 9px;white-space:nowrap}
-.sev.warn{background:var(--alert-bg);color:var(--red)}.sev.crit{background:var(--red);color:#fff}
+.sev.warn{background:var(--alert-bg);color:var(--red)}.sev.crit{background:var(--red);color:#fff}.sev.ok{background:var(--ok-bg);color:var(--green)}
 #drawer{position:fixed;top:0;right:-440px;width:min(420px,100vw);height:100vh;background:var(--card);border-left:1px solid var(--line);transition:right .25s;z-index:50;overflow-y:auto;padding:26px;box-shadow:var(--shadow)}
 #drawer.open{right:0}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.25s;z-index:40}
@@ -333,7 +333,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>v2.15</small></div>
+ <div class="brand"><h1>Cave</h1><small>v2.16</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span></div>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
@@ -357,7 +357,7 @@ html.standalone .brand small{display:none}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.15';
+var APPV='v2.16';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -396,19 +396,52 @@ function inWindow(r){ var s=apoState(r); return s==='ok'||s==='vite'; }
 function pastWindow(r){ var s=apoState(r); return s==='past'||s==='old'; }
 function isLongGarde(r){ var a=apYears(r); if(!a) return false; var y=new Date().getFullYear(); if(a.open) return true; return (a.f-a.d>8) || (a.f-y>5); }
 
-function seuilBas(qi){ qi=qi||0; if(qi<=2) return 0; if(qi<=5) return 1; return 2; }
+/* ===== v2.16 : moteur d'alertes (hors apogée) =====
+   Réglages dans localStorage « cave-alertes » : seuilMode ('auto'|'fixe'), seuilFixe, types {stock, zone, zonePleine, data}.
+   Seuil de stock : seuil propre à la fiche (r.seuil, colonne CSV 'seuil') > seuil fixe des Réglages > règle automatique (0/1/2 selon qteInit).
+   Référence entrée en pièce unique (qteInit<=1) : jamais d'alerte de stock. */
+var ACFG_KEY='cave-alertes';
+function alertCfg(){ try{ var c=JSON.parse(localStorage.getItem(ACFG_KEY)||'{}'); c.types=c.types||{}; return c; }catch(e){ return {types:{}}; } }
+function alertCfgSave(c){ try{ localStorage.setItem(ACFG_KEY, JSON.stringify(c)); }catch(e){} }
+function seuilBas(r){
+  if((r.qteInit||0)<=1) return -1;
+  if(r.seuil!==null && r.seuil!==undefined && r.seuil!=='' && !isNaN(parseInt(r.seuil,10))) return Math.max(0,parseInt(r.seuil,10));
+  var c=alertCfg();
+  if(c.seuilMode==='fixe' && !isNaN(parseInt(c.seuilFixe,10))) return Math.max(0,parseInt(c.seuilFixe,10));
+  var qi=r.qteInit||0; if(qi<=2) return 0; if(qi<=5) return 1; return 2;
+}
+function stockAlert(r){
+  var s=seuilBas(r); if(s<0 || r.qte<=0 || r.qte>s) return null;
+  return r.qte===1? {sev:'crit',type:'stock',txt:'Dernière bouteille'} : {sev:'warn',type:'stock',txt:'Stock bas ('+r.qte+' restante'+(r.qte>1?'s':'')+')'};
+}
 function alertsFor(r){
   var out=[];
   if(r.qte<=0) return out;
+  var cfg=alertCfg();
   var st=apoState(r);
-  if(st==='ok'||st==='vite') out.push({sev:'ok',txt:'Apogée en cours ('+r.apogee+') — à boire'});
-  else if(st==='past') out.push({sev:'warn',txt:'Apogée dépassée ('+r.apogee+') — à ouvrir vite'});
-  else if(st==='old') out.push({sev:'warn',txt:'Apogée dépassée depuis plus de '+APO_PAST_PALIER+' ans ('+r.apogee+') — à goûter, risque de déclin'});
-  if(zoneBad(r)) out.push({sev:'crit',txt:'Vin de garde rangé dans une zone non adaptée ('+zoneOf(r).nom+')'});
-  if(r.qte<=seuilBas(r.qteInit)) out.push({sev:'warn',txt:'Stock bas ('+r.qte+' restante'+(r.qte>1?'s':'')+')'});
+  if(st==='ok'||st==='vite') out.push({sev:'ok',type:'apo',txt:'Apogée en cours ('+r.apogee+') — à boire'});
+  else if(st==='past') out.push({sev:'warn',type:'apo',txt:'Apogée dépassée ('+r.apogee+') — à ouvrir vite'});
+  else if(st==='old') out.push({sev:'warn',type:'apo',txt:'Apogée dépassée depuis plus de '+APO_PAST_PALIER+' ans ('+r.apogee+') — à goûter, risque de déclin'});
+  if(cfg.types.zone!==false && zoneBad(r)) out.push({sev:'crit',type:'zone',txt:'Vin de garde rangé dans une zone non adaptée ('+zoneOf(r).nom+')'});
+  if(cfg.types.stock!==false){ var sa=stockAlert(r); if(sa) out.push(sa); }
   return out;
 }
-function allAlerts(){ var out=[]; S.refs.forEach(function(r){ alertsFor(r).forEach(function(a){ if(a.sev!=='ok') out.push({ref:r,a:a}); }); }); return out; }
+function allAlerts(){
+  var out=[], c=alertCfg(), cur=null;
+  S.refs.forEach(function(r){ alertsFor(r).forEach(function(a){ if(a.sev!=='ok') out.push({ref:r,a:a}); }); });
+  if(c.types.zonePleine!==false) ZONES.forEach(function(z){
+    if(z.cap && z.cap>0){ cur=cur||current(); var q=qsum(cur.filter(function(r){ return zoneOf(r).id===z.id; }));
+      if(q>z.cap) out.push({ref:null,a:{sev:'crit',type:'zonePleine',txt:'Zone « '+z.nom+' » pleine ('+q+'/'+z.cap+')'}});
+      else if(q===z.cap) out.push({ref:null,a:{sev:'warn',type:'zonePleine',txt:'Zone « '+z.nom+' » à capacité atteinte ('+q+'/'+z.cap+')'}});
+    }});
+  if(c.types.data!==false) S.refs.forEach(function(r){
+    if(r.qte<=0) return;
+    var miss=[]; if(!r.region||r.region==='Autre') miss.push('région'); if(!r.apogee) miss.push('apogée'); if(!r.cepages) miss.push('cépages');
+    if(miss.length) out.push({ref:r,a:{sev:'warn',type:'data',txt:'Fiche incomplète : '+miss.join(', ')}});
+    cohMemo(r).forEach(function(cc){ var fl={region:'région',couleur:'couleur'}[cc.f]||cc.f; out.push({ref:r,a:{sev:'warn',type:'data',txt:'À vérifier — '+fl+' : '+cc.why}}); });
+  });
+  return out;
+}
 function alertCount(){ return allAlerts().length; }
 function current(){ return S.refs.filter(function(r){ return r.qte>0; }); }
 function qsum(l){ return l.reduce(function(a,r){ return a+Math.max(0,r.qte); },0); }
@@ -653,11 +686,11 @@ function onbSaveStep(){
 
 function csvCell(v){ v=String(v==null?'':v); return /[";\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function toCSV(){
-  var head=['domaine','cuvee','region','appellation','couleur','millesime','cepages','qte','qteInit','zone','etagere','apogee','prix','prixEstime','note','dateEntree','lots','exemple','refus','verifie','apoSrc','style','format'];
+  var head=['domaine','cuvee','region','appellation','couleur','millesime','cepages','qte','qteInit','zone','etagere','apogee','prix','prixEstime','note','dateEntree','lots','exemple','refus','verifie','apoSrc','style','format','seuil'];
   var lines=[head.join(';')];
   S.refs.forEach(function(r){
     var lots=(r.lots||[]).map(function(l){ return l.qte+'@'+l.date; }).join(',');
-    lines.push([r.domaine,r.cuvee||'',r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.prixEstime?'1':'',r.note||'',r.dateEntree||'',lots,r.exemple?'1':'',(r.refus||[]).join('¦'),r.verifie||'',r.apoSrc||'',r.style||'',r.format||''].map(csvCell).join(';'));
+    lines.push([r.domaine,r.cuvee||'',r.region,r.appellation,r.couleur,r.millesime,r.cepages,r.qte,r.qteInit,r.zone,r.etagere||'',r.apogee||'',r.prix||'',r.prixEstime?'1':'',r.note||'',r.dateEntree||'',lots,r.exemple?'1':'',(r.refus||[]).join('¦'),r.verifie||'',r.apoSrc||'',r.style||'',r.format||'',(r.seuil===null||r.seuil===undefined?'':r.seuil)].map(csvCell).join(';'));
   });
   return lines.join('\n');
 }
@@ -681,7 +714,7 @@ function parseCSV(text){
     var lotsRaw=get(rw,'lots'), lots=[];
     if(lotsRaw){ lotsRaw.split(',').forEach(function(p){ var t=p.split('@'); if(t[0]) lots.push({qte:parseInt(t[0],10)||0,date:t[1]||''}); }); }
     var o=map[key];
-    if(!o){ o={ id:id(), exemple:get(rw,'exemple')==='1', domaine:dom, cuvee:get(rw,'cuvee'), prixEstime:get(rw,'prixestime')==='1', region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:get(rw,'zone')||'', etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots, refus:splitRefus(get(rw,'refus')), verifie:get(rw,'verifie'), apoSrc:get(rw,'apoSrc'), style:get(rw,'style'), format:get(rw,'format') }; map[key]=o; order.push(key); }
+    if(!o){ o={ id:id(), exemple:get(rw,'exemple')==='1', domaine:dom, cuvee:get(rw,'cuvee'), prixEstime:get(rw,'prixestime')==='1', region:get(rw,'region')||'Autre', appellation:get(rw,'appellation'), couleur:get(rw,'couleur')||'Rouge', millesime:get(rw,'millesime'), cepages:get(rw,'cepages'), qte:parseInt(get(rw,'qte'),10)||0, qteInit:parseInt(get(rw,'qteInit'),10)||0, zone:get(rw,'zone')||'', etagere:get(rw,'etagere')?parseInt(get(rw,'etagere'),10):null, apogee:get(rw,'apogee'), prix:get(rw,'prix')?(parseFloat(get(rw,'prix').replace(',','.'))||null):null, note:get(rw,'note'), dateEntree:get(rw,'dateEntree'), lots:lots, refus:splitRefus(get(rw,'refus')), verifie:get(rw,'verifie'), apoSrc:get(rw,'apoSrc'), style:get(rw,'style'), format:get(rw,'format'), seuil:(get(rw,'seuil')!==''&&!isNaN(parseInt(get(rw,'seuil'),10)))? Math.max(0,parseInt(get(rw,'seuil'),10)) : null }; map[key]=o; order.push(key); }
     else { o.qte+=parseInt(get(rw,'qte'),10)||0; o.qteInit+=parseInt(get(rw,'qteInit'),10)||0; if(lots.length) o.lots=o.lots.concat(lots); splitRefus(get(rw,'refus')).forEach(function(x){ o.refus=o.refus||[]; if(o.refus.indexOf(x)<0) o.refus.push(x); }); }
   });
   return order.map(function(k){ return map[k]; });
@@ -836,12 +869,12 @@ function render(){
     b.innerHTML=ICO[v[1]]+'<span>'+esc(v[2])+'</span>'+(v[0]==='alertes'&&ac? ' <span class="badge">'+ac+'</span>' : '');
     b.onclick=function(){ go(v[0]); }; nav.appendChild(b);
   });
-  // Barre d'onglets mobile : Accueil · Ma cave · ＋ (actions) · Ce soir · Réglages
-  var tabs=[['dash','home','Accueil'],['cave','cave','Ma cave'],['plus','plus',''],['soir','glass','Ce soir'],['reglages','gear','Réglages']];
+  // Barre d'onglets mobile : Accueil · Ma cave · ＋ (actions) · Alertes · Ce soir (Réglages dans le menu ＋)
+  var tabs=[['dash','home','Accueil'],['cave','cave','Ma cave'],['plus','plus',''],['alertes','bell','Alertes'],['soir','glass','Ce soir']];
   var tb=document.getElementById('tabbar'), th='';
   tabs.forEach(function(v){
     if(v[0]==='plus'){ th+='<button class="tb-add" data-tab="plus" aria-label="Ajouter, sortir, réassort"><span class="ic">'+ICO.plus+'</span></button>'; return; }
-    th+='<button class="'+(S.view===v[0]?'on':'')+'" data-tab="'+v[0]+'"><span class="ic">'+ICO[v[1]]+'</span>'+v[2]+(v[0]==='dash'&&ac? '<span class="badge">'+ac+'</span>':'')+'</button>';
+    th+='<button class="'+(S.view===v[0]?'on':'')+'" data-tab="'+v[0]+'"><span class="ic">'+ICO[v[1]]+'</span>'+v[2]+((v[0]==='dash'||v[0]==='alertes')&&ac? '<span class="badge">'+ac+'</span>':'')+'</button>';
   });
   tb.innerHTML=th;
   tb.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ var t=b.getAttribute('data-tab'); if(t==='plus') plusMenu(); else go(t); }; });
@@ -858,11 +891,13 @@ function plusMenu(){
   h+='<div class="lrow" id="pm-add"><span class="l"><span style="color:var(--acc)">'+ICO.bottle+'</span><span>Ajouter une bouteille</span></span></div>';
   h+='<div class="lrow" id="pm-out"><span class="l"><span style="color:var(--acc)">'+ICO.out+'</span><span>Sortir une bouteille</span></span></div>';
   h+='<div class="lrow" id="pm-re"><span class="l"><span style="color:var(--acc)">'+ICO.re+'</span><span>Réassort d’une référence connue</span></span></div>';
+  h+='<div class="lrow" id="pm-reg"><span class="l"><span style="color:var(--acc)">'+ICO.gear+'</span><span>Réglages</span></span></div>';
   h+='</div><p class="hint" style="margin-top:10px">La dictée est sur le bouton micro, en bas à droite.</p>';
   drawerOpen(h);
   document.getElementById('pm-add').onclick=function(){ go('add'); };
   document.getElementById('pm-out').onclick=function(){ go('cave'); toast('Touchez « −1 » sur la bouteille, ou cherchez-la'); };
   document.getElementById('pm-re').onclick=function(){ closeDrawer(); restockPanel(); };
+  document.getElementById('pm-reg').onclick=function(){ go('reglages'); };
 }
 function go(v){ if(VOICE) VOICE.stop(); S.view=v; S.editId=null; if(v!=='add'){ S.dict=''; resetProv(); } closeDrawer(); render(); window.scrollTo(0,0); }
 function gaugesHTML(){
@@ -879,6 +914,15 @@ function vReglages(){
   var h='<div class="viewhead"><div><span class="eyebrow">Cave · '+APPV+'</span><h2>Réglages</h2></div></div><div class="setgroup">';
   h+='<div class="panel"><h3>Profil</h3><label>Prénom affiché sur l’accueil</label><input type="text" id="m-prenom" autocomplete="off" value="'+esc(prenom())+'"></div>';
   h+='<div class="panel"><h3>Ma cave</h3><div class="gauges">'+gaugesHTML()+'</div><div class="formfoot" style="flex-direction:column"><button class="btn sec" id="m-zones">Modifier les zones de rangement…</button><button class="btn sec" id="m-batch">Vérifier et compléter les fiches</button><button class="btn sec" id="m-garde">Table de garde (apogée)…</button>'+(hasSamples()? '<button class="btn sec" id="m-samples">Supprimer les vins d’exemple</button>' : '')+'<button class="btn sec" id="m-onb">Revoir l’accueil de démarrage</button></div></div>';
+  var ac=alertCfg();
+  h+='<div class="panel"><h3>Alertes</h3>';
+  h+='<label>Seuil « stock bas »</label><select id="m-seuilmode"><option value="auto"'+(ac.seuilMode!=='fixe'?' selected':'')+'>Automatique : 0, 1 ou 2 selon la quantité d’origine</option><option value="fixe"'+(ac.seuilMode==='fixe'?' selected':'')+'>Seuil fixe pour toute la cave</option></select>';
+  h+='<div id="m-seuilbox"'+(ac.seuilMode==='fixe'?'':' style="display:none"')+'><label style="margin-top:12px">Alerter quand il reste…</label><input type="number" id="m-seuilfixe" min="0" inputmode="numeric" value="'+(isNaN(parseInt(ac.seuilFixe,10))?2:Math.max(0,parseInt(ac.seuilFixe,10)))+'"> <span class="hint">bouteille(s)</span></div>';
+  h+='<p class="hint" style="margin:8px 0 14px">Les références entrées en pièce unique ne sont jamais alertées. Le seuil propre à une fiche (Modifier) prime sur ce réglage.</p>';
+  h+='<label>Types d’alertes</label>';
+  [['stock','Stock bas / dernière bouteille'],['zone','Vin de garde mal rangé'],['zonePleine','Zone pleine (capacité atteinte)'],['data','Fiches incomplètes ou à vérifier']].forEach(function(t){
+    h+='<label class="z-chk" style="padding-top:7px"><input type="checkbox" data-altype="'+t[0]+'"'+(ac.types[t[0]]!==false?' checked':'')+'> '+t[1]+'</label>'; });
+  h+='<p class="hint" style="margin-top:8px">Les alertes d’apogée sont gérées à part.</p></div>';
   h+='<div class="panel"><h3>Synchronisation</h3><div id="m-sync" style="font-size:14px;margin-bottom:12px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
   h+='<div class="formfoot" style="flex-direction:column;margin-top:0"><button class="btn sec" id="m-cfg">Réglages OneDrive…</button><button class="btn sec" id="m-pull">Relire depuis OneDrive</button><button class="btn sec" id="m-exp">Exporter une copie (.json)</button><button class="btn sec" id="m-imp">Importer un fichier .json</button></div></div>';
   h+='<div class="panel"><h3>Dictée et assistant</h3><label>Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
@@ -890,6 +934,10 @@ function vReglages(){
   document.getElementById('m-cfg').onclick=openCfg;
   document.getElementById('m-zones').onclick=zonesPanel;
   document.getElementById('m-batch').onclick=batchPanel;
+  var sm=document.getElementById('m-seuilmode'), sbx=document.getElementById('m-seuilbox'), sfx=document.getElementById('m-seuilfixe');
+  sm.onchange=function(){ sbx.style.display=sm.value==='fixe'?'':'none'; var c=alertCfg(); c.seuilMode=sm.value==='fixe'?'fixe':'auto'; if(isNaN(parseInt(c.seuilFixe,10))) c.seuilFixe=2; alertCfgSave(c); render(); };
+  sfx.onchange=function(){ var c=alertCfg(); c.seuilFixe=Math.max(0,parseInt(sfx.value,10)||0); alertCfgSave(c); render(); };
+  document.querySelectorAll('[data-altype]').forEach(function(ch){ ch.onchange=function(){ var c=alertCfg(); c.types[ch.getAttribute('data-altype')]=ch.checked; alertCfgSave(c); render(); }; });
   document.getElementById('m-garde').onclick=function(){ inaoLoad().then(function(){ gardePanel(''); }); };
   var ms=document.getElementById('m-samples'); if(ms) ms.onclick=function(){ removeSamples(); vReglages(); };
   document.getElementById('m-onb').onclick=function(){ ONB.step=0; ONB.draft=null; onbShow(); };
@@ -910,7 +958,7 @@ function refCard(r){
   h+='<div class="csub">'+subLine(r)+'</div><div class="cmeta">';
   if(r.qte<=0) h+='<span class="apo apo-dead">Épuisée</span>';
   else if(st!=='none') h+='<span class="apo apo-'+st+'">'+APOL[st]+'</span>';
-  if(r.qte>0 && r.qte<=seuilBas(r.qteInit)) h+='<span class="apo apo-warn">Stock bas</span>';
+  var sa=stockAlert(r); if(sa) h+='<span class="apo apo-warn">'+(r.qte===1?'Dernière bouteille':'Stock bas')+'</span>';
   if(crit) h+='<span class="apo apo-warn">Zone non adaptée</span>';
   if(r.exemple) h+='<span class="apo apo-ex">Exemple</span>';
   h+='<span class="loc">'+esc(locTxt(r))+'</span></div></div>';
@@ -950,9 +998,9 @@ function colRecap(cur){
 }
 function vDash(){
   var cur=current(), now=new Date();
-  var low=cur.filter(function(r){ return r.qte<=seuilBas(r.qteInit); });
+  var low=cur.filter(stockAlert);
   var drink=cur.filter(function(r){ var s=apoState(r); return s==='ok'||s==='vite'; }).sort(function(a,b){ var sa=apoState(a)==='vite'?0:1, sb=apoState(b)==='vite'?0:1; return (sa-sb)||((apYears(a).f||9999)-(apYears(b).f||9999)); });
-  var others=allAlerts().filter(function(x){ return !/^Stock bas/.test(x.a.txt); });
+  var others=allAlerts().filter(function(x){ return x.ref && x.a.type!=='stock'; });
   var pn=prenom();
   var h='<div class="viewhead"><div><span class="eyebrow">'+esc(now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}))+'</span><h2>'+(now.getHours()>=18?'Bonsoir':'Bonjour')+(pn? ' '+esc(pn) : '')+'</h2></div><button class="btn hide-m" id="d-add">＋ Ajouter une bouteille</button></div>';
   h+='<div class="summary"><span>'+qsum(cur)+' bouteille'+(qsum(cur)>1?'s':'')+' · '+cur.length+' réf.</span>'+(ZONES.length>1? ZONES.map(function(z){ var q=qsum(cur.filter(function(r){ return zoneOf(r).id===z.id; })); return '<span>'+esc(z.nom)+' '+q+(z.cap?'/'+z.cap:'')+'</span>'; }).join('') : '')+'</div>';
@@ -1127,6 +1175,7 @@ function vAdd(){
   h+='<div>'+LB('millesime','Millésime *')+'<input type="text" id="f-millesime" required inputmode="numeric" placeholder="2020" value="'+esc(r?r.millesime:'')+'"></div></div>';
   h+='<div class="row"><div>'+LB('cepages','Cépage(s) (optionnel)')+'<input type="text" id="f-cepages" list="cep-list" autocomplete="off" value="'+esc(r?r.cepages:'')+'"></div>';
   h+='<div>'+LB('qte','Quantité *')+'<input type="number" id="f-qte" min="1" required value="'+(r?r.qte:1)+'"></div></div>';
+  h+='<div class="row"><div>'+LB('seuil','Seuil d’alerte stock (optionnel)')+'<input type="number" id="f-seuil" min="0" inputmode="numeric" placeholder="auto" value="'+(r&&r.seuil!==null&&r.seuil!==undefined? r.seuil : '')+'"></div><div><p class="hint" style="margin-top:24px">Vide : règle des Réglages. Les références entrées en pièce unique ne sont jamais alertées.</p></div></div>';
   h+='<div class="row"><div>'+LB('zone','Emplacement *')+'<select id="f-zone">'+zoneSelectHTML(zsel)+'</select></div>';
   h+='<div id="f-etbox"'+(zoneById(zsel).et>0?'':' style="visibility:hidden"')+'>'+LB('etagere','Étagère')+'<select id="f-etagere">'+etagesHTML(zsel,r?r.etagere:null)+'</select></div></div>';
   h+='<div class="row"><div>'+LB('dateEntree','Date d’entrée (MM/AAAA)')+'<input type="text" id="f-date" placeholder="'+nowM+'" value="'+esc(r?r.dateEntree:'')+'"></div>';
@@ -1169,7 +1218,7 @@ function vAdd(){
     var zone=val('f-zone'), ap=val('f-apogee');
     if(!zoneById(zone).garde&&isLongGarde({apogee:ap})){ if(!confirm('Ce vin semble destiné à une garde longue et serait placé dans « '+zoneById(zone).nom+' » (zone non adaptée). Confirmer ?')) return; }
     var apSrc= !ap? '' : S.prov.apogee==='regle'? 'regle' : S.prov.apogee==='deduit'? 'ia' : (S.userEdited.apogee||S.prov.apogee==='dicte'||!r)? 'saisie' : (r.apoSrc||'');
-    var o={ apoSrc:apSrc, style:val('f-style'), format:val('f-format'), domaine:val('f-domaine'), cuvee:val('f-cuvee'), prixEstime:(S.prov.prix==='deduit'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, zone:zone, etagere:zoneById(zone).et>0?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
+    var o={ apoSrc:apSrc, style:val('f-style'), format:val('f-format'), domaine:val('f-domaine'), cuvee:val('f-cuvee'), prixEstime:(S.prov.prix==='deduit'), couleur:val('f-couleur'), region:val('f-region'), appellation:val('f-appellation'), millesime:val('f-millesime'), cepages:val('f-cepages'), qte:parseInt(val('f-qte'),10)||0, seuil:(val('f-seuil')!==''&&!isNaN(parseInt(val('f-seuil'),10)))? Math.max(0,parseInt(val('f-seuil'),10)) : null, zone:zone, etagere:zoneById(zone).et>0?(parseInt(val('f-etagere'),10)||null):null, apogee:ap, prix:val('f-prix')?(parseFloat(val('f-prix').replace(',','.'))||null):null, note:val('f-note'), dateEntree:val('f-date')||nowM };
     if(r){ if((r.lots||[]).length<=1) r.lots=[{qte:o.qte,date:o.dateEntree}];
       if(o.qte>(r.qteInit||0)) o.qteInit=o.qte; else o.qteInit=r.qteInit;
       Object.assign(r,o); toast('Fiche modifiée');
@@ -1268,16 +1317,39 @@ function recoSoir(t){
 }
 
 function vAlertes(){
-  var als=allAlerts();
-  var h='<div class="viewhead"><div><span class="eyebrow">Suivi</span><h2>Alertes</h2></div></div><div class="panel">';
-  if(als.length){ als.forEach(function(x){ h+='<div class="alert-item" data-ref="'+x.ref.id+'" style="cursor:pointer"><span><b>'+esc(nomVin(x.ref))+'</b> '+esc(x.ref.millesime)+' · '+esc(x.ref.appellation)+' — '+esc(x.a.txt)+'</span><span class="sev '+x.a.sev+'">'+(x.a.sev==='crit'?'Critique':'À surveiller')+'</span></div>'; }); }
-  else h+='<p class="hint">Aucune alerte active — tout va bien. 🍷</p>';
+  if(!INAO){ inaoLoad().then(function(){ if(S.view==='alertes') vAlertes(); }).catch(function(){}); }
+  var als=allAlerts(), f=S.alertFilter||'tous';
+  // « À racheter » : références épuisées ou sous le seuil (filtre, pas un type d'alerte)
+  var buy=S.refs.filter(function(r){ if(r.qte<=0) return true; var s=seuilBas(r); return s>=0 && r.qte<=s; })
+    .sort(function(a,b){ return (a.qte-b.qte)||String(a.domaine||'').localeCompare(String(b.domaine||'')); });
+  var cnt={ tous:als.length, stock:0, zone:0, zonePleine:0, data:0, apo:0, acheter:buy.length };
+  als.forEach(function(x){ if(cnt[x.a.type]!==undefined) cnt[x.a.type]++; });
+  var FILS=[['tous','Tous'],['stock','Stock bas'],['acheter','À racheter'],['zone','Zones'],['zonePleine','Capacité'],['data','À vérifier'],['apo','Apogée']];
+  var h='<div class="viewhead"><div><span class="eyebrow">Suivi</span><h2>Alertes</h2></div></div>';
+  h+='<div class="chips">'+FILS.map(function(x){ return '<button class="chip'+(f===x[0]?' on':'')+'" data-afil="'+x[0]+'">'+x[1]+(cnt[x[0]]?' · '+cnt[x[0]]:'')+'</button>'; }).join('')+'</div><div class="panel">';
+  if(f==='acheter'){
+    if(!buy.length) h+='<p class="hint">Aucune référence à racheter — tout va bien. 🍷</p>';
+    else buy.forEach(function(r){ h+='<div class="alert-item" data-ref="'+r.id+'" style="cursor:pointer"><span><b>'+esc(nomVin(r))+'</b> '+esc(r.millesime)+'<br><span class="hint">'+esc(r.appellation)+' · '+esc(r.couleur)+(r.qte>0?' · reste '+r.qte:' · épuisée')+'</span></span><span class="sev '+(r.qte<=0?'crit':'warn')+'">'+(r.qte<=0?'Épuisée':'Stock bas')+'</span></div>'; });
+  } else {
+    var list=f==='tous'? als : als.filter(function(x){ return x.a.type===f; });
+    if(!list.length) h+='<p class="hint">'+(f==='tous'?'Aucune alerte active — tout va bien. 🍷':'Aucune alerte de ce type.')+'</p>';
+    else{
+      var GTXT={stock:'Stock bas',zone:'Zone non adaptée',zonePleine:'Capacité des zones',data:'Données à vérifier',apo:'Apogée'};
+      (f==='tous'? ['stock','zone','zonePleine','data','apo'] : [f]).forEach(function(t){
+        var g=list.filter(function(x){ return x.a.type===t; }); if(!g.length) return;
+        g.sort(function(a,b){ var w={crit:0,warn:1,ok:2}; return (w[a.a.sev]-w[b.a.sev]) || String(a.a.txt).localeCompare(String(b.a.txt)); });
+        h+='<div class="gtitle"><span>'+GTXT[t]+'</span></div>';
+        g.forEach(function(x){ h+='<div class="alert-item"'+(x.ref? ' data-ref="'+x.ref.id+'"':'')+' style="cursor:pointer"><span><b>'+(x.ref? esc(nomVin(x.ref))+' '+esc(x.ref.millesime)+' — ':'')+esc(x.a.txt)+'</b></span><span class="sev '+x.a.sev+'">'+(x.a.sev==='crit'?'Critique':'À surveiller')+'</span></div>'; });
+      });
+    }
+  }
   h+='</div>';
   document.getElementById('main').innerHTML=h;
+  document.querySelectorAll('[data-afil]').forEach(function(b){ b.onclick=function(){ S.alertFilter=b.getAttribute('data-afil'); vAlertes(); }; });
   bindCards();
 }
 
-function formRef(){ return { appellation:getField('appellation'), millesime:getField('millesime'), couleur:getField('couleur'), style:(document.getElementById('f-style')||{}).value||'', format:(document.getElementById('f-format')||{}).value||'', cepages:getField('cepages'), cuvee:getField('cuvee') }; }
+ return { appellation:getField('appellation'), millesime:getField('millesime'), couleur:getField('couleur'), style:(document.getElementById('f-style')||{}).value||'', format:(document.getElementById('f-format')||{}).value||'', cepages:getField('cepages'), cuvee:getField('cuvee') }; }
 function apoSrcLine(r){
   var el=document.getElementById('f-aposrc'); if(!el) return;
   var p=S.prov.apogee, t='';
