@@ -217,7 +217,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>Nicolas · v2.9.1</small></div>
+ <div class="brand"><h1>Cave</h1><small>Nicolas · v2.10</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button id="btn-voice" class="micbtn" aria-label="Parler à la cave">🎤</button><button id="btn-menu" aria-label="Réglages et occupation">⚙︎</button></div>
  <button class="btn hide-m" id="btn-voice-d">🎤 Parler à la cave</button>
  <nav class="nav" id="nav"></nav>
@@ -243,7 +243,7 @@ html.standalone .brand small{display:none}
 <div id="toast"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.9.1';
+var APPV='v2.10';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '' };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -929,7 +929,7 @@ var VKEYS=[
   ['appellation','appellation'],
   ['region','région|region'],
   ['couleur','couleur'],
-  ['millesime','millésime|millesime'],
+  ['millesime','millésime|millesime|l[’\']année|l[’\']annee|année|annee'],
   ['cepages','cépages?|cepages?'],
   ['qte','nombre de bouteilles|quantité|quantite|nombre'],
   ['emplacement','emplacement'],
@@ -1048,23 +1048,7 @@ function aiProvider(){ return lsGet('ai_provider','none'); }
 function aiKey(p){ return lsGet('ai_key_'+(p||aiProvider()),''); }
 function aiOn(){ var p=aiProvider(); return p!=='none' && !!aiKey(p); }
 
-function aiSystem(){
-  return [
-  'Assistant de cave à vin. Entrée : phrase dictée (transcription automatique, fautes possibles, ordre libre) + références proches de la cave. Réponds UNIQUEMENT en JSON :',
-  '{"intention":"ajout|reassort|sortie|recherche|inconnu","fiche":{"domaine":null,"cuvee":null,"appellation":null,"region":null,"couleur":null,"millesime":null,"cepages":null,"qte":null,"zone":null,"etagere":null,"apogee":null,"prix":null,"dateEntree":null,"note":null},"refId":null,"candidats":[],"qte":null,"resultats":[],"message":""}',
-  '- ajout : vin qui entre en cave. reassort : bouteilles ajoutées à une référence listée (refId, qte). sortie : bouteille(s) bue(s)/ouverte(s)/offerte(s) (refId de la référence listée la plus probable, qte=1 par défaut ; si doute : candidats + question dans message). recherche : question sur la cave (resultats = ids, message = réponse courte). inconnu sinon.',
-  '- Fiche : uniquement ce qui est dit, sinon null ; rien n’est deviné. Corrige l’orthographe des noms mal transcrits ; pour l’appellation, préfère un nom de la liste INAO fournie. Garde « Domaine », « Château », « Clos » au début du domaine s’ils sont dits. Cuvée sans le mot « cuvée ».',
-  '- region ∈ '+JSON.stringify(REGIONS)+' ; couleur ∈ '+JSON.stringify(COULEURS)+' ; zone frigo|garage ; etagere 1-5 ; apogee "AAAA – AAAA" ; dateEntree "M/AAAA" ; nombres en chiffres.'
-  ].join('\n');
-}
 function refLine(r){ return [r.id,nomVin(r),r.appellation,r.millesime,r.couleur,'x'+r.qte,r.apogee||''].join('|'); }
-function aiUser(text,screen){
-  var now=new Date(), lines=[];
-  if(screen==='cave'||screen==='recherche'){ lines=S.refs.filter(function(r){ return r.qte>0; }).slice(0,150).map(refLine); }
-  else { lines=rankRefs(text,false).slice(0,6).map(function(x){ return refLine(x.r); }); }
-  var inao=inaoMatch(text,5).filter(function(m){ return m.sc>=0.35; }).map(function(m){ return m.e.n; });
-  return 'Date : '+(now.getMonth()+1)+'/'+now.getFullYear()+' · écran : '+screen+'\nRéférences (id|vin|appellation|millésime|couleur|stock|apogée) :\n'+(lines.join('\n')||'(aucune)')+(inao.length? '\nAppellations INAO proches : '+inao.join(' ; ') : '')+'\nDictée : « '+text+' »';
-}
 function aiParse(txt){
   var t=String(txt||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
   var a=t.indexOf('{'), b=t.lastIndexOf('}'); if(a>=0&&b>a) t=t.slice(a,b+1);
@@ -1119,13 +1103,8 @@ function geminiTry(key,model,sys,usr,withThink){
   });
 }
 function wait(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
-function aiCall(text,screen){
-  var usr=aiUser(text,screen);
-  var key=(screen==='cave'||screen==='recherche')? null : 'x|'+screen+'|'+noAcc(text)+'|'+rankRefs(text,false).slice(0,6).map(function(x){ return x.r.id+':'+x.r.qte; }).join(',');
-  return cachedAI(key, aiSystem(), usr);
-}
-function aiCallRaw(sys,usr){
-  var p=aiProvider(), key=aiKey(p);
+function aiCallProvider(p,sys,usr){
+  var key=aiKey(p);
   if(p==='gemini'){
     // Modèle saturé (503), quota du modèle atteint (429) ou modèle retiré (404) → nouvel essai, puis modèle suivant
     return geminiModels(key).then(function(list){
@@ -1151,11 +1130,11 @@ function aiCallRaw(sys,usr){
     });
   }
   if(p==='mistral'){
-    return fetch('https://api.mistral.ai/v1/chat/completions',{
+    return fetchT('https://api.mistral.ai/v1/chat/completions',{
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
       body:JSON.stringify({ model:lsGet('ai_model_mistral','mistral-small-latest'), temperature:0.1, max_tokens:600, response_format:{type:'json_object'}, messages:[{role:'system',content:sys},{role:'user',content:usr}] })
-    }).then(function(r){
-      if(!r.ok) return r.text().then(function(b){ throw new Error(aiError('mistral',r.status,b)); });
+    },20000).then(function(r){
+      if(!r.ok) return r.text().then(function(b){ var e=new Error(aiError('mistral',r.status,b)); e.status=r.status; e.detail=apiDetail(b); throw e; });
       return r.json();
     }).then(function(d){ return aiParse(((d.choices||[])[0]||{}).message.content); });
   }
@@ -1282,6 +1261,7 @@ function aiSettingsBind(){
     document.getElementById('ai-help').innerHTML= v==='gemini'
       ? 'Clé gratuite sur <b>aistudio.google.com</b> (menu « Get API key »). La clé reste sur cet appareil. Votre inventaire et la phrase dictée sont envoyés à Google pour l’analyse.'
       : 'Clé gratuite sur <b>console.mistral.ai</b> (offre « Experiment », vérification par SMS). La clé reste sur cet appareil. Votre inventaire et la phrase dictée sont envoyés à Mistral pour l’analyse.';
+    document.getElementById('ai-help').innerHTML+='<br>Relais : si les deux clés (Gemini et Mistral) sont enregistrées, l’appli bascule automatiquement sur l’autre en cas de quota atteint ou de service saturé.';
   }
   sel.onchange=function(){ lsSet('ai_provider',sel.value); help(); fillModelSelect(); if(sel.value==='none') toast('Assistant IA désactivé'); };
   help(); fillModelSelect();
@@ -1290,7 +1270,7 @@ function aiSettingsBind(){
     lsSet('ai_provider',sel.value); lsSet('ai_key_'+sel.value, document.getElementById('ai-key').value.trim()); if(sel.value==='gemini'){ lsSet('ai_model_gemini',''); lsSet('ai_models_gemini',''); }
     var out=document.getElementById('ai-res'); out.textContent='Test en cours…';
     AI_PROGRESS=function(m){ out.textContent='Test en cours — '+m; };
-    aiCallRaw(aiSystem(), aiUser('domaine leflaive pull ligny montrachet deux mille dix-neuf trois bouteilles étagère deux','ajout')).then(function(r){
+    aiCallRaw(SYS_AJOUT, promptAjout('domaine leflaive pull ligny montrachet deux mille dix-neuf trois bouteilles étagère deux').usr, sel.value).then(function(r){
       var f=r.fiche||{};
       out.innerHTML='✔ Fonctionne'+(sel.value==='gemini'?' ('+esc(lsGet('ai_model_gemini',''))+')':'')+' — compris : '+esc([f.domaine,f.appellation,f.millesime,(f.qte?'×'+f.qte:''),(f.etagere?'étagère '+f.etagere:'')].filter(Boolean).join(' · '));
       AI_PROGRESS=null; fillModelSelect();
@@ -1389,10 +1369,16 @@ function suggest(text,btn,fn){
 
 /* --- Affinage IA d'une fiche en cours --- */
 function refineForm(t){
-  if(!aiOn()){ aiState(''); return; }
+  domAssist();                                   // domaine rapproché des domaines connus (📚)
+  var dejaEnCave=localReassortHint();            // même vin déjà en cave → proposition de réassort, sans IA
+  if(!aiOn()){ aiState(''); enrichForm(false); return; }
+  if(localComplete()){                           // domaine + appellation INAO + millésime : pas besoin de l'IA pour comprendre la phrase
+    S.aiMsg='✔ Fiche comprise en local — aucun appel IA'+(dejaEnCave?' · vin déjà en cave':'');
+    aiState(S.aiMsg); enrichForm(false); return;
+  }
   var tok=++S.aiTok;
   aiState('<span class="spin sm"></span> 🤖 Affinage par l’IA en cours… (la fiche est déjà utilisable)');
-  aiCall(t,'ajout').then(function(r){
+  aiAsk('ajout',t).then(function(r){
     if(tok!==S.aiTok || !document.getElementById('f-domaine')) return;
     var it=r.intention||'ajout';
     if(it==='sortie' && refById(r.refId)){ var rf=refById(r.refId); aiState(''); suggest('🤖 L’IA a compris une <b>sortie</b> : '+esc(nomVin(rf)+' '+rf.millesime),'Sortir',function(){ confirmOut(rf,Math.max(1,parseInt(r.qte,10)||1)); }); return; }
@@ -1498,6 +1484,11 @@ function pickOrAsk(list,t,kind,n){
 function hybridAssist(t){
   var it=localIntent(t), tok=++S.aiTok, n=localQty(t), shown=false;
   S.opRef=null;
+  if(it==='recherche' && /\bcombien\b/i.test(noAcc(t))){ localCount(t); return; }     // 100 % local
+  if(it==='sortie' || it==='reassort'){
+    var sure=refsSure(t, it==='sortie');
+    if(sure){ if(it==='sortie') confirmOut(sure,n,'📚 Trouvée dans votre cave'); else restock(sure.id,n,'📚 Trouvée dans votre cave'); return; }   // zéro IA
+  }
   if(it==='recherche'){
     S.view='cave'; S.editId=null;
     // recherche locale : couleur → filtre, puis seuls les mots présents dans la cave
@@ -1515,8 +1506,9 @@ function hybridAssist(t){
     S.dict=t; showDict(); extractVoice(t); toast('Fiche remplie'+(aiOn()?' — affinage IA en cours':'')+' · vérifiez puis enregistrez'); refineForm(t); return;
   }
   if(!aiOn()) return;
-  aiCall(t,'général').then(function(r){
+  (it==='recherche'? aiAsk('recherche',t) : aiAsk('mouv',t,it==='sortie')).then(function(r){
     if(tok!==S.aiTok) return;
+    if(it==='recherche' && !r.intention) r.intention='recherche';
     var ai=r.intention||'inconnu', rf=refById(r.refId), q=Math.max(1,parseInt(r.qte,10)||n);
     if(ai==='recherche'){
       if(it==='recherche' && S.view==='cave' && !document.getElementById('drawer').classList.contains('open')) aiResults(r,t);
@@ -1524,7 +1516,9 @@ function hybridAssist(t){
       return;
     }
     if(ai==='sortie'||ai==='reassort'){
-      if(!rf){ if(!shown && (r.candidats||[]).length) aiSortie(r); return; }
+      if(!rf){   // filet de sécurité : l'IA n'a pas tranché → choix local avec confirmation
+        if(!shown){ var loc=rankRefs(t,ai==='sortie'); if(loc.length) pickOrAsk(loc.slice(0,1).concat(loc.slice(1).map(function(x){ return {r:x.r,sc:loc[0].sc}; })).slice(0,6),t,ai,q); else toast(r.message||'Bouteille non trouvée dans la cave'); }
+        return; }
       var drawerOpenNow=document.getElementById('drawer').classList.contains('open');
       if(!shown || (it===ai && S.opRef!==rf.id && drawerOpenNow)){
         if(ai==='sortie') confirmOut(rf,q,'🤖 Bouteille identifiée par l’IA'); else restock(rf.id,q,'🤖 Bouteille identifiée par l’IA');
@@ -1534,7 +1528,7 @@ function hybridAssist(t){
       return;
     }
     if(ai==='ajout' && it!=='ajout'){
-      suggest('🤖 L’IA a compris une <b>nouvelle entrée</b> en cave','Remplir la fiche',function(){ closeDrawer(); S.view='add'; S.editId=null; resetProv(); render(); S.dict=t; showDict(); extractVoice(t); mergeAI(r.fiche||{},r.deduits); aiState('🤖 Fiche affinée par l’IA'); });
+      suggest('🤖 L’IA a compris une <b>nouvelle entrée</b> en cave','Remplir la fiche',function(){ closeDrawer(); S.view='add'; S.editId=null; resetProv(); render(); S.dict=t; showDict(); extractVoice(t); refineForm(t); });
     }
   }).catch(function(){ if(!shown && tok===S.aiTok) toast('IA indisponible — bouteille non trouvée localement'); });
 }
@@ -1547,6 +1541,11 @@ function voiceAssistant(){
 /* ===== v2.8 : référentiel INAO embarqué (hors ligne), mémoire des réponses IA, compléments allégés ===== */
 var INAO=null, INAO_TRI=null, CEPS=null;
 function inaoNorm(x){ return noAcc(x).replace(/[’'\-]/g,' ').replace(/\b(aoc|aop|igp|appellation|d origine|controlee|protegee)\b/g,' ').replace(/\s+/g,' ').trim(); }
+// Forme « phonétique » simplifiée pour rapprocher les coquilles de dictée (sira/syrah, lefleve/leflaive)
+function phon(x){ return String(x||'').replace(/ph/g,'f').replace(/qu/g,'k').replace(/c(?=[aou])/g,'k').replace(/ch/g,'sh').replace(/g(?=[ei])/g,'j').replace(/h/g,'').replace(/y/g,'i')
+  .replace(/eau|au/g,'o').replace(/ai|ei/g,'e').replace(/oi/g,'wa').replace(/z/g,'s').replace(/(.)\1+/g,'$1').replace(/([a-z]{3,})[estx]\b/g,'$1'); }
+function simil(a,b){ var d=dice(tri(a),tri(b)), p=dice(tri(phon(a)),tri(phon(b))); return Math.max(d,p); }
+function coreName(x){ return inaoNorm(x).replace(/^(domaine|chateau|clos|mas|maison|cave|cellier)\s+(de la |de l |des |du |de |d )?/,''); }
 function tri(s){ s='  '+s.replace(/\s+/g,'')+' '; var o={}; for(var i=0;i<s.length-2;i++) o[s.substr(i,3)]=1; return o; }
 function dice(a,b){ var n=0,la=0,lb=0,k; for(k in a){ la++; if(b[k]) n++; } for(k in b) lb++; return la+lb? 2*n/(la+lb) : 0; }
 function inaoLoad(){
@@ -1584,12 +1583,12 @@ function inaoInText(t){
 // Cépages : chaque nom dicté est rapproché de la liste (synonymes compris)
 function cepMatch(tok){
   if(!CEPS) return null; var q=inaoNorm(tok); if(q.length<3) return null;
-  var qt=tri(q), best=null;
-  CEPS.forEach(function(c){ c.w.forEach(function(w){ var sc= w===q? 1.01 : dice(qt,tri(w)); if(!best||sc>best.sc) best={c:c,sc:sc}; }); });
+  var best=null;
+  CEPS.forEach(function(c){ c.w.forEach(function(w){ var sc= w===q? 1.01 : simil(q,w); if(q.length>=6 && q.indexOf(" ")<0 && w.indexOf(q)===0) sc=Math.max(sc,0.9); if(!best||sc>best.sc) best={c:c,sc:sc}; }); });
   return (best && best.sc>=0.6)? best.c.n : null;
 }
 function cepMatchStrict(tok){ if(!CEPS) return null; var q=inaoNorm(tok), best=null;
-  CEPS.forEach(function(c){ c.w.forEach(function(w){ var sc= w===q? 1.01 : dice(tri(q),tri(w)); if(!best||sc>best.sc) best={c:c,sc:sc}; }); });
+  CEPS.forEach(function(c){ c.w.forEach(function(w){ var sc= w===q? 1.01 : simil(q,w); if(q.length>=6 && q.indexOf(" ")<0 && w.indexOf(q)===0) sc=Math.max(sc,0.9); if(!best||sc>best.sc) best={c:c,sc:sc}; }); });
   return (best && best.sc>=0.78)? best.c.n : null; }
 function cepNormalize(v){
   if(!v) return v;
@@ -1715,42 +1714,78 @@ function fillDomLists(){
 }
 
 // Complétion en lot : local d'abord (INAO, apogée), IA ensuite en une requête par paquet de 8 fiches
-var BLAB={region:'Région',apogee:'Apogée',cepages:'Cépages'};
-var BSRCS={inao:['📚','référentiel INAO'],est:['🔮','estimation locale'],ia:['🤖','IA']};
+var BLAB={region:'Région',apogee:'Apogée',cepages:'Cépages',domaine:'Domaine (orthographe)',cuvee:'Cuvée (orthographe)',appellation:'Appellation (orthographe)'};
+var BSRCS={inao:['📚','référentiel'],est:['🔮','estimation locale'],ia:['🤖','IA']};
+// Région renvoyée par l'IA ramenée à la liste de l'appli (« Vallée du Rhône » → Rhône), sinon ignorée
+function normRegion(v){
+  if(!v) return null; var x=noAcc(String(v));
+  var hit=REGIONS.find(function(r){ return noAcc(r)===x; }); if(hit) return hit;
+  hit=REGIONS.find(function(r){ return r!=='Autre' && x.indexOf(noAcc(r))>=0; }); return hit||null;
+}
+// Domaine proche d'un domaine connu (liste de référence + reste de la cave), pour corriger une coquille
+function domFix(d,selfId){
+  if(!d) return null; var q=inaoNorm(d), qc=coreName(d); if(qc.length<4) return null;
+  var best=null, seen={};
+  (typeof DOMS_REF==='string'? DOMS_REF.split('|') : []).concat(S.refs.filter(function(r){ return r.id!==selfId; }).map(function(r){ return r.domaine; })).forEach(function(k){
+    if(!k||seen[k]) return; seen[k]=1; var w=inaoNorm(k), wc=coreName(k); if(w===q || wc===qc){ best={n:k,sc:2}; return; } if(wc.length<4) return;   // même nom (seul « Domaine » diffère) : rien à corriger
+    var sc=simil(qc,wc); if(qc.length>=6 && wc.indexOf(qc)===0) sc=Math.max(sc,0.86); if(!best||sc>best.sc) best={n:k,sc:sc}; });
+  return (best && best.sc>=0.82 && best.sc<2 && best.n!==d)? best.n : null;
+}
 function batchPanel(){
-  var todo=S.refs.filter(function(r){ return r.qte>0 && ((!r.apogee)||(!r.cepages)||(!r.region)||r.region==='Autre'); });
-  if(!todo.length){ toast('Rien à compléter : toutes les fiches actives sont remplies'); return; }
-  var props=[], aiBatch=[];
-  todo.forEach(function(r){
-    var manque=[];
-    if(!r.region||r.region==='Autre'){
-      if(r.appellation){ var e=inaoFind(r.appellation)||((inaoMatch(r.appellation,1)[0]||{}).sc>=0.8? inaoMatch(r.appellation,1)[0].e : null);
-        if(e&&e.r) props.push({r:r,f:'region',v:e.r,src:'inao'}); else manque.push('region'); }
-      else manque.push('region');
-    }
-    if(!r.apogee){ var a=apoLocal(r); if(a) props.push({r:r,f:'apogee',v:a,src:'est'}); else manque.push('apogee'); }
+  var active=S.refs.filter(function(r){ return r.qte>0; });
+  if(!active.length){ toast('Aucune fiche en stock'); return; }
+  var props=[], aiBatch=[], orthoAI=[];
+  active.forEach(function(r){
+    var manque=[], e=null;
+    if(r.appellation){ e=inaoFind(r.appellation)||((inaoMatch(r.appellation,1)[0]||{}).sc>=0.8? inaoMatch(r.appellation,1)[0].e : null); }
+    // 1. coquilles, en local : appellation (INAO), cépages (base de cépages), domaine (domaines connus)
+    if(e && e.n!==r.appellation) props.push({r:r,f:'appellation',v:e.n,src:'inao'});
+    if(r.cepages && typeof cepNormalize==='function'){ var cn=cepNormalize(r.cepages); if(cn && cn!==r.cepages) props.push({r:r,f:'cepages',v:cn,src:'inao'}); }
+    var df=domFix(r.domaine,r.id); if(df) props.push({r:r,f:'domaine',v:df,src:'inao'});
+    else if(r.domaine && !r.orthoOk) orthoAI.push(r);          // à faire vérifier par l'IA (une seule fois)
+    // 2. champs manquants
+    var reg=r.region && r.region!=='Autre'? r.region : null;
+    if(!reg){ if(e&&e.r){ props.push({r:r,f:'region',v:e.r,src:'inao'}); reg=e.r; } else manque.push('region'); }
+    if(!r.apogee){ var a=apoLocal({appellation:r.appellation,region:reg||r.region,couleur:r.couleur,millesime:r.millesime}); if(a) props.push({r:r,f:'apogee',v:a,src:'est'}); else manque.push('apogee'); }
     if(!r.cepages) manque.push('cepages');
     if(manque.length) aiBatch.push({r:r,manque:manque});
   });
-  if(!aiBatch.length || !aiOn()){ batchDrawer(props); return; }
-  var chunks=[]; for(var i=0;i<aiBatch.length;i+=8) chunks.push(aiBatch.slice(i,i+8));
+  if(!aiOn() || (!aiBatch.length && !orthoAI.length)){ batchDrawer(props); return; }
+  var jobs=[];
+  for(var i=0;i<aiBatch.length;i+=8) jobs.push({k:'fill',c:aiBatch.slice(i,i+8)});
+  for(var j=0;j<orthoAI.length;j+=20) jobs.push({k:'ortho',c:orthoAI.slice(j,j+20)});
   var done=0, failed=false;
-  busy(true,'🤖 Complétion IA : 0/'+aiBatch.length+' fiche(s)…');
-  chunks.reduce(function(p,c){
+  busy(true,'🤖 Complétion IA : 0/'+jobs.length+' requête(s)…');
+  jobs.reduce(function(p,job){
     return p.then(function(){
-      var fiches=c.map(function(x){ return {id:x.r.id,domaine:x.r.domaine,cuvee:x.r.cuvee||'',appellation:x.r.appellation,couleur:x.r.couleur,millesime:x.r.millesime,manque:x.manque}; });
-      var sys="Tu complètes des fiches de cave à vin. Pour chaque fiche, estime les champs listés dans \"manque\". Réponds UNIQUEMENT en JSON : {\"res\":[{\"id\":\"...\",\"apogee\":\"AAAA – AAAA\" ou null,\"cepages\":\"...\" ou null,\"region\":\"...\" ou null}]} (un objet par fiche, id identique). Apogée : fenêtre de consommation réaliste au format \"AAAA – AAAA\". Cépages : 1 à 4 cépages principaux de l'appellation, séparés par des virgules. region ∈ "+JSON.stringify(REGIONS)+". Pas sûr : null.";
-      return aiCallRaw(sys,'Fiches à compléter : '+JSON.stringify(fiches)).then(function(d){
-        (d.res||[]).forEach(function(x){ var ref=null; S.refs.forEach(function(r){ if(r.id===x.id) ref=r; }); if(!ref) return;
-          ['apogee','cepages','region'].forEach(function(f){
-            if(x[f] && !ref[f]) props.push({r:ref,f:f,v:String(x[f]),src:'ia'});
-          });
+      var sys, usr, key;
+      if(job.k==='fill'){
+        var fiches=job.c.map(function(x){ return {id:x.r.id,domaine:x.r.domaine,cuvee:x.r.cuvee||'',appellation:x.r.appellation,couleur:x.r.couleur,millesime:x.r.millesime,manque:x.manque}; });
+        sys="Fiches de cave à vin : estime pour chacune les champs de \"manque\". JSON seul : {\"res\":[{\"id\":\"...\",\"apogee\":\"AAAA – AAAA\"|null,\"cepages\":\"...\"|null,\"region\":\"...\"|null}]}. Cépages : 1 à 4 principaux, séparés par des virgules. region ∈ "+JSON.stringify(REGIONS)+". Pas sûr : null.";
+        usr=JSON.stringify(fiches); key='bf|'+noAcc(usr);
+      } else {
+        var lst=job.c.map(function(r){ return {id:r.id,domaine:r.domaine,cuvee:r.cuvee||'',appellation:r.appellation}; });
+        sys="Noms de vins saisis par dictée (coquilles possibles). Pour chaque fiche dont le domaine ou la cuvée est manifestement mal orthographié(e) et dont tu connais l'orthographe exacte, donne la correction. JSON seul : {\"res\":[{\"id\":\"...\",\"domaine\":\"...\"|null,\"cuvee\":\"...\"|null}]}. N'invente pas : si tu n'es pas sûr ou si c'est déjà correct, null (ou n'inclus pas la fiche).";
+        usr=JSON.stringify(lst); key='bo|'+noAcc(usr);
+      }
+      return cachedAI(key,sys,usr).then(function(d){
+        (d.res||[]).forEach(function(x){ var ref=refById(x.id); if(!ref) return;
+          if(job.k==='fill'){
+            if(x.apogee && !ref.apogee) props.push({r:ref,f:'apogee',v:String(x.apogee),src:'ia'});
+            if(x.cepages && !ref.cepages){ var cv=typeof cepNormalize==='function'? cepNormalize(String(x.cepages)) : String(x.cepages); if(cv) props.push({r:ref,f:'cepages',v:cv,src:'ia'}); }
+            if(x.region && (!ref.region||ref.region==='Autre')){ var rg=normRegion(x.region); if(rg) props.push({r:ref,f:'region',v:rg,src:'ia'}); }
+          } else {
+            if(x.domaine && x.domaine!==ref.domaine) props.push({r:ref,f:'domaine',v:String(x.domaine),src:'ia'});
+            if(x.cuvee && x.cuvee!==(ref.cuvee||'')) props.push({r:ref,f:'cuvee',v:String(x.cuvee),src:'ia'});
+          }
         });
-        done+=c.length; busy(true,'🤖 Complétion IA : '+done+'/'+aiBatch.length+' fiche(s)…');
+        if(job.k==='ortho') job.c.forEach(function(r){ r.orthoOk=1; });   // ne plus redemander ces fiches
+        done++; busy(true,'🤖 Complétion IA : '+done+'/'+jobs.length+' requête(s)…');
       }).catch(function(){ failed=true; });
     });
   }, Promise.resolve()).then(function(){ busy(false);
-    if(failed) toast('IA indisponible — propositions locales uniquement');
+    localSave();
+    if(failed) toast('IA indisponible pour une partie — propositions locales affichées');
     batchDrawer(props);
   });
 }
@@ -1805,6 +1840,108 @@ function enrichForm(manual){
     if(tok!==S.aiTok) return;
     aiState((S.aiMsg? esc(S.aiMsg)+'<br>' : '')+'🔮 Compléments indisponibles ('+esc(aiNetMsg(err))+')'); S.aiMsg='';
   });
+}
+
+/* ===== v2.10 : prompts allégés par intention, zéro IA quand le local est sûr, relais Gemini ⇄ Mistral ===== */
+var COUL_TXT=COULEURS.join('|');
+// Consignes courtes, une par intention
+var SYS_AJOUT=[
+ 'Dictée (transcription automatique, fautes possibles) d’un vin qui entre en cave. JSON seul : {"intention":"ajout|reassort","fiche":{},"refId":null,"qte":null}.',
+ 'fiche : n’inclure que les champs dits parmi domaine, cuvee, appellation, couleur ('+COUL_TXT+'), millesime, cepages, qte, zone (frigo|garage), etagere (1-5), apogee ("AAAA – AAAA"), prix, note. Rien n’est deviné.',
+ 'Corrige l’orthographe des noms ; garde « Domaine », « Château », « Clos » s’ils sont dits ; cuvée sans le mot « cuvée » ; nombres en chiffres.',
+ 'Si le vin est l’une des fiches listées (même domaine, appellation, millésime) : intention reassort, refId et qte.'
+].join('\n');
+var SYS_MOUV=[
+ 'Dictée d’une sortie ou d’un ajout de bouteilles pour une fiche de cave. JSON seul : {"intention":"sortie|reassort|ajout","refId":null,"qte":1,"message":""}.',
+ 'refId = id de la fiche listée concernée ; aucune ne correspond : refId null (intention ajout s’il s’agit d’un nouveau vin) ; hésitation : refId null et une question courte dans message.'
+].join('\n');
+var SYS_RECH=[
+ 'Question sur une cave à vin. Échantillon de fiches fourni (id|vin|appellation|millésime|couleur|stock|apogée). JSON seul : {"resultats":[ids],"message":"réponse courte en français"}.',
+ 'resultats : ids de l’échantillon qui répondent, les plus pertinents d’abord.'
+].join('\n');
+function refShort(r){ return [r.id,nomVin(r),r.appellation,r.millesime].join('|'); }
+// Compatibilité (bouton « Tester » des réglages)
+function aiSystem(){ return SYS_AJOUT; }
+function aiUser(text){ return promptAjout(text).usr; }
+function promptAjout(text){
+  var c=rankRefs(text,false).filter(function(x){ return x.sc>=3; }).slice(0,4);
+  return { sys:SYS_AJOUT, usr:(c.length? 'Fiches proches (id|vin|appellation|millésime) :\n'+c.map(function(x){ return refShort(x.r); }).join('\n')+'\n' : '')+'Dictée : « '+text+' »', ids:c.map(function(x){ return x.r.id+':'+x.r.qte; }).join(',') };
+}
+function promptMouv(text,stockOnly){
+  var c=rankRefs(text,stockOnly).slice(0,6);
+  return { sys:SYS_MOUV, usr:'Fiches (id|vin|appellation|millésime|stock) :\n'+(c.map(function(x){ return refShort(x.r)+'|x'+x.r.qte; }).join('\n')||'(aucune)')+'\nDictée : « '+text+' »', ids:c.map(function(x){ return x.r.id+':'+x.r.qte; }).join(',') };
+}
+function promptRech(text){
+  var stock=S.refs.filter(function(r){ return r.qte>0; }), pick=[], seen={};
+  function add(r){ if(r && !seen[r.id] && pick.length<25){ seen[r.id]=1; pick.push(r); } }
+  rankRefs(text,true).slice(0,8).forEach(function(x){ add(x.r); });
+  COULEURS.forEach(function(c){ stock.filter(function(r){ return r.couleur===c; }).sort(function(a,b){ return (inWindow(b)?1:0)-(inWindow(a)?1:0); }).slice(0,5).forEach(add); });
+  return { sys:SYS_RECH, usr:'Année : '+new Date().getFullYear()+'\nÉchantillon :\n'+(pick.map(function(r){ return [r.id,nomVin(r),r.appellation,r.millesime,r.couleur,'x'+r.qte,r.apogee||''].join('|'); }).join('\n')||'(cave vide)')+'\nQuestion : « '+text+' »' };
+}
+// Appel par intention (avec mémoire, sauf recherche)
+function aiAsk(kind,text,stockOnly){
+  var p= kind==='ajout'? promptAjout(text) : kind==='recherche'? promptRech(text) : promptMouv(text,stockOnly);
+  var key= kind==='recherche'? null : kind+'|'+noAcc(text)+'|'+(p.ids||'');
+  return cachedAI(key,p.sys,p.usr);
+}
+function aiCall(text,screen){ return aiAsk(screen==='cave'||screen==='recherche'? 'recherche' : 'ajout', text); }
+
+/* --- Relais : si le service choisi est saturé ou à court de quota, l'autre prend le relais (si sa clé est enregistrée) --- */
+function aiProvidersOrder(){ var p=aiProvider(); if(p==='none') return []; var o=[p]; ['gemini','mistral'].forEach(function(q){ if(q!==p && aiKey(q)) o.push(q); }); return o; }
+function aiRetryable(e){ return !e || e.name==='TypeError' || e.status==='timeout' || e.status===429 || e.status>=500 || /quota|satur|overload|unavailable/i.test(e.message||''); }
+function aiCallRaw(sys,usr,only){
+  var list= only? [only] : aiProvidersOrder();
+  if(!list.length) return Promise.reject(new Error('Assistant IA non configuré'));
+  var i=0, lastErr=null, log=[];
+  function next(){
+    if(i>=list.length){ var e=lastErr||new Error('IA indisponible'); e.log=log; throw e; }
+    var p=list[i];
+    return aiCallProvider(p,sys,usr).then(function(r){ lsSet('ai_last',p); return r; }).catch(function(e){
+      lastErr=e; log=log.concat(e.log||[(p==='gemini'?'Gemini':'Mistral')+' → '+aiNetMsg(e)]);
+      if(i+1<list.length && aiRetryable(e)){ i++; AI_PROGRESS && AI_PROGRESS('Relais vers '+(list[i]==='gemini'?'Gemini':'Mistral')+'…'); return next(); }
+      e.log=log; throw e;
+    });
+  }
+  return next();
+}
+
+/* --- Zéro IA quand l'analyse locale est sûre --- */
+function refsSure(t,stockOnly){
+  var l=rankRefs(t,stockOnly); if(!l.length) return null;
+  if(l[0].sc>=4 && (!l[1] || l[0].sc-l[1].sc>=2)) return l[0].r;
+  return null;
+}
+function knownDomains(){
+  var seen={}, out=[];
+  (typeof DOMS_REF==='string'? DOMS_REF.split('|') : []).concat(S.refs.map(function(r){ return r.domaine; })).forEach(function(d){ if(d && !seen[d]){ seen[d]=1; out.push(d); } });
+  return out;
+}
+// Domaine dicté rapproché des domaines connus (ta cave + liste de référence) — badge 📚
+function domAssist(){
+  var d=getField('domaine'); if(!d || S.userEdited.domaine || S.prov.domaine!=='dicte') return;
+  var q=inaoNorm(d), qc=coreName(d); if(qc.length<4) return;
+  var best=null;
+  knownDomains().forEach(function(k){ var w=inaoNorm(k), wc=coreName(k); if(wc.length<4) return; var sc= (w===q||wc===qc)? 1.01 : simil(qc,wc); if(qc.length>=6 && wc.indexOf(qc)===0) sc=Math.max(sc,0.86); if(!best||sc>best.sc) best={n:k,sc:sc}; });
+  if(best && best.sc>=0.82 && best.sc<1.01 && best.n!==d){ S.provOld.domaine=d; setField('domaine',best.n); S.prov.domaine='inao'; renderProv(); }
+}
+function localComplete(){ return !!(getField('domaine') && getField('appellation') && inaoFind(getField('appellation')) && getField('millesime')); }
+// Même vin déjà en cave → proposition de réassort, sans IA
+function localReassortHint(){
+  var dom=inaoNorm(getField('domaine')), app=inaoNorm(getField('appellation')), mil=getField('millesime'), cuv=inaoNorm(getField('cuvee'));
+  if(!dom || !mil) return false;
+  var hit=S.refs.find(function(r){ return inaoNorm(r.domaine)===dom && String(r.millesime)===String(mil) && (!app || inaoNorm(r.appellation)===app) && inaoNorm(r.cuvee||'')===cuv; });
+  if(!hit) return false;
+  var q=parseInt(getField('qte'),10)||1;
+  suggest('📚 Déjà en cave : <b>'+esc(nomVin(hit)+' '+hit.millesime)+'</b> (×'+hit.qte+')','Réassort +'+q,function(){ restock(hit.id,q); });
+  return true;
+}
+// Recherche « combien… » : 100 % locale
+function localCount(t){
+  var x=noAcc(t).replace(/[’'?,;.!]/g,' ');
+  var words=x.split(/\s+/).filter(function(w){ return w.length>=3 && QSTOP.indexOf(w)<0 && !/^(combien|reste|restent|ai|avons|bouteilles?|encore|cave|dans|il|me|nous|en|de|du|des|quel|quelle)$/.test(w); });
+  var list=S.refs.filter(function(r){ return r.qte>0 && words.length && matchQ(words.join(' '),[r.domaine,r.cuvee||'',r.appellation,r.region,r.millesime,r.couleur,r.cepages]); });
+  var tot=list.reduce(function(a,r){ return a+r.qte; },0);
+  aiResults({ resultats:list.map(function(r){ return r.id; }), message: list.length? 'Il vous reste '+tot+' bouteille'+(tot>1?'s':'')+' ('+list.length+' référence'+(list.length>1?'s':'')+').' : 'Aucune bouteille en stock ne correspond.' }, t);
 }
 
 function doExport(){
