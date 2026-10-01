@@ -1,17 +1,18 @@
 {
-  "id": "./",
-  "name": "Cave",
-  "short_name": "Cave",
-  "lang": "fr",
+  "name": "La Cave Tranquille",
+  "short_name": "Cave Tranquille",
+  "description": "Toute votre cave, sans se prendre la tête.",
   "start_url": "./index.html",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#faf8f3",
-  "theme_color": "#faf8f3",
+  "background_color": "#faf6ef",
+  "theme_color": "#a1444f",
+  "lang": "fr",
   "icons": [
-    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ]
 }
