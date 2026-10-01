@@ -75,6 +75,12 @@ input[type=text],input[type=search],input[type=password],input[type=number],sele
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .chip{border:1px solid var(--line);border-radius:99px;padding:5px 13px;font-size:12.5px;background:var(--card)}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.soirgrid{display:flex;flex-direction:column;gap:10px;margin-bottom:6px;max-width:760px}
+.srow{display:flex;gap:10px;align-items:baseline}
+.srow .chips{margin:0}
+.slab{flex:0 0 74px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.soirempty{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--muted);max-width:760px}
+.soirnote{font-size:12px;color:var(--muted);margin-top:8px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);cursor:pointer}
 .card:hover{border-color:var(--acc)}
@@ -354,7 +360,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>La Cave Tranquille</h1><small>v2.18</small></div>
+ <div class="brand"><h1>La Cave Tranquille</h1><small>v2.19</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span><button class="mhead-set" id="mhead-set" aria-label="Réglages"></button></div>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
@@ -378,7 +384,7 @@ html.standalone .brand small{display:none}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.18';
+var APPV='v2.19';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Étranger','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -1275,10 +1281,105 @@ function restock(refId,n0,msg){
   };
 }
 
+/* ===== v2.19 : « Que boire ce soir ? » — mode filtres (par défaut) + mode chat ===== */
+var SOIROCC={
+ 'Apéro':{pref:{'Rosé':12,'Effervescent':15,'Blanc':10,'Rouge':-4},hints:['chenin','chardonnay','grolleau','grenache','cinsault'],why:'fraîcheur et bulles avant tout'},
+ 'Viande':{pref:{'Rouge':16,'Blanc':4},hints:['syrah','cabernet','malbec','pinot noir','gamay','merlot','tannat'],why:'un rouge qui tient face à la viande'},
+ 'Poisson':{pref:{'Blanc':14,'Effervescent':6,'Rouge':-6},hints:['muscadet','chablis','sauvignon','chardonnay','riesling','aligote','picpoul'],why:'un blanc sec et vif pour le poisson'},
+ 'Fromage':{pref:{'Rouge':8,'Blanc':8},hints:['pinot noir','gamay','chenin','chardonnay'],why:'fromage : rouge souple ou blanc évolué'},
+ 'Dessert':{pref:{'Blanc':10,'Effervescent':6,'Rouge':-8},sweet:1,hints:['sauternes','jurancon','monbazillac','gaillac'],why:'côté dessert, un vin doux'}
+};
+var SOIRF_DEF={mode:'filtres',col:'Tous',occ:'',gam:'Tous',now:1};
+function soirF(){ try{ var f=JSON.parse(localStorage.getItem('cave-soir-f')); return (f&&f.mode)? f : JSON.parse(JSON.stringify(SOIRF_DEF)); }catch(e){ return JSON.parse(JSON.stringify(SOIRF_DEF)); } }
+function soirSave(f){ try{ localStorage.setItem('cave-soir-f',JSON.stringify(f)); }catch(e){} }
+function gammeOf(r){ var p=r.prix; if(!p||p<=0) return null; return p<=10? '*' : (p<=25? '**' : '***'); }
+function soirScore(r,f){
+  var st=apoState(r), sc=APOSCORE[st]||0, rs=[];
+  var occ=SOIROCC[f.occ];
+  if(occ){
+    sc+=occ.pref[r.couleur]||0;
+    if(occ.sweet&&(r.style==='moelleux'||r.style==='vdn'||r.style==='jaune'||r.style==='paille')){ sc+=14; rs.push('profil doux adapté'); }
+    var hay=normTxt(r.cepages)+' '+normTxt(r.appellation);
+    for(var i=0;i<(occ.hints||[]).length;i++){ if(hay.indexOf(occ.hints[i])>=0){ sc+=9; rs.push('cépage adapté ('+occ.hints[i]+')'); break; } }
+  }
+  if(isLongGarde(r)&&r.qte===1&&st!=='vite'&&st!=='past') sc-=8;
+  if(r.note&&(''+r.note).length>2){ sc+=3; rs.push('votre note : « '+esc((''+r.note).slice(0,50))+' »'); }
+  if(r.qte>=3) sc+=4; else if(r.qte===1) sc-=2;
+  return {r:r,sc:sc,st:st,rs:rs};
+}
+function soirCards(f){
+  var noP=0, picks=current().filter(function(r){
+    if(f.col!=='Tous'&&r.couleur!==f.col) return false;
+    if(f.gam!=='Tous'){ var g=gammeOf(r); if(!g){ noP++; return false; } if(g!==f.gam) return false; }
+    if(f.now){ var st=apoState(r); if(!(st==='ok'||st==='vite'||st==='none')) return false; }
+    return true;
+  });
+  var scored=picks.map(function(r){ return soirScore(r,f); });
+  scored.sort(function(a,b){ return b.sc-a.sc; });
+  var seen={},out=[];
+  scored.forEach(function(x){ var k=normTxt(nomVin(x.r))+'|'+x.r.millesime; if(seen[k]) return; seen[k]=1; out.push(x); });
+  return {list:out,noP:noP};
+}
+function soirCard(x){
+  var r=x.r, st=x.st;
+  var h='<div class="card">'+pastille(r)+'<div><div class="cname">'+esc(r.domaine||'')+(r.cuvee? '<span class="cuv"> · '+esc(r.cuvee)+'</span>':'')+'</div>';
+  h+='<div class="csub">'+subLine(r)+'</div><div class="cmeta">';
+  if(st==='ok') h+='<span class="apo apo-ok">À boire'+(r.apogee? ' ('+esc(r.apogee)+')':'')+'</span>';
+  else if(st==='vite') h+='<span class="apo apo-vite">À ouvrir sans attendre'+(r.apogee? ' ('+esc(r.apogee)+')':'')+'</span>';
+  else if(st==='soon') h+='<span class="apo apo-soon">Bientôt prêt</span>';
+  else if(st==='early') h+='<span class="apo apo-early">Encore jeune</span>';
+  else if(st==='past'||st==='old') h+='<span class="apo apo-past">Apogée dépassée · à goûter</span>';
+  else h+='<span class="apo">Sans apogée renseignée</span>';
+  if(gammeOf(r)) h+='<span class="apo" title="prix '+esc(r.prix)+' €">'+gammeOf(r)+'</span>';
+  if(x.rs.length) h+='<span class="apo">'+x.rs.map(esc).join(' · ')+'</span>';
+  if(r.prix) h+='<span class="loc">'+esc(r.prix)+' €</span>';
+  h+='<span class="loc">'+esc(locTxt(r))+'</span></div></div>';
+  h+='<div class="cqty"><b>×'+Math.max(0,r.qte)+'</b>'+(r.qte>0? '<button type="button" class="minus" data-out="'+r.id+'">Sortir</button>':'')+'</div></div>';
+  return h;
+}
 function vSoir(){
+  var f=soirF();
+  if(f.mode==='chat') return vSoirChat(f);
+  var h='';
+  h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div><button class="btn sec" id="soir-mode">💬 Décrire au chat</button></div>';
+  h+='<div class="soirgrid">';
+  h+='<div class="srow"><span class="slab">Couleur</span><div class="chips">'+chipBtn(f,'col','Tous','Toutes')+COULEURS.map(function(c){ return chipBtn(f,'col',c,c); }).join('')+'</div></div>';
+  h+='<div class="srow"><span class="slab">Occasion</span><div class="chips">'+chipBtn(f,'occ','','Peu importe')+Object.keys(SOIROCC).map(function(o){ return chipBtn(f,'occ',o,o); }).join('')+'</div></div>';
+  h+='<div class="srow"><span class="slab">Gamme</span><div class="chips">'+chipBtn(f,'gam','Tous','Toutes')+['*','**','***'].map(function(g){ return chipBtn(f,'gam',g,g); }).join('')+'</div></div>';
+  h+='<div class="srow"><span class="slab">Maturité</span><div class="chips">'+chipBtn(f,'now',1,'Prêts à boire')+chipBtn(f,'now',0,'Tous millésimes')+'</div></div>';
+  h+='</div>';
+  var sr=soirCards(f);
+  var occ=SOIROCC[f.occ];
+  h+='<div class="gtitle"><span>'+(occ? 'Suggestions — '+occ.why : 'Suggestions')+' · '+sr.list.length+'</span><button class="linkbtn" id="soir-rand">🎲 Surprends-moi</button></div>';
+  if(!sr.list.length){
+    h+='<div class="soirempty">Aucune bouteille ne correspond à ces filtres.'+(sr.noP? ' ('+sr.noP+' bouteille(s) sans prix renseigné ignorées pour la gamme.)':'')+' Élargissez la couleur ou la maturité — ou regardez l’écran Ma cave.</div>';
+  } else {
+    h+='<div class="group">'+sr.list.slice(0,8).map(function(x){ return soirCard(x); }).join('')+'</div>';
+    if(sr.noP) h+='<div class="soirnote">ℹ️ '+sr.noP+' bouteille(s) sans prix renseigné ignorées (filtre gamme).</div>';
+  }
+  document.getElementById('main').innerHTML=h;
+  document.querySelectorAll('[data-fk]').forEach(function(b){
+    b.onclick=function(){
+      var k=b.getAttribute('data-fk'), v=b.getAttribute('data-fv');
+      f[k]=(k==='now')? parseInt(v,10) : v;
+      soirSave(f); vSoir();
+    };
+  });
+  document.getElementById('soir-mode').onclick=function(){ f.mode='chat'; soirSave(f); vSoir(); };
+  document.querySelectorAll('[data-out]').forEach(function(b){ b.onclick=function(){ quickOut(b.getAttribute('data-out'),1); vSoir(); }; });
+  var rb=document.getElementById('soir-rand');
+  if(rb) rb.onclick=function(){
+    var l=sr.list.slice(0,Math.min(10,sr.list.length));
+    if(!l.length) return;
+    var x=l[Math.floor(Math.random()*l.length)];
+    confirmOut(x.r,1,'🎲 Suggestion surprise — tirée parmi les meilleures options du moment');
+  };
+}
+function chipBtn(f,key,val,label){ return '<button type="button" class="chip'+(String(f[key])===String(val)? ' on':'')+'" data-fk="'+key+'" data-fv="'+esc(val)+'">'+esc(label)+'</button>'; }
+function vSoirChat(f){
   if(!S.chat.length) S.chat=[{me:false,txt:'Bonsoir'+(prenom()? ' '+esc(prenom()) : '')+' ! Décrivez-moi l’occasion, un plat ou une envie — je vous suggère des bouteilles disponibles en cave. 🍷'}];
   var h='';
-  h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div></div>';
+  h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div><button class="btn sec" id="soir-mode">🎛️ Mode filtres</button></div>';
   h+='<div class="chatbox" id="chat"></div>';
   h+='<div class="chatin"><input type="text" id="chat-in" placeholder="Ex. rôti de veau, apéro léger, un rouge de garde…"><button class="btn sec" id="chat-mic" title="Dicter">🎤</button><button class="btn" id="chat-send">Envoyer</button></div>';
   h+='<div class="chips" style="margin-top:12px">'+['Apéro léger','Rôti de veau','Poisson ou fruits de mer','Surprise 🎲','À boire maintenant'].map(function(c){ return '<button class="chip" data-sug="'+c+'">'+c+'</button>'; }).join('')+'</div>';
@@ -1288,12 +1389,13 @@ function vSoir(){
   box.scrollTop=box.scrollHeight;
   function send(){
     var i=document.getElementById('chat-in'); var t=i.value.trim(); if(!t) return;
-    i.value=''; S.chat.push({me:true,txt:esc(t)}); S.chat.push({me:false,txt:recoSoir(t)}); vSoir();
+    i.value=''; S.chat.push({me:true,txt:esc(t)}); S.chat.push({me:false,txt:recoSoir(t)}); vSoirChat(f);
   }
   document.getElementById('chat-send').onclick=send;
   document.getElementById('chat-in').addEventListener('keydown',function(e){ if(e.key==='Enter') send(); });
   document.getElementById('chat-mic').onclick=function(){ voiceQuery(function(t){ document.getElementById('chat-in').value=t; }); };
-  document.querySelectorAll('[data-sug]').forEach(function(b){ b.onclick=function(){ var c=b.getAttribute('data-sug'); S.chat.push({me:true,txt:esc(c)}); S.chat.push({me:false,txt:recoSoir(c)}); vSoir(); }; });
+  document.querySelectorAll('[data-sug]').forEach(function(b){ b.onclick=function(){ var c=b.getAttribute('data-sug'); S.chat.push({me:true,txt:esc(c)}); S.chat.push({me:false,txt:recoSoir(c)}); vSoirChat(f); }; });
+  document.getElementById('soir-mode').onclick=function(){ f.mode='filtres'; soirSave(f); vSoir(); };
 }
 /* ===== v2.17 : moteur de suggestions « Que boire ce soir ? » =====
    Analyse de la demande (couleur, plat, occasion, budget, région, envie), table d’accords mets-vins,
