@@ -347,7 +347,7 @@ html.standalone .brand small{display:none}
 </head>
 <body>
 <div id="app"><aside>
- <div class="brand"><h1>Cave</h1><small>v2.16</small></div>
+ <div class="brand"><h1>Cave</h1><small>v2.17</small></div>
  <div class="mhead"><span id="msync" class="dot off" title="Synchronisation"></span></div>
  <nav class="nav" id="nav"></nav>
  <div class="gauges" id="gauges"></div>
@@ -371,7 +371,7 @@ html.standalone .brand small{display:none}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.16';
+var APPV='v2.17';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -1288,7 +1288,7 @@ function vSoir(){
   h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div></div>';
   h+='<div class="chatbox" id="chat"></div>';
   h+='<div class="chatin"><input type="text" id="chat-in" placeholder="Ex. rôti de veau, apéro léger, un rouge de garde…"><button class="btn sec" id="chat-mic" title="Dicter">🎤</button><button class="btn" id="chat-send">Envoyer</button></div>';
-  h+='<div class="chips" style="margin-top:12px">'+['Rôti de veau','Apéro léger','À boire maintenant'].map(function(c){ return '<button class="chip" data-sug="'+c+'">'+c+'</button>'; }).join('')+'</div>';
+  h+='<div class="chips" style="margin-top:12px">'+['Apéro léger','Rôti de veau','Poisson ou fruits de mer','Surprise 🎲','À boire maintenant'].map(function(c){ return '<button class="chip" data-sug="'+c+'">'+c+'</button>'; }).join('')+'</div>';
   document.getElementById('main').innerHTML=h;
   var box=document.getElementById('chat');
   box.innerHTML=S.chat.map(function(m){ return '<div class="msg '+(m.me?'me':'bot')+'">'+m.txt+'</div>'; }).join('');
@@ -1302,30 +1302,97 @@ function vSoir(){
   document.getElementById('chat-mic').onclick=function(){ voiceQuery(function(t){ document.getElementById('chat-in').value=t; }); };
   document.querySelectorAll('[data-sug]').forEach(function(b){ b.onclick=function(){ var c=b.getAttribute('data-sug'); S.chat.push({me:true,txt:esc(c)}); S.chat.push({me:false,txt:recoSoir(c)}); vSoir(); }; });
 }
+/* ===== v2.17 : moteur de suggestions « Que boire ce soir ? » =====
+   Analyse de la demande (couleur, plat, occasion, budget, région, envie), table d’accords mets-vins,
+   scoring : apogée + accord + cépage + région + note perso + stock (préservation des bouteilles uniques de garde),
+   relaxation progressive des filtres, diversité des couleurs et justification de chaque suggestion. */
+function normTxt(x){ return (''+(x==null?'':x)).toLowerCase()
+  .replace(/à|â|ä|á|ã/g,'a').replace(/è|é|ê|ë/g,'e').replace(/ì|í|î|ï/g,'i')
+  .replace(/ò|ó|ô|ö|õ/g,'o').replace(/ù|ú|û|ü/g,'u').replace(/ç/g,'c').replace(/œ/g,'oe'); }
+var ACCORDS=[
+ {re:/apero|aperitif/,pref:{'Rosé':12,'Effervescent':15,'Blanc':10,'Rouge':-4},hints:['chenin','chardonnay','grolleau','grenache','cinsault'],why:'pour l’apéritif, fraîcheur et bulles avant tout'},
+ {re:/roti de veau|veau|escalope|cotelette/,pref:{'Rouge':12,'Blanc':6},hints:['pinot noir','gamay','merlot','syrah'],why:'un rouge souple et fruité accompagne le veau'},
+ {re:/boeuf|entrecote|agneau|gibier|chevreuil|sanglier|civet|pigeon|magret|canard|daube|carbonnade/,pref:{'Rouge':16},hints:['syrah','cabernet','malbec','tannat','mourvedre','corbieres','bandol'],why:'un rouge structuré et tannique fera le contrepoint'},
+ {re:/poulet|volaille|dinde|pintade|risotto|champignon|truffe|cepe|creme/,pref:{'Blanc':10,'Rouge':8},hints:['chardonnay','chenin','pinot noir','viognier'],why:'un blanc rond ou un rouge tendre fera l’affaire'},
+ {re:/poisson|cabillaud|saumon|dorade|lotte|sole/,pref:{'Blanc':14},hints:['muscadet','chablis','sauvignon','chardonnay','riesling','aligote','picpoul'],why:'un blanc sec et vif sublimera le poisson'},
+ {re:/huitre|fruits? de mer|crustace|crevette|moule|coquillage|langoustine|bulot/,pref:{'Blanc':14,'Effervescent':8},hints:['muscadet','chablis','sauvignon','aligote','picpoul'],why:'fruits de mer : blanc vif ou bulles'},
+ {re:/chevre/,pref:{'Blanc':12},hints:['sauvignon','chenin'],why:'le chèvre aime l’acidité d’un blanc'},
+ {re:/fromage/,pref:{'Rouge':8,'Blanc':8},hints:['pinot noir','gamay','chenin','chardonnay'],why:'fromage : rouge souple ou blanc évolué'},
+ {re:/bleu|roquefort|fourme/,pref:{'Blanc':10,'Effervescent':6},sweet:1,hints:['sauternes','jurancon','monbazillac','gaillac'],why:'un vin doux équilibre le salé des pâtes bleues'},
+ {re:/dessert|chocolat|gateau|tarte|soupe de fruits|sucre/,pref:{'Rouge':-8},sweet:1,why:'côté dessert, on penche vers un vin doux'},
+ {re:/foie gras/,pref:{'Blanc':10},sweet:1,hints:['sauternes','jurancon','monbazillac'],why:'foie gras et moelleux, un classique'},
+ {re:/asiatique|indien|epice|thai|curry|chinois|ramen|cuisine du monde|wasabi/,pref:{'Blanc':10,'Rosé':8},hints:['gewurztraminer','riesling','pinot gris','muscat','arbois'],why:'les plats épicés préfèrent des blancs aromatiques'},
+ {re:/pizza|pates|tomate|italien|italie|osso buco/,pref:{'Rouge':10},hints:['grenache','syrah','sangiovese','barbera','cinsault'],why:'un rouge gouleyant et fruité'},
+ {re:/barbecue|grillade|merguez|saucisse|cote grillee/,pref:{'Rouge':12,'Rosé':6},hints:['syrah','grenache','malbec','cabernet'],why:'le grillé veut du fruit et de l’énergie'},
+ {re:/ete|soleil|terrasse|jardin|salade|picnic|pique nique|chaleur/,pref:{'Rosé':10,'Blanc':8,'Effervescent':6},hints:['provence','grolleau','chenin'],why:'par ce temps, fraîcheur avant tout'},
+ {re:/fete|noel|reveillon|anniversaire|mariage|grande occasion/,pref:{'Effervescent':16,'Blanc':6},hints:['champagne','cremant','bulle'],why:'une grande occasion, des bulles'},
+ {re:/porc|andouillette|cassoulet|charcuterie|terrine/,pref:{'Rouge':10},hints:['malbec','cabernet','syrah','gamay','chenin'],why:'ces plats tolèrent un rouge solide mais sans raideur'}
+];
+var APOSCORE={ok:26,vite:22,soon:14,none:6,past:-22,old:-32,early:-16};
 function recoSoir(t){
   var pool=current(); if(!pool.length) return 'Votre cave est vide — commencez par ajouter quelques bouteilles !';
-  var s=t.toLowerCase(); var wanted=[], notes=[];
-  if(/apéro|apero|léger|leger|rafraîch|rafrw+ch|frais/.test(s)) wanted=wanted.concat(['Blanc','Rosé','Effervescent']);
+  var s=normTxt(t);
+  var wanted=[];
   if(/rouge/.test(s)) wanted.push('Rouge');
   if(/blanc/.test(s)) wanted.push('Blanc');
-  if(/rosé|rose/.test(s)) wanted.push('Rosé');
-  if(/champagne|bulles|effervescent|mousseux|crémant|cremant|fête|fete/.test(s)) wanted.push('Effervescent');
-  if(/viande|boeuf|bœuf|agneau|gibier|rôti|roti|veau|civet|sauce/.test(s)){ wanted.push('Rouge'); notes.push('un rouge structuré tannique accompagnera bien'); }
-  if(/poisson|fruits de mer|fruit de mer|huître|huitre|sushi|crustacé|crustace/.test(s)) wanted.push('Blanc');
-  if(/fromage/.test(s)) notes.push('avec du fromage, privilégiez un rouge souple ou un blanc évolué');
-  if(/dessert|sucré|sucre|chocolat/.test(s)) wanted.push('Effervescent');
-  REGIONS.forEach(function(rg){ var rl=rg.toLowerCase(); if(s.indexOf(rl)>=0||s.indexOf(rl.replace('ô','o'))>=0) notes.push('côté '+rg); });
-  var picks=pool;
-  if(wanted.length) picks=picks.filter(function(r){ return wanted.indexOf(r.couleur)>=0; });
-  if(/maintenant|ce soir|prêt|pret|apogée|apogee/.test(s)) picks=picks.filter(function(r){ return inWindow(r)||!apYears(r); });
-  var ready=picks.filter(inWindow);
-  picks=ready.concat(picks.filter(function(r){ return !inWindow(r); })).slice(0,3);
-  if(!picks.length) return 'Je n’ai rien trouvé de tel en stock. Essayez autre chose — ou consultez l’écran Ma cave !';
-  var intro=notes.length? 'Très bien. Pour cette occasion, '+notes.join(', ')+' — voici mes suggestions :' : 'Voici ce que je vous propose ce soir :';
-  var out=intro+'\n\n';
-  picks.forEach(function(r,i){
-    out+='<b>'+(i+1)+'. '+esc(nomVin(r))+' '+esc(r.millesime)+'</b> — '+esc(r.appellation)+' ('+esc(r.region)+', '+esc(r.couleur)+')\n';
-    out+=(inWindow(r)? '✔ À son apogée ('+esc(r.apogee)+')' : 'Apogée : '+esc(r.apogee||'n.c.'))+' · ×'+r.qte+' en stock · '+locTxt(r)+'\n\n';
+  if(/\brose?s?\b/.test(s)) wanted.push('Rosé');
+  if(/champagne|effervescent|bulles|cremant|mousseux/.test(s)) wanted.push('Effervescent');
+  var mB=s.match(/(?:moins de|en dessous de|maximum|max de|budget de)\s*(\d+)/)||s.match(/(\d+)\s*(?:€|euros?\b)/);
+  var bud=mB? parseFloat(mB[1]) : null;
+  var wantGarde=/de garde|garder|puissan|riche|corpulen|massif|tanique|concentre/.test(s);
+  var wantLeger=/leger|legere|frais|fraicheur|gourmand|de soif|estiv/.test(s);
+  var wantNow=/maintenant|ce soir|pret|apogee|a boire/.test(s);
+  var isSurprise=/surprise|hasard|choisis|inspire|decide/.test(s);
+  var why=[], relax=[], pref={'Rouge':0,'Blanc':0,'Rosé':0,'Effervescent':0}, sweet=0, hints=[];
+  ACCORDS.forEach(function(a){ if(a.re.test(s)){ why.push(a.why); for(var k in a.pref) pref[k]+=a.pref[k]; if(a.sweet) sweet=1; hints=hints.concat(a.hints||[]); } });
+  var reg=null; REGIONS.forEach(function(rg){ if(!reg && rg!=='Autre' && s.indexOf(normTxt(rg))>=0) reg=rg; });
+  var picks=pool.slice();
+  if(bud!=null){ var fb=picks.filter(function(r){ var p=parseFloat(r.prix); return p>0 && p<=bud; }); if(fb.length) picks=fb; else relax.push('rien sous '+bud+' € en cave, j’élargis le budget'); }
+  if(wanted.length){ var fw=picks.filter(function(r){ return wanted.indexOf(r.couleur)>=0; }); if(fw.length) picks=fw; else relax.push('pas de '+wanted.join(' ni de ')+' disponible, j’élargis aux autres couleurs'); }
+  if(wantNow){ var fn=picks.filter(function(r){ var st=apoState(r); return st==='ok'||st==='vite'||st==='none'; }); if(fn.length) picks=fn; else relax.push('rien à maturité parfaite, je signale les plus prêtes'); }
+  var scored=picks.map(function(r){
+    var st=apoState(r), sc=APOSCORE[st]||0, rs=[];
+    sc+=pref[r.couleur]||0;
+    if(sweet && (r.style==='moelleux'||r.style==='vdn'||r.style==='jaune'||r.style==='paille')){ sc+=14; rs.push('profil doux adapté'); }
+    var hay=normTxt(r.cepages)+' '+normTxt(r.appellation);
+    for(var i=0;i<hints.length;i++){ if(hints[i] && hay.indexOf(hints[i])>=0){ sc+=9; rs.push('cépage adapté ('+hints[i]+')'); break; } }
+    if(reg && r.region===reg){ sc+=14; rs.push('région citée'); }
+    if(wantGarde){ if(isLongGarde(r)) sc+=12; if(st==='early') sc+=12; }
+    if(wantLeger && (r.couleur!=='Rouge' || !isLongGarde(r))) sc+=5;
+    if(isLongGarde(r) && r.qte===1 && st!=='vite' && st!=='past' && picks.length>2) sc-=8;
+    if(r.note && (''+r.note).length>2) sc+=3;
+    if(r.qte>=3) sc+=4; else if(r.qte===1) sc-=1;
+    if(isSurprise) sc+=Math.random()*8;
+    return {r:r,sc:sc,st:st,rs:rs};
+  });
+  scored.sort(function(a,b){ return b.sc-a.sc; });
+  var seen={}, dedup=[];
+  scored.forEach(function(x){ var k=normTxt(nomVin(x.r))+'|'+x.r.millesime; if(seen[k]) return; seen[k]=1; dedup.push(x); });
+  var res=[], usedCol={};
+  for(var i=0;i<dedup.length && res.length<3;i++){
+    var x=dedup[i];
+    if(usedCol[x.r.couleur] && dedup.length-i>3-res.length) continue;
+    res.push(x); usedCol[x.r.couleur]=1;
+  }
+  if(!res.length) return 'Je n’ai rien trouvé de tel en stock. Essayez autre chose — ou consultez l’écran Ma cave !';
+  var intro=(isSurprise? 'Tirage au sort parmi les meilleures options' : (why.length? 'Très bien — '+why.slice(0,2).join(' ; ')+'. Voici mes suggestions' : 'Voici ce que je vous propose ce soir'));
+  if(reg) intro+=' (côté '+reg+')';
+  var out=intro+' :'+(relax.length? '\n\nℹ️ '+relax.join(' ; '):'')+'\n\n';
+  res.forEach(function(x,i){
+    var r=x.r;
+    out+='<b>'+(i+1)+'. '+esc(nomVin(r))+(r.millesime? ' '+esc(r.millesime):'')+'</b> — '+esc(r.appellation||r.region||'')+(r.region? ' · '+esc(r.region):'')+' ('+esc(r.couleur)+')\n';
+    var bits=[];
+    if(x.st==='ok') bits.push('✔ à son apogée ('+esc(r.apogee)+')');
+    else if(x.st==='vite') bits.push('à ouvrir sans attendre ('+esc(r.apogee)+')');
+    else if(x.st==='soon') bits.push('bientôt prêt ('+esc(r.apogee)+')');
+    else if(x.st==='past') bits.push('apogée dépassée — à goûter');
+    else if(x.st==='old') bits.push('apogée dépassée depuis longtemps — à goûter sans tarder');
+    else if(x.st==='early') bits.push('encore jeune'+(r.apogee? ' (apogée '+esc(r.apogee)+')':''));
+    else bits.push('sans fenêtre d’apogée renseignée');
+    if(x.rs.length) bits.push(x.rs.join(' · '));
+    if(r.note) bits.push('votre note : « '+esc((''+r.note).slice(0,60))+' »');
+    out+=bits.join(' · ')+'\n';
+    out+='×'+r.qte+' en stock'+(r.prix? ' · '+esc(r.prix)+' €':'')+' · '+locTxt(r)+'\n\n';
   });
   return out+'Bonne dégustation ! 🥂';
 }
