@@ -176,13 +176,15 @@ input,select,textarea{width:100%}
 .stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:18px 0}
 .stepper button{width:52px;height:52px;border-radius:99px;border:1px solid var(--line);font-size:24px;background:var(--bg)}
 .stepper b{font-size:34px;min-width:60px;text-align:center}
-/* ===== v2.22 : visite accompagnée ===== */
-#tourbar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;background:var(--card);border:1.5px solid var(--acc);border-radius:16px;padding:13px 16px 15px;box-shadow:var(--shadow);display:none;max-width:720px;margin:0 auto}
+/* ===== v2.23 : visite accompagnée ===== */
+#tourbar{position:fixed;left:12px;right:12px;bottom:calc(150px + env(safe-area-inset-bottom));z-index:60;background:var(--card);border:1.5px solid var(--acc);border-radius:16px;padding:13px 16px 15px;box-shadow:var(--shadow);display:none;max-width:720px;margin:0 auto}
+#tourbar::after{content:'';position:absolute;bottom:-10px;left:50%;margin-left:-9px;border:9px solid transparent;border-top-color:var(--acc);border-bottom:none}
 #tourbar.show{display:block}
 #tourbar h3{font-size:17.5px;margin:3px 0 6px}
 #tourbar p{font-size:13.5px;line-height:1.55;margin:0}
 .tourhead{display:flex;justify-content:space-between;align-items:center}
 .tourhl{outline:3px solid var(--acc) !important;outline-offset:2px;border-radius:12px}
+#tabbar .tourhl{border-radius:0;outline-offset:-3px}
 /* ===== v2.11 : refonte (iPhone natif + cave nocturne, accent bordeaux) ===== */
 .ico{width:20px;height:20px;flex:none}
 .pastille{width:13px;height:13px;border-radius:50%;flex:none;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
@@ -420,7 +422,7 @@ html.selon main{padding-bottom:170px}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.22';
+var APPV='v2.23';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Étranger','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -661,7 +663,7 @@ function sampleRefs(){
     mk({domaine:'Domaine des Essais (exemple)',appellation:'Muscadet Sèvre et Maine',region:'Loire',couleur:'Blanc',millesime:String(y-4),cepages:'Melon de Bourgogne',qte:1,qteInit:3,apogee:(y-2)+' – '+(y+1),et:1}),
     mk({domaine:'Domaine de la Démonstration (exemple)',appellation:'Saint-Joseph',region:'Rhône',couleur:'Rouge',millesime:String(y-6),cepages:'Syrah',qte:6,apogee:(y-1)+' – '+(y+6),et:2}),
     mk({domaine:'Château Modèle (exemple)',appellation:'Bordeaux Supérieur',region:'Bordeaux',couleur:'Rouge',millesime:String(y-5),cepages:'Merlot, Cabernet Sauvignon',qte:3,apogee:(y+2)+' – '+(y+10),et:3}),
-    mk({domaine:'Clos de l’Exemple (exemple)',appellation:'Chablis',region:'Bourgogne',couleur:'Blanc',millesime:String(y-3),cepages:'Chardonnay',qte:2,apogee:(y-1)+' – '+(y+3),et:1})
+    mk({domaine:'Clos de l’Exemple (exemple)',appellation:'Chablis',region:'Bourgogne',couleur:'Blanc',millesime:String(y-8),cepages:'Chardonnay',qte:2,apogee:(y-5)+' – '+(y-2),et:1})
   ];
 }
 function hasSamples(){ return S.refs.some(function(r){ return r.exemple; }); }
@@ -726,7 +728,7 @@ function onbShow(){
     h+='<span class="eyebrow">Dernière étape</span><h2>Vous êtes prêt à démarrer 🍷</h2>';
     h+='<p class="onb-lead">Votre cave est configurée. Vous pouvez commencer seul — ou vous faire accompagner pour découvrir les principales fonctions, clic après clic.</p>';
     h+='<div class="formfoot" style="flex-direction:column;margin-top:18px"><button class="btn" id="onb-guided" type="button">🤝 Accompagne-moi (recommandé)</button><button class="btn sec" id="onb-solo" type="button">🚀 Démarrer tout seul</button></div>';
-    h+='<p class="hint" style="margin-top:14px">La visite couvre : la dictée, les filtres de la cave, le bouton ＋, les alertes, « Que boire ce soir ? » et vos réglages. Reprenable plus tard : Réglages → Revoir l\'accueil de démarrage.</p>';
+    h+='<p class="hint" style="margin-top:14px">La visite couvre : la dictée, les filtres et sorties dans Ma cave, le bouton ＋, les alertes, « Que boire ce soir ? » et vos réglages. Reprenable plus tard : Réglages → Revoir l\'accueil de démarrage.</p>';
   }
   if(s<3) h+='<div class="onb-foot">'+(s>0? '<button class="btn sec" id="onb-back" type="button">Retour</button>' : '<button class="btn sec" id="onb-skip" type="button">Plus tard</button>')+'<button class="btn" id="onb-next" type="button">'+(s<2? 'Suivant' : 'Continuer')+'</button></div>';
   if(s===1) h+='<button class="linkbtn onb-later" id="onb-later2" type="button">Passer cette étape</button>';
@@ -757,11 +759,12 @@ function onbSaveStep(){
   if(ONB.step===2){ var k=document.getElementById('onb-key'); if(k && k.value.trim() && !aiKey('gemini')){ lsSet('ai_provider','gemini'); lsSet('ai_key_gemini',k.value.trim()); } }
 }
 
-/* ===== v2.22 : visite accompagnée — bulles clic après clic ===== */
+/* ===== v2.23 : visite accompagnée — bulles clic après clic ===== */
+var SCRN={dash:'Accueil',cave:'Ma cave',alertes:'Alertes',soir:'Ce soir',reglages:'Réglages'};
 var TOURS=[
- {t:'Bienvenue dans votre cave', x:'Je vous montre l\'essentiel en quelques étapes courtes, une bulle à la fois — dans l\'ordre des boutons, de gauche à droite. Vous pouvez quitter à tout moment (✕ en haut à droite).', b:'C\'est parti'},
+ {t:'Bienvenue dans votre cave', x:'Je vous montre l\'essentiel, une bulle à la fois, en suivant les boutons du bas de gauche à droite. Regardez l\'onglet surligné pour savoir où vous êtes. Quittez à tout moment avec ✕.', b:'C\'est parti'},
  {sel:['#fab-mic'], t:'La dictée : parler à la cave', x:'Pour que la fiche se remplisse toute seule, nommez <b>distinctement</b> : <b>domaine</b> (« domaine Leflaive »), <b>appellation</b> (« Puligny-Montrachet »), <b>millésime</b> (« 2019 »), <b>zone de stockage</b> (« cave frigo, étagère 2 »). Exemple : « J\'ai acheté six Leflaive Puligny-Montrachet 2019, cave frigo, étagère 2. »', b:'Suivant'},
- {view:'cave', sel:'.sortseg', t:'Naviguer dans votre cave', x:'Filtrez par couleur ou par zone de rangement, triez par Régions, Millésime ou Apogée. La recherche accepte les fautes de frappe.', b:'Suivant'},
+ {view:'cave', sel:['.minus','.sortseg'], t:'Ma cave : naviguer et sortir une bouteille', x:'Pour <b>sortir</b> une bouteille bue, touchez « <b>−1</b> » sur sa fiche — ou passez par le bouton ＋ puis « Sortir une bouteille ». Pour explorer : filtrez par couleur ou zone de rangement, triez par Régions, Millésime ou Apogée ; la recherche accepte les fautes de frappe.', b:'Suivant'},
  {view:'dash', sel:['#tabbar [data-tab="plus"]','#d-add'], t:'Le bouton ＋ : ajouter une bouteille', x:'La saisie classique, champ par champ, quand vous préférez taper plutôt que dicter — ou pour modifier une fiche plus tard. La dictée reste le plus rapide.', b:'Suivant'},
  {view:'alertes', sel:'.chips', t:'Les alertes, d\'un coup d\'œil', x:'Critiques, stock bas, apogées, données à vérifier, à racheter… tout est là, filtrable. L\'appli veille pendant que vous ne pensez à rien.', b:'Suivant'},
  {view:'soir', sel:'#soir-mode', t:'Que boire ce soir ?', x:'Filtrez par couleur, occasion, gamme — ou décrivez votre envie au chat : l\'IA pioche dans votre cave pour vous proposer la bouteille idéale.', b:'Suivant'},
@@ -786,11 +789,14 @@ function tourShow(){
     if(!TOUR || TOUR.i!==i) return;
     document.querySelectorAll('.tourhl').forEach(function(e){ e.classList.remove('tourhl'); });
     if(st.open!==undefined){ var ds=document.querySelectorAll('#main details.panel'); if(ds && ds[st.open]) ds[st.open].open=true; }
-    var el=null;
+    var vw=st.view||S.view, el=null;
     if(st.sel){ var sels=Array.isArray(st.sel)? st.sel : [st.sel]; for(var k=0;k<sels.length;k++){ el=document.querySelector(sels[k]); if(el) break; } }
+    var tbtab=document.querySelector('#tabbar [data-tab="'+(vw==='reglages'? 'dash' : vw)+'"]');
+    if(tbtab) tbtab.classList.add('tourhl');
     if(el){ el.classList.add('tourhl'); try{ el.scrollIntoView({block:'center'}); }catch(e){} }
+    var scr=SCRN[vw]? 'Écran '+SCRN[vw]+' · ' : '';
     var tb=document.getElementById('tourbar');
-    tb.innerHTML='<div class="tourhead"><span class="eyebrow">Visite accompagnée · '+(i+1)+'/'+TOURS.length+'</span><button class="dclose" id="tour-x" type="button" aria-label="Quitter la visite">✕</button></div><h3>'+st.t+'</h3><p>'+st.x+'</p><div class="formfoot" style="margin-top:10px"><button class="btn" id="tour-next" type="button">'+st.b+'</button><button class="linkbtn" id="tour-skip" type="button">Quitter la visite</button></div>';
+    tb.innerHTML='<div class="tourhead"><span class="eyebrow">'+scr+'étape '+(i+1)+'/'+TOURS.length+'</span><button class="dclose" id="tour-x" type="button" aria-label="Quitter la visite">✕</button></div><h3>'+st.t+'</h3><p>'+st.x+'</p><div class="formfoot" style="margin-top:10px"><button class="btn" id="tour-next" type="button">'+st.b+'</button><button class="linkbtn" id="tour-skip" type="button">Quitter la visite</button></div>';
     tb.classList.add('show');
     document.getElementById('tour-x').onclick=tourEnd;
     document.getElementById('tour-skip').onclick=tourEnd;
