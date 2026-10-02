@@ -412,7 +412,7 @@ html.selon main{padding-bottom:170px}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.20';
+var APPV='v2.20.1';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Étranger','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -810,7 +810,7 @@ function odPull(){
   }).then(function(csv){
     if(csv===null){ odPush(); return true; }
     var norm=csv.replace(/\r/g,'');
-    if(norm!==OD.lastSnap){ var refs=parseCSV(norm); if(refs.length||S.refs.length===0){ S.refs=refs; localSave(); zonesAdopt(); } OD.lastSnap=norm; localStorage.setItem('od_snap',norm); }
+    if(norm!==OD.lastSnap){ var refs=parseCSV(norm); if(refs.length||S.refs.length===0){ try{ if(S.refs.length) localStorage.setItem('cave-avant-relecture',JSON.stringify({t:Date.now(),refs:S.refs})); }catch(e){} S.refs=refs; localSave(); zonesAdopt(); } OD.lastSnap=norm; localStorage.setItem('od_snap',norm); }
     odStatus('ok','OneDrive synchronisé · cave-data.csv');
     return true;
   }).catch(function(){ odStatus('err','OneDrive indisponible'); return false; });
@@ -1003,7 +1003,7 @@ function vReglages(){
     h+='<label class="z-chk" style="padding-top:7px"><input type="checkbox" data-altype="'+t[0]+'"'+(ac.types[t[0]]!==false?' checked':'')+'> '+t[1]+'</label>'; });
   h+='<p class="hint" style="margin-top:8px">Les alertes d’apogée sont gérées à part.</p></details>';
   h+='<details class="panel"><summary>Synchronisation</summary><div id="m-sync" style="font-size:14px;margin-bottom:12px"><span class="dot '+ODST.kind+'"></span>'+esc(ODST.label)+'</div>';
-  h+='<div class="formfoot" style="flex-direction:column;margin-top:0"><button class="btn sec" id="m-cfg">Réglages OneDrive…</button><button class="btn sec" id="m-pull">Relire depuis OneDrive</button><button class="btn sec" id="m-exp">Exporter une copie (.json)</button><button class="btn sec" id="m-imp">Importer un fichier .json</button></div></details>';
+  h+='<div class="formfoot" style="flex-direction:column;margin-top:0"><button class="btn sec" id="m-cfg">Réglages OneDrive…</button><button class="btn sec" id="m-pull">Relire depuis OneDrive</button><button class="btn sec" id="m-exp">Exporter une copie (.json)</button><button class="btn sec" id="m-imp">Importer un fichier .json</button><button class="btn sec" id="m-recup">♻ Récupérer depuis la mémoire IA…</button></div></details>';
   h+='<details class="panel"><summary>Dictée et assistant</summary><label>Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
   h+='<p class="hint" style="margin:6px 0 16px">Reconnaissance intégrée : '+(hasSR()?'disponible dans ce navigateur':'non disponible ici (dictée par le clavier)')+(isStandalone()?' · appli écran d’accueil':'')+'</p>';
   h+=aiSettingsHTML()+'</details>';
@@ -1025,6 +1025,7 @@ function vReglages(){
   document.getElementById('m-voice').onchange=function(){ try{ localStorage.setItem('cave-voice',this.value); }catch(e){} toast('Mode de dictée enregistré'); };
   document.getElementById('m-pull').onclick=function(){ odPull().then(function(ok){ render(); toast(ok?'Fichier OneDrive relu':'OneDrive non connecté ou indisponible'); }); };
   document.getElementById('m-exp').onclick=doExport;
+  document.getElementById('m-recup').onclick=function(){ recupPanel(3); };
   document.getElementById('m-imp').onclick=function(){ document.getElementById('fileinput').click(); };
 }
 var PCLS={'Rouge':'rouge','Blanc':'blanc','Rosé':'rose','Effervescent':'eff'};
@@ -3269,6 +3270,97 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
   // une nouvelle version vient d'être installée → rechargement automatique une seule fois
   var swReloaded=false, hadCtl=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange',function(){ if(swReloaded||!hadCtl||location.search) return; swReloaded=true; location.reload(); });
+}
+
+/* --- v2.20.1 : Récupération depuis la mémoire IA (ai_cache) — fiches perdues lors d'une relecture OneDrive --- */
+function recupCache(){ try{ return JSON.parse(localStorage.getItem('ai_cache')||'{}')||{}; }catch(e){ return {}; } }
+function recupTitle(s){ return String(s||'').replace(/(^|[\s\-'’])([a-zà-ÿ])/g,function(m,a,b){ return a+b.toUpperCase(); }); }
+function recupDate(t){ var d=new Date(t); return d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+function recupKnown(c){ var d=noAcc(c.domaine).trim(), m=String(c.millesime||'').trim(); if(!d) return null;
+  return S.refs.find(function(r){ return noAcc(r.domaine).trim()===d && String(r.millesime||'').trim()===m; })||null; }
+function recupScan(sinceMs){
+  var c=recupCache(), cands={}, infos=[], order=[];
+  function put(f,t,src,txt,exact){
+    f=f||{}; var dom=String(f.domaine||'').trim(), app=String(f.appellation||'').trim();
+    if(!dom && !app) return false;
+    var k=noAcc(dom)+'|'+noAcc(app)+'|'+String(f.millesime||'').trim();
+    var x=cands[k]; if(!x){ x=cands[k]={f:{},t:t,src:[],txt:[]}; order.push(k); }
+    Object.keys(f).forEach(function(n){ var v=f[n]; if(v===null||v===undefined||v==='') return; if(x.f[n]===undefined||x.f[n]===''||(exact&&!x.exact)) x.f[n]=v; });
+    if(exact) x.exact=true; if(exact && f.apogee) x.apoDict=true;
+    x.t=Math.min(x.t,t); if(x.src.indexOf(src)<0) x.src.push(src); if(txt && x.txt.indexOf(txt)<0) x.txt.push(txt);
+    return true;
+  }
+  Object.keys(c).forEach(function(key){
+    var e=c[key]; if(!e || !e.t || e.t<sinceMs) return; var v=e.v||{}, p=key.split('|');
+    if(p[0]==='ajout'){
+      var txt=p.slice(1,p.length-1).join('|');
+      if(v.intention==='reassort' && v.refId){ var rr=refById(v.refId); infos.push({t:e.t,txt:'Réassort dicté : « '+txt+' » → '+(rr? nomVin(rr)+' '+rr.millesime : 'fiche introuvable')+(v.qte? ' (+'+v.qte+')' : '')}); return; }
+      if(!put(v.fiche,e.t,'dictée',txt,true)) infos.push({t:e.t,txt:'Dictée partielle : « '+txt+' »'+(v.fiche&&Object.keys(v.fiche).length? ' → '+JSON.stringify(v.fiche) : '')});
+    } else if(p[0]==='e'){
+      var f={domaine:recupTitle(p[1]),cuvee:recupTitle(p[2]),appellation:recupTitle(p[3]),couleur:recupTitle(p[4]),millesime:p[5]};
+      if(v.appellation && !f.appellation) f.appellation=v.appellation; if(v.apogee) f.apogee=v.apogee;
+      put(f,e.t,'complément IA');
+    } else if(p[0]==='bf'||p[0]==='bo'){
+      var arr=null; try{ arr=JSON.parse(key.slice(3)); }catch(er){}
+      (arr||[]).forEach(function(o){ if(refById(o.id)) return;   // fiche encore en cave : rien à récupérer
+        var res=((v.res||[]).find(function(y){ return y.id===o.id; }))||{};
+        var f={domaine:recupTitle(res.domaine||o.domaine),cuvee:recupTitle(res.cuvee||o.cuvee),appellation:recupTitle(o.appellation),couleur:recupTitle(o.couleur),millesime:o.millesime};
+        if(res.apogee) f.apogee=res.apogee; if(res.cepages) f.cepages=res.cepages; if(res.region) f.region=res.region;
+        put(f,e.t,'« Compléter par IA »'); });
+    } else if(p[0]==='mouv'){
+      var tx=p.slice(1,p.length-1).join('|'), rf=refById(v.refId);
+      infos.push({t:e.t,txt:'Mouvement dicté ('+(v.intention||'?')+') : « '+tx+' »'+(rf? ' → '+nomVin(rf)+' '+rf.millesime : '')+(v.qte? ' ×'+v.qte : '')});
+    }
+  });
+  var list=order.map(function(k){ var x=cands[k]; x.known=recupKnown(x.f); return x; }).sort(function(a,b){ return a.t-b.t; });
+  infos.sort(function(a,b){ return a.t-b.t; });
+  return {list:list,infos:infos,total:Object.keys(c).length};
+}
+function recupToRef(x){
+  var f=x.f, ie=null; try{ ie=f.appellation? inaoFind(f.appellation) : null; }catch(e){}
+  var zid='', zs=f.zone? ZONES.find(function(z){ return noAcc(z.nom)===noAcc(f.zone)||z.id===f.zone; }) : null; if(zs) zid=zs.id;
+  var d=new Date(x.t), dm=(d.getMonth()+1)+'/'+d.getFullYear(), q=Math.max(1,parseInt(f.qte,10)||1);
+  var col=f.couleur? COULEURS.find(function(c){ return noAcc(c)===noAcc(f.couleur); })||'' : '';
+  if(!col && ie && ie.c && ie.c.length===1) col=ie.c[0];
+  var o={ apoSrc:'', style:'', format:'', domaine:String(f.domaine||''), cuvee:String(f.cuvee||''), prixEstime:false, couleur:col, region:String(f.region||(ie&&ie.r)||''), appellation:ie? ie.n : String(f.appellation||''), millesime:String(f.millesime||''), cepages:String(f.cepages||''), qte:q, seuil:null, zone:zid||(ZONES[0]&&ZONES[0].id)||'', etagere:null, apogee:'', prix:f.prix? (parseFloat(String(f.prix).replace(',','.'))||null) : null, note:'♻ Récupérée depuis la mémoire IA le '+new Date().toLocaleDateString('fr-FR')+' — vérifier quantité, emplacement, étagère.'+(f.note? ' '+f.note : ''), dateEntree:dm };
+  var z=zoneById(o.zone); if(z.et>0 && f.etagere){ var et=parseInt(f.etagere,10); if(et>=1 && et<=z.et) o.etagere=et; }
+  if(f.apogee){ o.apogee=String(f.apogee); o.apoSrc=x.apoDict? 'saisie' : 'ia'; }
+  else { try{ var g=apoRule(o); if(g&&g.v){ o.apogee=g.v; o.apoSrc='regle'; } }catch(e){} }
+  o.qteInit=q; o.id=id(); o.lots=[{qte:q,date:dm}];
+  return o;
+}
+function recupExport(){
+  var raw=localStorage.getItem('ai_cache')||'{}';
+  try{ var blob=new Blob([raw],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='memoire-ia-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){}
+  try{ localStorage.setItem('ai_cache_copie_'+new Date().toISOString().slice(0,10),raw); }catch(e){}
+  toast('Copie de la mémoire IA exportée');
+}
+function recupPanel(days){
+  days=days||3;
+  var since=Date.now()-days*86400000, r=recupScan(since);
+  var h='<span class="eyebrow">Secours</span><h3 style="margin:4px 0 8px">Récupérer depuis la mémoire IA</h3>';
+  h+='<p class="hint" style="margin:0 0 10px">La mémoire IA de cet appareil contient '+r.total+' réponse(s). Affichage des '+days+' dernier(s) jour(s). Seules les dictées envoyées à l’IA (et les compléments IA) y figurent : les fiches comprises en local sans IA n’y sont pas. Les noms issus des compléments sont sans accents : à relire.</p>';
+  h+='<div class="formfoot" style="flex-direction:column;margin:0 0 12px"><button class="btn sec" id="rc-exp" type="button">1. Exporter une copie brute de la mémoire IA (.json)</button>';
+  h+='<div style="display:flex;gap:8px"><button class="btn sm sec" data-rcd="1" type="button">24 h</button><button class="btn sm sec" data-rcd="3" type="button">3 jours</button><button class="btn sm sec" data-rcd="30" type="button">30 jours</button></div></div>';
+  if(!r.list.length) h+='<p class="banner">Aucun vin retrouvé sur cette période.</p>';
+  else {
+    h+='<p style="margin:6px 0"><b>'+r.list.length+'</b> vin(s) retrouvé(s). Cochés par défaut : ceux absents de la cave actuelle.</p>';
+    r.list.forEach(function(x,i){ var f=x.f;
+      h+='<label class="z-chk" style="display:block;padding:9px 0;border-top:1px solid var(--line,#ddd)"><input type="checkbox" data-rc="'+i+'"'+(x.known?'':' checked')+'> <b>'+esc([f.domaine,f.cuvee].filter(Boolean).join(' · ')||'(domaine ?)')+'</b> '+esc(f.millesime||'')+'<br><span class="hint">'+esc([f.appellation,f.couleur,f.qte? '×'+f.qte : '',f.zone,f.etagere? 'étagère '+f.etagere : ''].filter(Boolean).join(' · '))+' — '+recupDate(x.t)+' · source : '+esc(x.src.join(', '))+(x.known? ' · <b>déjà en cave</b> ('+esc(nomVin(x.known))+', ×'+x.known.qte+')' : '')+'</span>'+(x.txt.length? '<br><span class="hint">Dicté : « '+esc(x.txt.join(' » / « '))+' »</span>' : '')+'</label>'; });
+    h+='<div class="formfoot"><button class="btn" id="rc-go" type="button">Créer les fiches cochées</button></div>';
+  }
+  if(r.infos.length){ h+='<details class="panel" style="margin-top:12px"><summary>Autres dictées retrouvées ('+r.infos.length+') — à traiter à la main</summary>'; r.infos.forEach(function(i){ h+='<p class="hint" style="margin:6px 0">'+recupDate(i.t)+' — '+esc(i.txt)+'</p>'; }); h+='</details>'; }
+  drawerOpen(h,{stack:true});
+  document.getElementById('rc-exp').onclick=recupExport;
+  document.querySelectorAll('[data-rcd]').forEach(function(b){ b.onclick=function(){ recupPanel(parseInt(b.getAttribute('data-rcd'),10)); }; });
+  var go=document.getElementById('rc-go'); if(go) go.onclick=function(){
+    var pick=[]; document.querySelectorAll('[data-rc]').forEach(function(cb){ if(cb.checked) pick.push(r.list[parseInt(cb.getAttribute('data-rc'),10)]); });
+    if(!pick.length){ toast('Aucune fiche cochée'); return; }
+    if(!confirm('Créer '+pick.length+' fiche(s) ? Elles seront marquées « Récupérée » dans la note, à vérifier.')) return;
+    try{ localStorage.setItem('cave-avant-recup',JSON.stringify(S.refs)); }catch(e){}
+    pick.forEach(function(x){ S.refs.push(recupToRef(x)); });
+    closeDrawer(); save(); toast(pick.length+' fiche(s) récupérée(s) — à vérifier');
+  };
 }
 </script>
 </body>
