@@ -176,18 +176,13 @@ input,select,textarea{width:100%}
 .stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:18px 0}
 .stepper button{width:52px;height:52px;border-radius:99px;border:1px solid var(--line);font-size:24px;background:var(--bg)}
 .stepper b{font-size:34px;min-width:60px;text-align:center}
-/* ===== v2.21 : bien démarrer + découverte progressive ===== */
-.btn,.lrow,.chkitem{position:relative}
-.newdot::after{content:'';position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:99px;background:var(--w-rose);border:2px solid var(--card);box-shadow:0 0 0 1px var(--line);pointer-events:none}
-.chkpanel .chkhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.chklist{display:flex;flex-direction:column;gap:2px;margin-top:8px}
-.chkitem{display:flex;align-items:flex-start;gap:10px;text-align:left;font-size:13.5px;padding:7px 4px;color:var(--ink);border-bottom:1px solid var(--line)}
-.chkitem:last-child{border-bottom:none}
-.chkbox{flex:none;width:20px;height:20px;border-radius:7px;border:1.5px solid var(--line);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:12px;margin-top:1px}
-.chkitem.done{color:var(--muted)}
-.chkitem.done .chkbox{background:var(--ok-bg);border-color:var(--green);color:var(--green)}
-.chkitem.done span:last-child{text-decoration:line-through;text-decoration-color:var(--line)}
-.coachbox{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.9;margin-top:10px}
+/* ===== v2.22 : visite accompagnée ===== */
+#tourbar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;background:var(--card);border:1.5px solid var(--acc);border-radius:16px;padding:13px 16px 15px;box-shadow:var(--shadow);display:none;max-width:720px;margin:0 auto}
+#tourbar.show{display:block}
+#tourbar h3{font-size:17.5px;margin:3px 0 6px}
+#tourbar p{font-size:13.5px;line-height:1.55;margin:0}
+.tourhead{display:flex;justify-content:space-between;align-items:center}
+.tourhl{outline:3px solid var(--acc) !important;outline-offset:2px;border-radius:12px}
 /* ===== v2.11 : refonte (iPhone natif + cave nocturne, accent bordeaux) ===== */
 .ico{width:20px;height:20px;flex:none}
 .pastille{width:13px;height:13px;border-radius:50%;flex:none;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
@@ -413,6 +408,7 @@ html.selon main{padding-bottom:170px}
 <button id="fab-mic" aria-label="Parler à la cave"></button>
 <div id="voicebar" role="button" aria-label="Arrêter l’écoute"></div>
 <div id="aisug"></div>
+<div id="tourbar" role="dialog" aria-label="Visite accompagnée"></div>
 <div id="selbar" role="toolbar" aria-label="Sélection"></div>
 <datalist id="inao-list"></datalist>
 <datalist id="cep-list"></datalist>
@@ -424,7 +420,7 @@ html.selon main{padding-bottom:170px}
 <div id="onb" role="dialog" aria-label="Premier lancement"></div>
 <input type="file" id="fileinput" accept=".json,application/json" hidden></div>
 <script>
-var APPV='v2.21';
+var APPV='v2.22';
 var S = { refs: [], view: 'dash', search: '', filter: 'Tous', editId: null, chat: [], dict: '', sort: (function(){ try{ return localStorage.getItem('cave-sort')||'reg'; }catch(e){ return 'reg'; } })() };
 var REGIONS = ['Bourgogne','Rhône','Loire','Beaujolais','Alsace','Bordeaux','Provence','Champagne','Languedoc','Sud-Ouest','Jura','Savoie','Corse','Normandie','Nord-Est','Île-de-France','Étranger','Autre'];
 var COULEURS = ['Rouge','Blanc','Rosé','Effervescent'];
@@ -624,7 +620,6 @@ function zonesCommit(draft){
 }
 zonesInit();
 function zonesPanel(){
-  chkDone('reglages');
   var draft=JSON.parse(JSON.stringify(ZONES));
   function draw(){
     drawerOpen('<span class="eyebrow">Réglages</span><h3 style="margin:4px 0 12px">Ma cave : zones de rangement</h3>'+zoneEditorHTML(draft)+'<div class="formfoot"><button class="btn" id="zp-ok">Enregistrer</button><button class="btn sec" id="zp-no">Annuler</button></div>');
@@ -675,61 +670,6 @@ function removeSamples(){
   S.refs=S.refs.filter(function(r){ return !r.exemple; }); save(); toast(n+' vin'+(n>1?'s':'')+' d’exemple supprimé'+(n>1?'s':''));
 }
 
-/* ===== v2.21 : accompagnement « Bien démarrer » + découverte progressive ===== */
-var CHK_KEY='cave-checklist', CHK_HIDE_KEY='cave-checklist-hide';
-var CHK=[
- {id:'dictee',   t:'Ajouter une bouteille par la dictée (bouton micro)', h:'Nommez distinctement les 4 champs de base : domaine, appellation, millésime, zone de stockage. Ex. : « Domaine Leflaive, Puligny-Montrachet 2019, cave frigo, étagère 2 ».'},
- {id:'ia',       t:'Faire compléter les fiches par l’IA', h:'Réglages → Ma cave → « Vérifier et compléter les fiches » : couleur, région, apogée… complétées par l’IA ou le référentiel.'},
- {id:'filtres',  t:'Naviguer dans la cave par apogée, millésime, région…', h:'Écran Ma cave : tri par Millésime ou Apogée, filtres par couleur et par zone de rangement.'},
- {id:'reglages', t:'Modifier vos réglages perso (zones, table d’apogée, alertes)', h:'Réglages → Ma cave : zones de rangement et table de garde ; Réglages → Alertes : types et seuils.'},
- {id:'alertes',  t:'Consulter les principales alertes (critiques, stocks, apogées, données)', h:'Onglet Alertes : filtres Critiques, Stock bas, Apogée, Données, À racheter…'},
- {id:'soir',     t:'Chercher « Que boire ce soir ? » une première fois', h:'Onglet Ce soir : filtrez par couleur, occasion, gamme — ou décrivez votre envie au chat.'}
-];
-function chkState(){ try{ return JSON.parse(localStorage.getItem(CHK_KEY)||'{}')||{}; }catch(e){ return {}; } }
-function chkDone(id){
-  var st=chkState(); if(st[id]) return; st[id]=1;
-  try{ localStorage.setItem(CHK_KEY,JSON.stringify(st)); }catch(e){}
-  var n=CHK.filter(function(x){ return st[x.id]; }).length;
-  if(n>=CHK.length){ try{ localStorage.setItem(CHK_HIDE_KEY,'1'); }catch(e){} toast('« Bien démarrer » terminé 🎉 — tout est découvert'); }
-  else toast('« Bien démarrer » · '+n+'/'+CHK.length+' ✓');
-  if(S.view==='dash') render();
-}
-function chkCount(){ var st=chkState(); return CHK.filter(function(x){ return st[x.id]; }).length; }
-function chkBlock(){
-  var st=chkState(), n=chkCount();
-  var next=CHK.find(function(x){ return !st[x.id]; });
-  var h='<div class="panel chkpanel"><div class="chkhead"><span class="eyebrow">Bien démarrer</span><span class="hint">'+n+'/'+CHK.length+'</span><button class="linkbtn" id="chk-hide" type="button">Masquer</button></div><div class="chklist">';
-  CHK.forEach(function(x){ h+='<button type="button" class="chkitem'+(st[x.id]?' done':'')+'" data-chk="'+x.id+'"><span class="chkbox">'+(st[x.id]?'✓':'')+'</span><span>'+esc(x.t)+'</span></button>'; });
-  h+='</div>'+(next? '<p class="hint" style="margin-top:10px"><b>'+esc(next.t)+' :</b> '+esc(next.h)+'</p>' : '')+'</div>';
-  return h;
-}
-function chkBind(){
-  var hb=document.getElementById('chk-hide'); if(hb) hb.onclick=function(){ try{ localStorage.setItem(CHK_HIDE_KEY,'1'); }catch(e){} render(); };
-  document.querySelectorAll('[data-chk]').forEach(function(b){ b.onclick=function(){ chkGo(b.getAttribute('data-chk')); }; });
-}
-function chkGo(id){
-  if(id==='dictee') return voiceAssistant();
-  if(id==='ia') return batchPanel();
-  if(id==='filtres') return go('cave',{push:true});
-  if(id==='reglages') return go('reglages',{push:true});
-  if(id==='alertes') return go('alertes',{push:true});
-  if(id==='soir') return go('soir',{push:true});
-}
-function chkReopen(){ try{ localStorage.removeItem(CHK_HIDE_KEY); }catch(e){} go('dash'); toast(chkCount()>=CHK.length? 'Parcours terminé — à revoir quand vous voulez' : 'Votre parcours « Bien démarrer »'); }
-/* Première utilisation d'une fonction : pastille + bulle, une seule fois */
-function seenIs(k){ try{ return !!localStorage.getItem('cave-seen-'+k); }catch(e){ return false; } }
-function seenMark(k){ try{ localStorage.setItem('cave-seen-'+k,'1'); }catch(e){} }
-function seenOnce(k,msg){ if(seenIs(k)) return false; seenMark(k); render(); if(msg) toast(msg); return true; }
-function micCoach(){
-  var h='<span class="eyebrow">Dictée</span><h3 style="margin:4px 0 10px">Bien nommer l’essentiel</h3>';
-  h+='<p style="font-size:14px;line-height:1.5">Pour que la fiche se remplisse toute seule, nommez <b>distinctement</b> les 4 champs de base :</p>';
-  h+='<div class="coachbox"><b>Domaine</b> — « domaine Leflaive »<br><b>Appellation</b> — « Puligny-Montrachet »<br><b>Millésime</b> — « 2019 »<br><b>Zone de stockage</b> — « cave frigo, étagère 2 »</div>';
-  h+='<p class="hint" style="margin:10px 0 0">Exemple : « J’ai acheté six Leflaive Puligny-Montrachet 2019, à 65 euros, cave frigo, étagère 2. »</p>';
-  h+='<div class="formfoot" style="margin-top:14px"><button class="btn" id="coach-ok" type="button">C’est noté 🎤</button></div>';
-  drawerOpen(h);
-  document.getElementById('coach-ok').onclick=function(){ closeDrawer(); seenMark('mic'); render(); voiceAssistant(); };
-}
-
 /* --- Guides pas à pas --- */
 function guideMS(){
   return '<details class="guide"><summary>Je n’ai pas de compte Microsoft</summary><ol>'+
@@ -750,7 +690,7 @@ function guideGemini(){
    '</ol><p class="hint">À savoir : l’offre gratuite a des quotas (le service peut être saturé par moments ; la dictée marche alors sans IA). Avec l’offre gratuite, Google indique que les contenus envoyés peuvent servir à améliorer ses produits : ici, la phrase dictée et le nom de vos vins. N’activez pas la facturation, elle n’est pas nécessaire. Gardez la clé pour vous : elle reste enregistrée sur cet appareil uniquement.</p></details>';
 }
 
-/* --- Premier lancement : 3 écrans, tous passables --- */
+/* --- Premier lancement : 3 écrans de config, puis choix « seul ou accompagné » --- */
 var ONB={step:0,draft:null};
 function needOnboarding(){ try{ return !localStorage.getItem('cave-onboard'); }catch(e){ return false; } }
 function onbFinish(){
@@ -761,7 +701,7 @@ function onbFinish(){
 }
 function onbShow(){
   var o=document.getElementById('onb'); o.classList.add('open'); document.body.classList.add('noscroll');
-  var s=ONB.step, h='<div class="onb-in"><div class="onb-dots">'+[0,1,2].map(function(i){ return '<span class="'+(i===s?'on':'')+'"></span>'; }).join('')+'</div>';
+  var s=ONB.step, h='<div class="onb-in"><div class="onb-dots">'+[0,1,2,3].map(function(i){ return '<span class="'+(i===s?'on':'')+'"></span>'; }).join('')+'</div>';
   if(s===0){
     h+='<span class="eyebrow">Bienvenue</span><h2>Votre cave à jour, sans y penser.</h2>';
     h+='<p class="onb-lead">Une bouteille arrive ? Dites-la au micro, la fiche se remplit toute seule. Une bouteille s’ouvre ? Un geste sur « −1 ». Votre cave est toujours à jour… et vous savez quoi ouvrir ce soir.</p>';
@@ -772,17 +712,23 @@ function onbShow(){
   }
   if(s===1){
     if(!ONB.draft) ONB.draft=JSON.parse(JSON.stringify(ZONES));
-    h+='<span class="eyebrow">Étape 2 sur 3</span><h2>Où rangez-vous vos bouteilles ?</h2>';
+    h+='<span class="eyebrow">Étape 2 sur 4</span><h2>Où rangez-vous vos bouteilles ?</h2>';
     h+='<p>Une zone par lieu de stockage : cave à vin, cellier, garage… Indiquez les étagères si vous voulez les numéroter.</p>'+zoneEditorHTML(ONB.draft);
   }
   if(s===2){
-    h+='<span class="eyebrow">Étape 3 sur 3 · facultatif</span><h2>Options</h2>';
+    h+='<span class="eyebrow">Étape 3 sur 4 · facultatif</span><h2>Options</h2>';
     h+='<div class="panel"><h3>Utiliser la cave sur plusieurs appareils</h3><p class="hint" style="margin:6px 0 10px">Par défaut, la cave vit sur cet appareil (sauvegarde possible par export). Pour la retrouver aussi sur ordinateur, connectez <b>votre</b> OneDrive : un fichier Cave/cave-data.csv y sera tenu à jour.</p>';
     h+='<button class="btn sec" id="onb-od" type="button">Connecter OneDrive</button>'+guideMS()+'</div>';
     h+='<div class="panel"><h3>Dictée intelligente (IA)</h3><p class="hint" style="margin:6px 0 10px">Sans IA, la dictée fonctionne déjà (analyse sur l’appareil). Avec une clé Google Gemini gratuite, elle comprend mieux les phrases libres et estime l’apogée.</p>';
     h+=guideGemini()+'<input type="password" id="onb-key" autocomplete="off" placeholder="Coller la clé Gemini ici" style="margin-top:10px"><div class="formfoot" style="margin-top:8px"><button class="btn sm sec" id="onb-test" type="button">Tester</button></div><p class="hint" id="onb-res"></p></div>';
   }
-  h+='<div class="onb-foot">'+(s>0? '<button class="btn sec" id="onb-back" type="button">Retour</button>' : '<button class="btn sec" id="onb-skip" type="button">Plus tard</button>')+'<button class="btn" id="onb-next" type="button">'+(s<2? 'Suivant' : 'Commencer')+'</button></div>';
+  if(s===3){
+    h+='<span class="eyebrow">Dernière étape</span><h2>Vous êtes prêt à démarrer 🍷</h2>';
+    h+='<p class="onb-lead">Votre cave est configurée. Vous pouvez commencer seul — ou vous faire accompagner pour découvrir les principales fonctions, clic après clic.</p>';
+    h+='<div class="formfoot" style="flex-direction:column;margin-top:18px"><button class="btn" id="onb-guided" type="button">🤝 Accompagne-moi (recommandé)</button><button class="btn sec" id="onb-solo" type="button">🚀 Démarrer tout seul</button></div>';
+    h+='<p class="hint" style="margin-top:14px">La visite couvre : la dictée, les filtres de la cave, le bouton ＋, les alertes, « Que boire ce soir ? » et vos réglages. Reprenable plus tard : Réglages → Revoir l\'accueil de démarrage.</p>';
+  }
+  if(s<3) h+='<div class="onb-foot">'+(s>0? '<button class="btn sec" id="onb-back" type="button">Retour</button>' : '<button class="btn sec" id="onb-skip" type="button">Plus tard</button>')+'<button class="btn" id="onb-next" type="button">'+(s<2? 'Suivant' : 'Continuer')+'</button></div>';
   if(s===1) h+='<button class="linkbtn onb-later" id="onb-later2" type="button">Passer cette étape</button>';
   o.innerHTML=h+'</div>';
   var lat=document.getElementById('onb-later2'); if(lat) lat.onclick=function(){ ONB.draft=null; ONB.step++; onbShow(); };
@@ -797,14 +743,59 @@ function onbShow(){
       .catch(function(e){ out.textContent='✖ '+(e&&e.message? e.message : 'Échec du test')+'. La clé est tout de même enregistrée : vous pourrez retester dans Réglages.'; });
     };
   }
+  if(s===3){
+    document.getElementById('onb-solo').onclick=onbFinish;
+    document.getElementById('onb-guided').onclick=function(){ onbFinish(); tourStart(); };
+  }
   var sk=document.getElementById('onb-skip'); if(sk) sk.onclick=onbFinish;
   var bk=document.getElementById('onb-back'); if(bk) bk.onclick=function(){ onbSaveStep(); ONB.step--; onbShow(); };
-  document.getElementById('onb-next').onclick=function(){ onbSaveStep(); if(ONB.step<2){ ONB.step++; onbShow(); o.scrollTop=0; } else onbFinish(); };
+  var nx=document.getElementById('onb-next'); if(nx) nx.onclick=function(){ onbSaveStep(); ONB.step++; onbShow(); o.scrollTop=0; };
 }
 function onbSaveStep(){
   if(ONB.step===0){ var p=document.getElementById('onb-prenom'); if(p) try{ localStorage.setItem('cave-prenom',p.value.trim()); }catch(e){} }
   if(ONB.step===1 && ONB.draft){ zonesCommit(ONB.draft); ONB.draft=null; }
   if(ONB.step===2){ var k=document.getElementById('onb-key'); if(k && k.value.trim() && !aiKey('gemini')){ lsSet('ai_provider','gemini'); lsSet('ai_key_gemini',k.value.trim()); } }
+}
+
+/* ===== v2.22 : visite accompagnée — bulles clic après clic ===== */
+var TOURS=[
+ {t:'Bienvenue dans votre cave', x:'Je vous montre l\'essentiel en quelques étapes courtes, une bulle à la fois — dans l\'ordre des boutons, de gauche à droite. Vous pouvez quitter à tout moment (✕ en haut à droite).', b:'C\'est parti'},
+ {sel:['#fab-mic'], t:'La dictée : parler à la cave', x:'Pour que la fiche se remplisse toute seule, nommez <b>distinctement</b> : <b>domaine</b> (« domaine Leflaive »), <b>appellation</b> (« Puligny-Montrachet »), <b>millésime</b> (« 2019 »), <b>zone de stockage</b> (« cave frigo, étagère 2 »). Exemple : « J\'ai acheté six Leflaive Puligny-Montrachet 2019, cave frigo, étagère 2. »', b:'Suivant'},
+ {view:'cave', sel:'.sortseg', t:'Naviguer dans votre cave', x:'Filtrez par couleur ou par zone de rangement, triez par Régions, Millésime ou Apogée. La recherche accepte les fautes de frappe.', b:'Suivant'},
+ {view:'dash', sel:['#tabbar [data-tab="plus"]','#d-add'], t:'Le bouton ＋ : ajouter une bouteille', x:'La saisie classique, champ par champ, quand vous préférez taper plutôt que dicter — ou pour modifier une fiche plus tard. La dictée reste le plus rapide.', b:'Suivant'},
+ {view:'alertes', sel:'.chips', t:'Les alertes, d\'un coup d\'œil', x:'Critiques, stock bas, apogées, données à vérifier, à racheter… tout est là, filtrable. L\'appli veille pendant que vous ne pensez à rien.', b:'Suivant'},
+ {view:'soir', sel:'#soir-mode', t:'Que boire ce soir ?', x:'Filtrez par couleur, occasion, gamme — ou décrivez votre envie au chat : l\'IA pioche dans votre cave pour vous proposer la bouteille idéale.', b:'Suivant'},
+ {view:'reglages', open:1, sel:'#m-batch', t:'Faire compléter les fiches par l\'IA', x:'« Vérifier et compléter les fiches » : couleur, région, apogée… sont proposées par l\'IA ou le référentiel intégré.', b:'Suivant'},
+ {view:'reglages', open:1, sel:'#m-zones', t:'Vos réglages perso', x:'Zones de rangement et table de garde (apogée) se règlent ici ; types et seuils d\'alertes dans le panneau Alertes juste en dessous.', b:'Suivant'},
+ {view:'dash', sel:'#fab-mic', t:'À vous de jouer 🎤', x:'Terminez en essayant la dictée : touchez le micro et nommez les 4 champs essentiels.<br><br>Vous saurez toujours : <b>ce que vous avez</b> (inventaire et fiches complètes), <b>où c\'est rangé</b> (zones et étagères), <b>quoi ouvrir ce soir</b> (apogées et suggestions), <b>quoi racheter</b> (alertes de stock) — <b>sans y penser</b>.', b:'Terminer la visite', end:voiceAssistant}
+];
+var TOUR=null;
+function tourStart(){ TOUR={i:0}; tourShow(); }
+function tourNext(){ if(!TOUR) return; TOUR.i++; if(TOUR.i>=TOURS.length) return tourEnd(); tourShow(); }
+function tourEnd(){
+  TOUR=null;
+  var tb=document.getElementById('tourbar'); if(tb){ tb.classList.remove('show'); tb.innerHTML=''; }
+  document.querySelectorAll('.tourhl').forEach(function(e){ e.classList.remove('tourhl'); });
+  try{ localStorage.setItem('cave-tour-done','1'); }catch(e){}
+}
+function tourShow(){
+  if(!TOUR) return;
+  var st=TOURS[TOUR.i], i=TOUR.i;
+  if(st.view && S.view!==st.view) go(st.view);
+  requestAnimationFrame(function(){
+    if(!TOUR || TOUR.i!==i) return;
+    document.querySelectorAll('.tourhl').forEach(function(e){ e.classList.remove('tourhl'); });
+    if(st.open!==undefined){ var ds=document.querySelectorAll('#main details.panel'); if(ds && ds[st.open]) ds[st.open].open=true; }
+    var el=null;
+    if(st.sel){ var sels=Array.isArray(st.sel)? st.sel : [st.sel]; for(var k=0;k<sels.length;k++){ el=document.querySelector(sels[k]); if(el) break; } }
+    if(el){ el.classList.add('tourhl'); try{ el.scrollIntoView({block:'center'}); }catch(e){} }
+    var tb=document.getElementById('tourbar');
+    tb.innerHTML='<div class="tourhead"><span class="eyebrow">Visite accompagnée · '+(i+1)+'/'+TOURS.length+'</span><button class="dclose" id="tour-x" type="button" aria-label="Quitter la visite">✕</button></div><h3>'+st.t+'</h3><p>'+st.x+'</p><div class="formfoot" style="margin-top:10px"><button class="btn" id="tour-next" type="button">'+st.b+'</button><button class="linkbtn" id="tour-skip" type="button">Quitter la visite</button></div>';
+    tb.classList.add('show');
+    document.getElementById('tour-x').onclick=tourEnd;
+    document.getElementById('tour-skip').onclick=tourEnd;
+    document.getElementById('tour-next').onclick=function(){ if(st.end){ var fn=st.end; tourEnd(); fn(); } else tourNext(); };
+  });
 }
 
 
@@ -1004,7 +995,6 @@ function render(){
   tb.innerHTML=th;
   tb.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ var t=b.getAttribute('data-tab'); if(t==='plus') plusMenu(); else go(t); }; });
   document.getElementById('fab-mic').innerHTML=ICO.mic;
-  document.getElementById('fab-mic').classList.toggle('newdot',!seenIs('mic'));
   var sb=document.getElementById('btn-settings-d'); sb.innerHTML=ICO.gear+' Paramètres'; sb.classList.toggle('on',S.view==='reglages'); sb.onclick=function(){ go('reglages',{push:true}); };
   var hs=document.getElementById('mhead-set'); if(hs){ hs.innerHTML=ICO.gear; hs.classList.toggle('on',S.view==='reglages'); hs.onclick=function(){ go('reglages',{push:true}); }; }
   document.getElementById('gauges').innerHTML=gaugesHTML();
@@ -1061,7 +1051,7 @@ function prenom(){ try{ var p=localStorage.getItem('cave-prenom'); return p===nu
 function vReglages(){
   var h='<div class="viewhead"><div><span class="eyebrow">Cave · '+APPV+'</span><h2>Réglages</h2></div></div><div class="setgroup">';
   h+='<details class="panel"><summary>Profil</summary><label>Prénom affiché sur l’accueil</label><input type="text" id="m-prenom" autocomplete="off" value="'+esc(prenom())+'"></details>';
-  h+='<details class="panel"><summary>Ma cave</summary><div class="gauges">'+gaugesHTML()+'</div><div class="formfoot" style="flex-direction:column"><button class="btn sec" id="m-zones">Modifier les zones de rangement…</button><button class="btn sec" id="m-batch">Vérifier et compléter les fiches</button><button class="btn sec" id="m-harmo">Harmoniser les noms de domaines</button><button class="btn sec" id="m-garde">Table de garde (apogée)…</button>'+(hasSamples()? '<button class="btn sec" id="m-samples">Supprimer les vins d’exemple</button>' : '')+'<button class="btn sec" id="m-onb">Revoir l’accueil de démarrage</button><button class="btn sec" id="m-chk">Revoir « Bien démarrer »</button></div></details>';
+  h+='<details class="panel"><summary>Ma cave</summary><div class="gauges">'+gaugesHTML()+'</div><div class="formfoot" style="flex-direction:column"><button class="btn sec" id="m-zones">Modifier les zones de rangement…</button><button class="btn sec" id="m-batch">Vérifier et compléter les fiches</button><button class="btn sec" id="m-harmo">Harmoniser les noms de domaines</button><button class="btn sec" id="m-garde">Table de garde (apogée)…</button>'+(hasSamples()? '<button class="btn sec" id="m-samples">Supprimer les vins d’exemple</button>' : '')+'<button class="btn sec" id="m-onb">Revoir l’accueil de démarrage</button></div></details>';
   var ac=alertCfg();
   h+='<details class="panel"><summary>Alertes</summary>';
   h+='<label>Seuil « stock bas »</label><select id="m-seuilmode"><option value="auto"'+(ac.seuilMode!=='fixe'?' selected':'')+'>Automatique : 0, 1 ou 2 selon la quantité d’origine</option><option value="fixe"'+(ac.seuilMode==='fixe'?' selected':'')+'>Seuil fixe pour toute la cave</option></select>';
@@ -1076,22 +1066,6 @@ function vReglages(){
   h+='<details class="panel"><summary>Dictée et assistant</summary><label>Dictée</label><select id="m-voice"><option value="auto"'+(voiceMode()==='auto'?' selected':'')+'>Automatique</option><option value="clavier"'+(voiceMode()==='clavier'?' selected':'')+'>Toujours le clavier iPhone</option></select>';
   h+='<p class="hint" style="margin:6px 0 16px">Reconnaissance intégrée : '+(hasSR()?'disponible dans ce navigateur':'non disponible ici (dictée par le clavier)')+(isStandalone()?' · appli écran d’accueil':'')+'</p>';
   h+=aiSettingsHTML()+'</details>';
-  h+='<details class="panel"><summary>Tout ce que l’appli sait faire</summary><p class="hint" style="margin:4px 0 10px">La liste de toutes les fonctions, avec un accès direct.</p><div class="group" style="border:none;box-shadow:none;margin:0;padding:0">';
-  h+='<div class="lrow" id="fi-dict"><span class="l"><span style="color:var(--acc)">🎤</span><span>Dictée : parler à la cave (ajout, sortie, réassort, recherche)</span></span></div>';
-  h+='<div class="lrow" id="fi-add"><span class="l"><span style="color:var(--acc)">＋</span><span>Ajouter une bouteille (saisie manuelle)</span></span></div>';
-  h+='<div class="lrow" id="fi-out"><span class="l"><span style="color:var(--acc)">−1</span><span>Sortir une bouteille (compteur sur chaque fiche)</span></span></div>';
-  h+='<div class="lrow" id="fi-re"><span class="l"><span style="color:var(--acc)">'+ICO.re+'</span><span>Réassort : remettre une référence connue en stock</span></span></div>';
-  h+='<div class="lrow" id="fi-batch"><span class="l"><span style="color:var(--acc)">✅</span><span>Vérifier et compléter les fiches (IA / référentiel)</span></span></div>';
-  h+='<div class="lrow" id="fi-harmo"><span class="l"><span style="color:var(--acc)">🧹</span><span>Harmoniser les noms de domaines</span></span></div>';
-  h+='<div class="lrow" id="fi-garde"><span class="l"><span style="color:var(--acc)">📖</span><span>Table de garde : apogée par appellation et millésime</span></span></div>';
-  h+='<div class="lrow" id="fi-zones"><span class="l"><span style="color:var(--acc)">📦</span><span>Zones de rangement (nom, capacité, étagères)</span></span></div>';
-  h+='<div class="lrow" id="fi-sel"><span class="l"><span style="color:var(--acc)">☑️</span><span>Sélection en lot : ranger plusieurs bouteilles d’un coup</span></span></div>';
-  h+='<div class="lrow" id="fi-soir"><span class="l"><span style="color:var(--acc)">🍷</span><span>Que boire ce soir ? (filtres ou décrire au chat)</span></span></div>';
-  h+='<div class="lrow" id="fi-alertes"><span class="l"><span style="color:var(--acc)">🔔</span><span>Alertes : critiques, stocks, apogées, données, à racheter</span></span></div>';
-  h+='<div class="lrow" id="fi-recup"><span class="l"><span style="color:var(--acc)">♻</span><span>Récupérer des fiches depuis la mémoire IA</span></span></div>';
-  h+='<div class="lrow" id="fi-exp"><span class="l"><span style="color:var(--acc)">💾</span><span>Exporter / importer une copie (.json)</span></span></div>';
-  h+='<div class="lrow" id="fi-cfg"><span class="l"><span style="color:var(--acc)">☁️</span><span>Synchroniser avec OneDrive (plusieurs appareils)</span></span></div>';
-  h+='</div></details>';
   h+='<p class="hint">Thème : suit le réglage clair / sombre de l’appareil.</p></div>';
   document.getElementById('main').innerHTML=h;
   var pr=document.getElementById('m-prenom'); pr.onchange=function(){ try{ localStorage.setItem('cave-prenom',pr.value.trim()); }catch(e){} toast('Prénom enregistré'); };
@@ -1102,7 +1076,7 @@ function vReglages(){
   var sm=document.getElementById('m-seuilmode'), sbx=document.getElementById('m-seuilbox'), sfx=document.getElementById('m-seuilfixe');
   sm.onchange=function(){ sbx.style.display=sm.value==='fixe'?'':'none'; var c=alertCfg(); c.seuilMode=sm.value==='fixe'?'fixe':'auto'; if(isNaN(parseInt(c.seuilFixe,10))) c.seuilFixe=2; alertCfgSave(c); render(); };
   sfx.onchange=function(){ var c=alertCfg(); c.seuilFixe=Math.max(0,parseInt(sfx.value,10)||0); alertCfgSave(c); render(); };
-  document.querySelectorAll('[data-altype]').forEach(function(ch){ ch.onchange=function(){ var c=alertCfg(); c.types[ch.getAttribute('data-altype')]=ch.checked; alertCfgSave(c); chkDone('reglages'); render(); }; });
+  document.querySelectorAll('[data-altype]').forEach(function(ch){ ch.onchange=function(){ var c=alertCfg(); c.types[ch.getAttribute('data-altype')]=ch.checked; alertCfgSave(c); render(); }; });
   document.getElementById('m-garde').onclick=function(){ inaoLoad().then(function(){ gardePanel(''); }); };
   var ms=document.getElementById('m-samples'); if(ms) ms.onclick=function(){ removeSamples(); vReglages(); };
   document.getElementById('m-onb').onclick=function(){ ONB.step=0; ONB.draft=null; onbShow(); };
@@ -1112,21 +1086,6 @@ function vReglages(){
   document.getElementById('m-exp').onclick=doExport;
   document.getElementById('m-recup').onclick=function(){ recupPanel(3); };
   document.getElementById('m-imp').onclick=function(){ document.getElementById('fileinput').click(); };
-  document.getElementById('m-chk').onclick=chkReopen;
-  document.getElementById('fi-dict').onclick=voiceAssistant;
-  document.getElementById('fi-add').onclick=function(){ go('add',{push:true}); };
-  document.getElementById('fi-out').onclick=function(){ go('cave'); toast('Touchez « −1 » sur la bouteille, ou cherchez-la'); };
-  document.getElementById('fi-re').onclick=restockPanel;
-  document.getElementById('fi-batch').onclick=batchPanel;
-  document.getElementById('fi-harmo').onclick=function(){ harmoPanel(null); };
-  document.getElementById('fi-garde').onclick=function(){ inaoLoad().then(function(){ gardePanel(''); }); };
-  document.getElementById('fi-zones').onclick=zonesPanel;
-  document.getElementById('fi-sel').onclick=function(){ go('cave'); selStart([]); toast('Touchez les bouteilles à modifier ensemble'); };
-  document.getElementById('fi-soir').onclick=function(){ go('soir',{push:true}); };
-  document.getElementById('fi-alertes').onclick=function(){ go('alertes',{push:true}); };
-  document.getElementById('fi-recup').onclick=function(){ recupPanel(3); };
-  document.getElementById('fi-exp').onclick=doExport;
-  document.getElementById('fi-cfg').onclick=openCfg;
 }
 var PCLS={'Rouge':'rouge','Blanc':'blanc','Rosé':'rose','Effervescent':'eff'};
 function pastille(r){ return '<span class="pastille p-'+(PCLS[r.couleur]||'blanc')+'" title="'+esc(r.couleur||'')+'"></span>'; }
@@ -1188,8 +1147,6 @@ function vDash(){
   var pn=prenom();
   var h='<div class="viewhead"><div><span class="eyebrow">'+esc(now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}))+'</span><h2>'+(now.getHours()>=18?'Bonsoir':'Bonjour')+(pn? ' '+esc(pn) : '')+'</h2></div><button class="btn hide-m" id="d-add">＋ Ajouter une bouteille</button></div>';
   h+='<div class="summary"><span>'+qsum(cur)+' bouteille'+(qsum(cur)>1?'s':'')+' · '+cur.length+' réf.</span>'+(ZONES.length>1? ZONES.map(function(z){ var q=qsum(cur.filter(function(r){ return zoneOf(r).id===z.id; })); return '<span>'+esc(z.nom)+' '+q+(z.cap?'/'+z.cap:'')+'</span>'; }).join('') : '')+'</div>';
-  var chkHide=false; try{ chkHide=localStorage.getItem(CHK_HIDE_KEY)==='1'; }catch(e){}
-  if(!chkHide && chkCount()<CHK.length) h+=chkBlock();
   if(hasSamples()) h+='<div class="banner" style="margin-top:14px">Les vins marqués « Exemple » sont là pour découvrir l’appli (producteurs fictifs). <button class="linkbtn" id="d-samples">Les supprimer</button></div>';
   if(!cur.length){ h+='<p class="hint" style="margin-top:20px">Aucune bouteille pour l’instant. Touchez ＋ ou le micro pour commencer.</p>'; }
   if(cur.length){
@@ -1201,7 +1158,6 @@ function vDash(){
   }
   document.getElementById('main').innerHTML=h;
   document.getElementById('d-add').onclick=function(){ go('add',{push:true}); };
-  chkBind();
   var dsm=document.getElementById('d-samples'); if(dsm) dsm.onclick=removeSamples;
   var dd=document.getElementById('d-drink'); if(dd) dd.onclick=function(){ S.sort='apo'; S.filter='Tous'; try{ localStorage.setItem('cave-sort','apo'); }catch(e){} go('cave',{push:true}); };
   bindCards();
@@ -1210,7 +1166,7 @@ function vDash(){
 function vCave(){
   var chips=['Tous','Rouge','Blanc','Rosé','Effervescent'].concat(ZONES.length>1? ZONES.map(function(z){ return z.nom; }) : [],['Épuisées']);
   var h='';
-  h+='<div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><div class="vh-actions"><button class="btn sec'+(seenIs('lot')?'':' newdot')+'" id="c-sel">'+(S.sel?'Terminer':'Sélectionner')+'</button><button class="btn hide-m" id="c-add">＋ Ajouter</button></div></div>';
+  h+='<div class="viewhead"><div><span class="eyebrow">Inventaire</span><h2>Ma cave</h2></div><div class="vh-actions"><button class="btn sec" id="c-sel">'+(S.sel?'Terminer':'Sélectionner')+'</button><button class="btn hide-m" id="c-add">＋ Ajouter</button></div></div>';
   h+=fillBarHTML();
   h+='<div class="searchbar"><input type="search" id="c-search" enterkeyhint="search" autocomplete="off" placeholder="Domaine, région, appellation, millésime…"><button class="btn sec" id="c-micro" title="Recherche vocale">🎤</button></div>';
   h+='<div class="chips">'+chips.map(function(c){ return '<button class="chip'+(S.filter===c?' on':'')+'" data-chip="'+c+'">'+c+'</button>'; }).join('')+'</div>';
@@ -1226,18 +1182,17 @@ function vCave(){
     document.querySelectorAll('[data-chip]').forEach(function(x){ x.classList.toggle('on', x===b); });
     caveGrid(); }; });
   document.querySelectorAll('[data-sort]').forEach(function(b){ b.onclick=function(){
-    S.sort=b.getAttribute('data-sort'); try{ localStorage.setItem('cave-sort',S.sort); }catch(e){} chkDone('filtres');
+    S.sort=b.getAttribute('data-sort'); try{ localStorage.setItem('cave-sort',S.sort); }catch(e){}
     document.querySelectorAll('[data-sort]').forEach(function(x){ x.classList.toggle('on', x===b); });
     caveGrid(); window.scrollTo(0,0); }; });
   document.getElementById('c-add').onclick=function(){ go('add',{push:true}); };
-  document.getElementById('c-sel').onclick=function(){ if(S.sel) selEnd(); else { seenMark('lot'); selStart([]); toast('Touchez les bouteilles à modifier ensemble'); } };
+  document.getElementById('c-sel').onclick=function(){ if(S.sel) selEnd(); else { selStart([]); toast('Touchez les bouteilles à modifier ensemble'); } };
   if(S.sel){ document.documentElement.classList.add('selon'); selBar(); }
   bindFillBar();
   function plainSearch(t){ S.search=t; se.value=t; caveGrid(); }
   document.getElementById('c-micro').onclick=function(){
     listen({ title:'Rechercher', ok:'Rechercher', silence:2500, done:function(t){ hybridAssist(localIntent(t)==='ajout'? t+' ?' : t); } });
   };
-  seenOnce('sort','💡 Triez par Millésime ou Apogée, filtrez par couleur ou zone de rangement.');
   caveGrid();
 }
 // Recherche tolérante : chaque mot significatif doit apparaître (sans accents, ordre libre) ; « domaine », « de », « la »… sont ignorés
@@ -1405,7 +1360,6 @@ function vAdd(){
   document.getElementById('f-apogee').addEventListener('input',function(){ S.apoLock=true; apoSrcLine(null); });
   document.getElementById('a-form').onsubmit=function(e){
     e.preventDefault();
-    var usedDict=!!S.dict;
     if(!val('f-couleur')){ cepColorAssist(); }
     if(!val('f-couleur')){ var fw=document.getElementById('f-warn'); fw.textContent='Précisez la couleur (rouge, blanc, rosé ou effervescent) : elle sert au calcul de l’apogée.'; var fc=document.getElementById('f-couleur'); fc.focus(); fc.scrollIntoView({block:'center'}); return; }
     var zone=val('f-zone'), ap=val('f-apogee');
@@ -1418,15 +1372,12 @@ function vAdd(){
     } else {
       o.qteInit=o.qte; o.id=id(); o.lots=[{qte:o.qte,date:o.dateEntree}];
       S.refs.push(o); toast('Bouteille ajoutée en cave');
-      if(usedDict) chkDone('dictee');
-      if(o.qte>0 && hasSamples() && !seenIs('samples')){ seenMark('samples'); suggest('Vos vins d’exemple sont toujours là — les supprimer pour ne garder que vos vraies bouteilles ?','Supprimer les exemples',removeSamples); }
     }
     S.editId=null; S.dict=''; resetProv(); localSave(); if(OD.token) odPush();
     if(S.nav.length){ navBack(false); } else { S.view='cave'; render(); window.scrollTo(0,0); }
   };
 }
 function restockPanel(){
-  seenMark('re');
   var h='';
   h+='<span class="eyebrow">Entrée en cave</span><h3 style="margin:4px 0 12px">Retrouver une référence connue</h3>';
   h+='<p class="hint" style="margin-bottom:10px">Y compris les références épuisées.</p>';
@@ -1522,11 +1473,10 @@ function soirCard(x){
   return h;
 }
 function vSoir(){
-  chkDone('soir');
   var f=soirF();
   if(f.mode==='chat') return vSoirChat(f);
   var h='';
-  h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div><button class="btn sec'+(seenIs('soirchat')?'':' newdot')+'" id="soir-mode">💬 Décrire au chat</button></div>';
+  h+='<div class="viewhead"><div><span class="eyebrow">Sortie</span><h2>Que boire ce soir ?</h2></div><button class="btn sec" id="soir-mode">💬 Décrire au chat</button></div>';
   h+='<div class="soirgrid">';
   h+='<div class="srow"><span class="slab">Couleur</span><div class="chips">'+chipBtn(f,'col','Tous','Toutes')+COULEURS.map(function(c){ return chipBtn(f,'col',c,c); }).join('')+'</div></div>';
   h+='<div class="srow"><span class="slab">Occasion</span><div class="chips">'+chipBtn(f,'occ','','Peu importe')+Object.keys(SOIROCC).map(function(o){ return chipBtn(f,'occ',o,o); }).join('')+'</div></div>';
@@ -1550,7 +1500,7 @@ function vSoir(){
       soirSave(f); vSoir();
     };
   });
-  document.getElementById('soir-mode').onclick=function(){ seenOnce('soirchat','💬 Décrivez votre envie (« un blanc vif pour des huîtres ») : l’IA pioche dans votre cave.'); f.mode='chat'; soirSave(f); vSoir(); };
+  document.getElementById('soir-mode').onclick=function(){ f.mode='chat'; soirSave(f); vSoir(); };
   document.querySelectorAll('[data-out]').forEach(function(b){ b.onclick=function(){ quickOut(b.getAttribute('data-out'),1); vSoir(); }; });
   var rb=document.getElementById('soir-rand');
   if(rb) rb.onclick=function(){
@@ -1678,7 +1628,6 @@ function recoSoir(t){
 }
 
 function vAlertes(){
-  chkDone('alertes');
   if(!INAO){ inaoLoad().then(function(){ if(S.view==='alertes') vAlertes(); }).catch(function(){}); }
   var als=allAlerts(), f=S.alertFilter||'tous';
   // « À racheter » : références épuisées ou sous le seuil (filtre, pas un type d'alerte)
@@ -1746,7 +1695,6 @@ function autoApo(){
   renderProv(); apoSrcLine(null);
 }
 function gardePanel(q){
-  chkDone('reglages');
   var h='<span class="eyebrow">Réglages</span><h3 style="margin:4px 0 6px">Table de garde</h3>';
   h+='<p class="hint">Durées publiées par appellation, en années après le millésime. Source : Guide Hachette des Vins (fiches appellations), complété par Vins Vignes Vignerons. Vous pouvez remplacer une valeur : votre choix s’applique aux fenêtres calculées par la table (pas à celles que vous avez saisies). Vos modifications restent sur cet appareil.</p>';
   h+='<label style="margin-top:10px">Appellation</label><input type="text" id="g-q" list="inao-list" autocomplete="off" value="'+esc(q||'')+'">';
@@ -2632,7 +2580,6 @@ function hybridAssist(t){
   }).catch(function(){ if(!shown && tok===S.aiTok) toast('IA indisponible — bouteille non trouvée localement'); });
 }
 function voiceAssistant(){
-  if(!seenIs('mic')) return micCoach();
   listen({ title:'Parler à la cave', ok:'Envoyer', silence:3000, rows:4,
     help:'Ex. « J’ai acheté six Leflaive Puligny 2019 à 65 euros, étagère 2 », « J’ai ouvert une Huet 2020 », « Qu’est-ce que j’ai comme blanc à boire ? »',
     done:function(t){ hybridAssist(t); } });
@@ -3091,7 +3038,7 @@ function bulkPanel(fk){
 }
 
 // v2.20 : « Compléter » commence par l'harmonisation des noms de domaines, puis la complétion des champs
-function batchPanel(){ chkDone('ia'); harmoPanel(batchFill); }
+function batchPanel(){ harmoPanel(batchFill); }
 function batchFill(){
   var active=S.refs.filter(function(r){ return r.qte>0; });
   if(!active.length){ toast('Aucune fiche en stock'); return; }
