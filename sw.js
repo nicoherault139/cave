@@ -1,4 +1,4 @@
-var CACHE = 'cave-v2-20-1';
+var CACHE = 'cave-v2-21';
 var ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png', './inao.json'];
 // Installation tolÃÂ©rante : un fichier manquant ne bloque plus la mise ÃÂ  jour de l'appli
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(ASSETS.map(function (a) { return c.add(new Request(a, { cache: 'reload' })).catch(function () {}); })); }).then(function () { return self.skipWaiting(); })); });
